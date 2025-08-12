@@ -51,9 +51,12 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
+      - name: Install root dependencies (for husky)
+        run: npm ci
+
       - name: Install backend dependencies
         working-directory: ./apps/backend
-        run: npm ci --ignore-scripts
+        run: npm ci
 
       - name: Run backend tests
         working-directory: ./apps/backend
@@ -125,9 +128,12 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
+      - name: Install root dependencies (for husky)
+        run: npm ci
+
       - name: Install frontend dependencies
         working-directory: ./apps/frontend
-        run: npm ci --ignore-scripts
+        run: npm ci
 
       - name: Run frontend tests
         working-directory: ./apps/frontend
