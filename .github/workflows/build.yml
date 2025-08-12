@@ -51,12 +51,8 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Install root dependencies
+      - name: Install dependencies
         run: npm ci
-
-      - name: Install backend dependencies
-        working-directory: ./apps/backend
-        run: npm ci --ignore-scripts
 
       - name: Run backend tests
         working-directory: ./apps/backend
@@ -128,12 +124,8 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Install root dependencies
+      - name: Install dependencies
         run: npm ci
-
-      - name: Install frontend dependencies
-        working-directory: ./apps/frontend
-        run: npm ci --ignore-scripts
 
       - name: Run frontend tests
         working-directory: ./apps/frontend
@@ -162,7 +154,7 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Install root dependencies
+      - name: Install dependencies
         run: npm ci
 
       - name: Build Storybook
