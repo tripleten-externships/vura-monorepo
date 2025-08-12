@@ -1,0 +1,15 @@
+{
+  "name": "@vura/config",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Shared configuration files for the Vura monorepo",
+  "main": "index.js",
+  "files": [
+    "tsconfig.base.json",
+    "tsconfig.backend.json",
+    "tsconfig.frontend.json",
+    "eslint.config.js",
+    "eslint.config.frontend.js"
+  ]
+}

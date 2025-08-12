@@ -1,0 +1,216 @@
+name: Build and Package
+
+on:
+  push:
+    branches:
+      - main
+      - 'develop'
+  pull_request:
+    branches:
+      - main
+      - 'develop'
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  set_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set Matrix Based on Branch
+        id: set-matrix
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo 'matrix={"environment":["staging","prod"]}' >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo 'matrix={"environment":["dev"]}' >> $GITHUB_OUTPUT
+          else
+            echo 'matrix={"environment":[]}' >> $GITHUB_OUTPUT
+          fi
+
+  build-backend:
+    runs-on: ubuntu-latest
+    needs: [set_matrix]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    strategy:
+      matrix: ${{ fromJson(needs.set_matrix.outputs.matrix) }}
+    environment: ${{ matrix.environment }}
+    outputs:
+      image_tag: ${{ steps.build-image.outputs.image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        working-directory: ./apps/backend
+        run: npm ci
+
+      - name: Run backend tests
+        working-directory: ./apps/backend
+        run: npm test
+
+      - name: Run backend linting
+        working-directory: ./apps/backend
+        run: npm run lint
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set environment variables
+        id: set-env
+        run: |
+          if [ "${{ matrix.environment }}" = "prod" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "image_tag=latest" >> $GITHUB_OUTPUT
+            echo "additional_tag=prod" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.environment }}" = "dev" ]; then
+            echo "environment=dev" >> $GITHUB_OUTPUT
+            echo "image_tag=latest" >> $GITHUB_OUTPUT
+            echo "additional_tag=dev" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "image_tag=latest" >> $GITHUB_OUTPUT
+            echo "additional_tag=staging" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build, tag, and push backend image to Amazon ECR
+        id: build-image
+        working-directory: ./apps/backend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: ${{ steps.set-env.outputs.image_tag }}
+          ADDITIONAL_TAG: ${{ steps.set-env.outputs.additional_tag }}
+        run: |
+          echo "Building Docker image for ${{ steps.set-env.outputs.environment }} environment..."
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$ADDITIONAL_TAG
+          echo "Pushing image to ECR..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$ADDITIONAL_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    needs: [set_matrix]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    strategy:
+      matrix: ${{ fromJson(needs.set_matrix.outputs.matrix) }}
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        working-directory: ./apps/frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: ./apps/frontend
+        run: npm test
+
+      - name: Build frontend application
+        working-directory: ./apps/frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.API_URL }}
+
+      - name: Build Storybook
+        working-directory: ./apps/frontend
+        run: npm run build-storybook
+
+  build-packages:
+    runs-on: ubuntu-latest
+    needs: [set_matrix]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    strategy:
+      matrix: ${{ fromJson(needs.set_matrix.outputs.matrix) }}
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+  test-all:
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend, build-packages]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run all tests
+        run: npm test
+
+      - name: Run all linting
+        run: npm run lint
+
+      - name: Type check
+        run: npm run type-check
+
+  trigger_deploy_workflow:
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend, build-packages]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    outputs:
+      IMAGE_TAG: ${{ needs.build-backend.outputs.image_tag }}
+    steps:
+      - name: Trigger Deploy Workflow
+        # utilizes the repository-dispatch action to trigger the deploy.yml workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: 'deploy'
+          # passes JSON payload with version and environment
+          # main branch triggers deployment to staging; develop branch triggers deployment to dev
+          client-payload: |
+            {
+              "version": "${{ needs.build-backend.outputs.image_tag }}",
+              "environment": "${{ github.ref == 'refs/heads/main' && 'staging' || github.ref == 'refs/heads/develop' && 'dev' }}",
+              "deploy_backend": true,
+              "deploy_frontend": true,
+              "deploy_storybook": true
+            }

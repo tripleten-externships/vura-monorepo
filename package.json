@@ -1,0 +1,50 @@
+{
+  "name": "vura-monorepo",
+  "version": "1.0.0",
+  "description": "Vura application monorepo containing frontend and backend services",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "type-check": "turbo run type-check",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepare": "husky install",
+    "backend:dev": "turbo run dev --filter=vura-backend",
+    "backend:build": "turbo run build --filter=vura-backend",
+    "frontend:dev": "turbo run dev --filter=vura-frontend",
+    "frontend:build": "turbo run build --filter=vura-frontend"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.12.4",
+    "turbo": "^1.12.4",
+    "prettier": "^3.1.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3",
+    "git-commit-msg-linter": "^5.0.8",
+    "validate-branch-name": "^1.3.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "packageManager": "npm@10.2.4",
+  "validate-branch-name": {
+    "pattern": "^(master|main|develop){1}$|^(feature|fix|hotfix|release|BH-[^/]+)/.+$",
+    "errorMsg": "Branch name validation failed. Please rename your current branch."
+  }
+}

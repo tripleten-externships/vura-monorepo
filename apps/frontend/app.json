@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "BetterHunt Vura",
+    "slug": "betterhunt-vura",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.betterhunt.vura"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.betterhunt.vura"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "vite"
+    },
+    "plugins": ["expo-router"],
+    "scheme": "betterhunt-vura"
+  }
+}
