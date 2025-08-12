@@ -6,7 +6,7 @@ RUN apk add --no-cache openssl openssl-dev libc6-compat python3 make g++
 
 WORKDIR /app
 
-ARG APP_DIR=.
+ARG APP_DIR=apps/backend
 
 COPY ${APP_DIR}/package*.json ./
 
