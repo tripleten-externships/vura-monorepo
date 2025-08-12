@@ -51,7 +51,7 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Install root dependencies (for husky)
+      - name: Install root dependencies
         run: npm ci
 
       - name: Install backend dependencies
@@ -128,7 +128,7 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Install root dependencies (for husky)
+      - name: Install root dependencies
         run: npm ci
 
       - name: Install frontend dependencies
@@ -144,6 +144,26 @@ jobs:
         run: npm run build
         env:
           VITE_API_URL: ${{ secrets.API_URL }}
+
+  build-storybook:
+    runs-on: ubuntu-latest
+    needs: [set_matrix]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    strategy:
+      matrix: ${{ fromJson(needs.set_matrix.outputs.matrix) }}
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
 
       - name: Build Storybook
         working-directory: ./apps/frontend
@@ -192,7 +212,7 @@ jobs:
 
   test-all:
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend, build-packages]
+    needs: [build-backend, build-frontend, build-storybook, build-packages]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
 
     services:
@@ -236,7 +256,7 @@ jobs:
 
   trigger_deploy_workflow:
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend, build-packages]
+    needs: [build-backend, build-frontend, build-storybook, build-packages]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     outputs:
       IMAGE_TAG: ${{ needs.build-backend.outputs.image_tag }}
