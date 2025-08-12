@@ -7,4 +7,16 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  resolve: {
+    alias: {
+      'react-native': 'react-native-web',
+    },
+  },
+  define: {
+    global: 'globalThis',
+    'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || ''),
+  },
+  optimizeDeps: {
+    include: ['react-native-web'],
+  },
 });

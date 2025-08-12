@@ -1,4 +1,7 @@
 {
   "extends": "../../packages/config/tsconfig.frontend.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
   "references": [{ "path": "./tsconfig.node.json" }]
 }
