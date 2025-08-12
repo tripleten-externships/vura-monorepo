@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
+// import { router } from 'expo-router';
 
 export default function WelcomePage() {
   const handleLogin = () => {
-    // Navigate to login page or show login modal
+    // navigate to login page or show login modal
     console.log('Login pressed');
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to BetterHunt Vura</Text>
+      <Text style={styles.title}>Welcome to Vura by Betterhunt</Text>
       <Text style={styles.subtitle}>Please log in to continue</Text>
 
       <TouchableOpacity style={styles.button} onPress={handleLogin}>

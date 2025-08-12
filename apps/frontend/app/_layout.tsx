@@ -1,6 +1,6 @@
+import React, { useEffect } from 'react';
 import { ApolloProvider } from '@apollo/client/react';
 import { Stack } from 'expo-router';
-import { useEffect } from 'react';
 import { client } from '../src/store';
 import '../src/global/default.css';
 

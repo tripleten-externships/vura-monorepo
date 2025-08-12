@@ -13,7 +13,7 @@ const dbUrl =
 export default withAuth(
   config({
     server: {
-      // Use an unprivileged default port for local development
+      // use an unprivileged default port for local dev
       port: process.env.PORT
         ? parseInt(process.env.PORT)
         : process.env.NODE_ENV === 'production'
@@ -46,7 +46,7 @@ export default withAuth(
         kind: 's3',
         type: 'file',
         bucketName: process.env.S3_BUCKET_NAME || 'vura-keystonejs',
-        region: process.env.S3_REGION || 'us-east-2',
+        region: process.env.S3_REGION || 'us-east-1',
         accessKeyId: process.env.S3_ACCESS_KEY_ID || 'keystone',
         secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || 'keystone',
         signed: { expiry: 5000 },
@@ -56,7 +56,7 @@ export default withAuth(
         kind: 's3',
         type: 'image',
         bucketName: process.env.S3_BUCKET_NAME || 'vura-keystonejs',
-        region: process.env.S3_REGION || 'us-east-2',
+        region: process.env.S3_REGION || 'us-east-1',
         accessKeyId: process.env.S3_ACCESS_KEY_ID || 'keystone',
         secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || 'keystone',
         signed: { expiry: 5000 },
