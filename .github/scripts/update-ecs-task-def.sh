@@ -38,6 +38,10 @@ echo "Using task definition family: $TASK_DEF_FAMILY"
           
 # Get current task definition
 TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $TASK_DEF_FAMILY --region $AWS_REGION --query 'taskDefinition' --output json)
+
+# Debug: Show current container names
+echo "Current container definitions:"
+echo $TASK_DEFINITION | jq '.containerDefinitions[].name'
           
 # Update container image
 TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" '.containerDefinitions[0].image = $IMAGE')

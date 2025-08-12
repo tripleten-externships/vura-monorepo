@@ -106,20 +106,24 @@ jobs:
             echo "environment=production" >> $GITHUB_OUTPUT
             echo "image_tag=latest" >> $GITHUB_OUTPUT
             echo "additional_tag=prod" >> $GITHUB_OUTPUT
+            echo "stack_name=vura-prod" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.environment }}" = "dev" ]; then
             echo "environment=dev" >> $GITHUB_OUTPUT
             echo "image_tag=latest" >> $GITHUB_OUTPUT
             echo "additional_tag=dev" >> $GITHUB_OUTPUT
+            echo "stack_name=vura-dev" >> $GITHUB_OUTPUT
           else
             echo "environment=staging" >> $GITHUB_OUTPUT
             echo "image_tag=latest" >> $GITHUB_OUTPUT
             echo "additional_tag=staging" >> $GITHUB_OUTPUT
+            echo "stack_name=vura-staging" >> $GITHUB_OUTPUT
           fi
 
       - name: Check ECS resources
         id: check-ecs
         env:
           ENVIRONMENT: ${{ steps.set-env.outputs.environment }}
+          STACK_NAME: ${{ steps.set-env.outputs.stack_name }}
         run: .github/scripts/check-ecs.sh
 
       - name: Update ECS task definition
@@ -144,6 +148,7 @@ jobs:
         env:
           ENVIRONMENT: ${{ steps.set-env.outputs.environment }}
           CLUSTER_NAME: ${{ steps.check-ecs.outputs.cluster }}
+          SERVICE_NAME: ${{ steps.check-ecs.outputs.service_name }}
           TASK_DEF_FAMILY: ${{ steps.check-ecs.outputs.task_def_family }}
         run: .github/scripts/update-ecs-service.sh
 
@@ -152,6 +157,7 @@ jobs:
         env:
           ENVIRONMENT: ${{ steps.set-env.outputs.environment }}
           CLUSTER_NAME: ${{ steps.check-ecs.outputs.cluster }}
+          SERVICE_NAME: ${{ steps.check-ecs.outputs.service_name }}
         run: .github/scripts/wait-for-deployment.sh
 
       - name: ECS Resources Not Found

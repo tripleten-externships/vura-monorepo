@@ -11,88 +11,92 @@ if [ -z "$ENVIRONMENT" ]; then
   exit 1
 fi
 
-echo "Checking for ECS resources in region: $AWS_REGION"
-          
-# List clusters and find environment-specific cluster
-echo "Listing clusters..."
-CLUSTERS=$(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns' --output text)
-echo "Available clusters: $CLUSTERS"
-          
-# Find environment-specific cluster
-ENVIRONMENT_CLUSTER=""
-if [ "$ENVIRONMENT" = "production" ]; then
-  # For production, look for a cluster with 'prod' or 'production' in the name
-  for cluster in $CLUSTERS; do
-    if [[ $cluster == *"prod"* ]] || [[ $cluster == *"production"* ]]; then
-      ENVIRONMENT_CLUSTER=$cluster
-      break
-    fi
-  done
-else
-  # For staging, look for a cluster with 'staging' in the name (exact logic from original)
-  for cluster in $CLUSTERS; do
-    if [[ $cluster == *"staging"* ]]; then
-      ENVIRONMENT_CLUSTER=$cluster
-      break
-    fi
-  done
+if [ -z "$STACK_NAME" ]; then
+  echo "Error: STACK_NAME environment variable is not set"
+  exit 1
 fi
-          
-if [ -z "$ENVIRONMENT_CLUSTER" ]; then
-  echo "No $ENVIRONMENT cluster found!"
+
+echo "Checking ECS resources for environment: $ENVIRONMENT"
+echo "Using CloudFormation stack: $STACK_NAME"
+echo "Using AWS region: $AWS_REGION"
+
+# Get ECS resources from CloudFormation stack outputs
+echo "Getting ECS resources from CloudFormation stack outputs..."
+
+# Get cluster name from stack outputs
+CLUSTER_NAME=$(aws cloudformation describe-stacks \
+  --stack-name $STACK_NAME \
+  --region $AWS_REGION \
+  --query 'Stacks[0].Outputs[?OutputKey==`ECSClusterName`].OutputValue' \
+  --output text 2>/dev/null)
+
+# Get task definition family from stack outputs  
+TASK_DEF_FAMILY=$(aws cloudformation describe-stacks \
+  --stack-name $STACK_NAME \
+  --region $AWS_REGION \
+  --query 'Stacks[0].Outputs[?OutputKey==`ECSTaskDefinitionFamily`].OutputValue' \
+  --output text 2>/dev/null)
+
+# Get service name from stack outputs
+SERVICE_NAME=$(aws cloudformation describe-stacks \
+  --stack-name $STACK_NAME \
+  --region $AWS_REGION \
+  --query 'Stacks[0].Outputs[?OutputKey==`ECSServiceName`].OutputValue' \
+  --output text 2>/dev/null)
+
+# Check if we got all required outputs
+if [ -z "$CLUSTER_NAME" ] || [ -z "$TASK_DEF_FAMILY" ] || [ -z "$SERVICE_NAME" ]; then
+  echo "Could not find all required ECS resources in CloudFormation stack outputs"
+  echo "Available stack outputs:"
+  aws cloudformation describe-stacks \
+    --stack-name $STACK_NAME \
+    --region $AWS_REGION \
+    --query 'Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}' \
+    --output table 2>/dev/null || echo "Failed to get stack outputs"
+  
+  echo "Expected outputs: ECSClusterName, ECSTaskDefinitionFamily, ECSServiceName"
+  echo "Found:"
+  echo "  Cluster: $CLUSTER_NAME"
+  echo "  Task Definition Family: $TASK_DEF_FAMILY"  
+  echo "  Service: $SERVICE_NAME"
   echo "ecs_exists=false" >> $GITHUB_OUTPUT
   exit 0
 fi
-          
-ENVIRONMENT_CLUSTER_NAME=$(echo $ENVIRONMENT_CLUSTER | cut -d'/' -f2)
-echo "Found $ENVIRONMENT cluster: $ENVIRONMENT_CLUSTER_NAME"
-          
-# List task definitions and find environment-specific task definition
-echo "Listing task definitions..."
-TASK_DEFS=$(aws ecs list-task-definitions --region $AWS_REGION --query 'taskDefinitionArns' --output text)
-echo "Available task definitions: $TASK_DEFS"
-          
-# Find environment-specific task definition
-ENVIRONMENT_TASK_DEF=""
-if [ "$ENVIRONMENT" = "production" ]; then
-  # For production, look for a task definition with 'prod' or 'production' in the name
-  for task_def in $TASK_DEFS; do
-    if [[ $task_def == *"prod"* ]] || [[ $task_def == *"production"* ]]; then
-      ENVIRONMENT_TASK_DEF=$task_def
-      break
-    fi
-  done
-else
-  # For staging, look for a task definition with 'staging' in the name (exact logic from original)
-  for task_def in $TASK_DEFS; do
-    if [[ $task_def == *"staging"* ]]; then
-      ENVIRONMENT_TASK_DEF=$task_def
-      break
-    fi
-  done
-fi
-          
-if [ -z "$ENVIRONMENT_TASK_DEF" ]; then
-  echo "No $ENVIRONMENT task definition found!"
+
+echo "Found ECS resources from CloudFormation stack:"
+echo "  Cluster: $CLUSTER_NAME"
+echo "  Task Definition Family: $TASK_DEF_FAMILY"
+echo "  Service: $SERVICE_NAME"
+
+# Verify the resources actually exist
+echo "Verifying ECS resources exist..."
+
+# Check if cluster exists
+aws ecs describe-clusters --cluster $CLUSTER_NAME --region $AWS_REGION >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: ECS cluster $CLUSTER_NAME does not exist"
   echo "ecs_exists=false" >> $GITHUB_OUTPUT
   exit 0
 fi
-          
-ENVIRONMENT_TASK_DEF_FAMILY=$(echo $ENVIRONMENT_TASK_DEF | cut -d'/' -f2 | cut -d':' -f1)
-echo "Found $ENVIRONMENT task definition: $ENVIRONMENT_TASK_DEF_FAMILY"
-          
-# List services for the environment cluster
-echo "Listing services for $ENVIRONMENT cluster: $ENVIRONMENT_CLUSTER_NAME"
-SERVICES=$(aws ecs list-services --cluster $ENVIRONMENT_CLUSTER_NAME --region $AWS_REGION --query 'serviceArns' --output text)
-echo "Available services: $SERVICES"
-          
-# Store the environment resources for next steps
-echo "cluster=$ENVIRONMENT_CLUSTER_NAME" >> $GITHUB_OUTPUT
-echo "task_def_family=$ENVIRONMENT_TASK_DEF_FAMILY" >> $GITHUB_OUTPUT
-          
-# Set output for next steps
-if [ ! -z "$ENVIRONMENT_CLUSTER" ] && [ ! -z "$ENVIRONMENT_TASK_DEF" ]; then
-  echo "ecs_exists=true" >> $GITHUB_OUTPUT
-else
+
+# Check if task definition exists
+aws ecs describe-task-definition --task-definition $TASK_DEF_FAMILY --region $AWS_REGION >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: ECS task definition $TASK_DEF_FAMILY does not exist"
   echo "ecs_exists=false" >> $GITHUB_OUTPUT
+  exit 0
 fi
+
+# Check if service exists
+aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --region $AWS_REGION >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: ECS service $SERVICE_NAME does not exist in cluster $CLUSTER_NAME"
+  echo "ecs_exists=false" >> $GITHUB_OUTPUT
+  exit 0
+fi
+
+echo "All ECS resources verified successfully!"
+echo "ecs_exists=true" >> $GITHUB_OUTPUT
+echo "cluster=$CLUSTER_NAME" >> $GITHUB_OUTPUT
+echo "task_def_family=$TASK_DEF_FAMILY" >> $GITHUB_OUTPUT
+echo "service_name=$SERVICE_NAME" >> $GITHUB_OUTPUT

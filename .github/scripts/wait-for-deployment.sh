@@ -16,47 +16,37 @@ if [ -z "$CLUSTER_NAME" ]; then
   exit 1
 fi
 
-echo "Waiting for deployment to complete..."
-          
-# Use the cluster from the workflow
-echo "Waiting for deployment in cluster: $CLUSTER_NAME"
-          
-# List services in the cluster
-SERVICES=$(aws ecs list-services --cluster $CLUSTER_NAME --region $AWS_REGION --query 'serviceArns[]' --output text)
-echo "Available services: $SERVICES"
-
-# Find environment-specific service
-ENVIRONMENT_SERVICE=""
-if [ "$ENVIRONMENT" = "production" ]; then
-  # For production, look for a service with 'prod' or 'production' in the name
-  for service in $SERVICES; do
-    if [[ $service == *"prod"* ]] || [[ $service == *"production"* ]]; then
-      ENVIRONMENT_SERVICE=$service
-      break
-    fi
-  done
-else
-  # For staging, look for a service with 'staging' in the name (exact logic from original)
-  for service in $SERVICES; do
-    if [[ $service == *"staging"* ]]; then
-      ENVIRONMENT_SERVICE=$service
-      break
-    fi
-  done
-fi
-
-if [ -z "$ENVIRONMENT_SERVICE" ]; then
-  echo "Error: Could not find $ENVIRONMENT service in cluster"
+if [ -z "$SERVICE_NAME" ]; then
+  echo "Error: SERVICE_NAME environment variable is not set"
   exit 1
 fi
 
-SERVICE_NAME=$(echo $ENVIRONMENT_SERVICE | cut -d'/' -f3)
-echo "Waiting for service: $SERVICE_NAME"
-          
-# Wait for the service to be stable
+echo "Waiting for deployment to complete..."
+echo "Monitoring deployment in cluster: $CLUSTER_NAME"
+echo "Monitoring service: $SERVICE_NAME"
+
+# Wait for service to stabilize
+echo "Waiting for ECS service to reach a steady state..."
 aws ecs wait services-stable \
   --cluster $CLUSTER_NAME \
   --services $SERVICE_NAME \
   --region $AWS_REGION
-          
-echo "Deployment completed successfully!" 
+
+if [ $? -eq 0 ]; then
+  echo "Deployment completed successfully!"
+else
+  echo "Deployment failed or timed out"
+  
+  # Get service status for debugging
+  echo "Current service status:"
+  aws ecs describe-services \
+    --cluster $CLUSTER_NAME \
+    --services $SERVICE_NAME \
+    --region $AWS_REGION \
+    --query 'services[0].{Status:status,RunningCount:runningCount,DesiredCount:desiredCount,Events:events[0:3]}' \
+    --output table
+  
+  exit 1
+fi
+
+echo "Deployment monitoring completed successfully!"
