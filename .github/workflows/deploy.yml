@@ -123,7 +123,9 @@ jobs:
         id: check-ecs
         env:
           ENVIRONMENT: ${{ steps.set-env.outputs.environment }}
-          STACK_NAME: ${{ steps.set-env.outputs.stack_name }}
+          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+          TASK_DEF_FAMILY: ${{ secrets.TASK_DEF_FAMILY }}
         run: .github/scripts/check-ecs.sh
 
       - name: Update ECS task definition
