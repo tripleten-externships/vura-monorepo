@@ -11,59 +11,29 @@ if [ -z "$ENVIRONMENT" ]; then
   exit 1
 fi
 
-if [ -z "$STACK_NAME" ]; then
-  echo "Error: STACK_NAME environment variable is not set"
+if [ -z "$ECS_CLUSTER" ]; then
+  echo "Error: ECS_CLUSTER environment variable is not set"
+  exit 1
+fi
+
+if [ -z "$ECS_SERVICE" ]; then
+  echo "Error: ECS_SERVICE environment variable is not set"
+  exit 1
+fi
+
+if [ -z "$TASK_DEF_FAMILY" ]; then
+  echo "Error: TASK_DEF_FAMILY environment variable is not set"
   exit 1
 fi
 
 echo "Checking ECS resources for environment: $ENVIRONMENT"
-echo "Using CloudFormation stack: $STACK_NAME"
 echo "Using AWS region: $AWS_REGION"
 
-# Get ECS resources from CloudFormation stack outputs
-echo "Getting ECS resources from CloudFormation stack outputs..."
+# Use the ECS resources from GitHub environment secrets
+CLUSTER_NAME=$ECS_CLUSTER
+SERVICE_NAME=$ECS_SERVICE
 
-# Get cluster name from stack outputs
-CLUSTER_NAME=$(aws cloudformation describe-stacks \
-  --stack-name $STACK_NAME \
-  --region $AWS_REGION \
-  --query 'Stacks[0].Outputs[?OutputKey==`ECSClusterName`].OutputValue' \
-  --output text 2>/dev/null)
-
-# Get task definition family from stack outputs  
-TASK_DEF_FAMILY=$(aws cloudformation describe-stacks \
-  --stack-name $STACK_NAME \
-  --region $AWS_REGION \
-  --query 'Stacks[0].Outputs[?OutputKey==`ECSTaskDefinitionFamily`].OutputValue' \
-  --output text 2>/dev/null)
-
-# Get service name from stack outputs
-SERVICE_NAME=$(aws cloudformation describe-stacks \
-  --stack-name $STACK_NAME \
-  --region $AWS_REGION \
-  --query 'Stacks[0].Outputs[?OutputKey==`ECSServiceName`].OutputValue' \
-  --output text 2>/dev/null)
-
-# Check if we got all required outputs
-if [ -z "$CLUSTER_NAME" ] || [ -z "$TASK_DEF_FAMILY" ] || [ -z "$SERVICE_NAME" ]; then
-  echo "Could not find all required ECS resources in CloudFormation stack outputs"
-  echo "Available stack outputs:"
-  aws cloudformation describe-stacks \
-    --stack-name $STACK_NAME \
-    --region $AWS_REGION \
-    --query 'Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}' \
-    --output table 2>/dev/null || echo "Failed to get stack outputs"
-  
-  echo "Expected outputs: ECSClusterName, ECSTaskDefinitionFamily, ECSServiceName"
-  echo "Found:"
-  echo "  Cluster: $CLUSTER_NAME"
-  echo "  Task Definition Family: $TASK_DEF_FAMILY"  
-  echo "  Service: $SERVICE_NAME"
-  echo "ecs_exists=false" >> $GITHUB_OUTPUT
-  exit 0
-fi
-
-echo "Found ECS resources from CloudFormation stack:"
+echo "Using ECS resources from GitHub environment secrets:"
 echo "  Cluster: $CLUSTER_NAME"
 echo "  Task Definition Family: $TASK_DEF_FAMILY"
 echo "  Service: $SERVICE_NAME"
