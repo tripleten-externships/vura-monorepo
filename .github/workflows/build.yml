@@ -17,6 +17,7 @@ permissions:
 jobs:
   set_matrix:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
