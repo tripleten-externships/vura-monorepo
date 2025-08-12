@@ -17,7 +17,7 @@ Shared configuration files for the Vura monorepo.
 
 ### TypeScript
 
-In your app's `tsconfig.json`:
+In the app's `tsconfig.json`:
 
 ```json
 {
@@ -27,7 +27,7 @@ In your app's `tsconfig.json`:
 
 ### ESLint
 
-In your app's `package.json` scripts:
+In the app's `package.json` scripts:
 
 ```json
 {

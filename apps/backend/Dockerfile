@@ -10,6 +10,11 @@ ARG APP_DIR=.
 
 COPY ${APP_DIR}/package*.json ./
 
+# Copy base and backend TypeScript configs
+COPY packages/config/tsconfig.base.json ./packages/config/tsconfig.base.json
+COPY packages/config/tsconfig.backend.json ./packages/config/tsconfig.backend.json
+
+# Install dependencies
 RUN if [ -f package-lock.json ]; then \
       npm ci --omit=dev --ignore-scripts; \
     else \
