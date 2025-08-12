@@ -14,9 +14,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: vura_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     strategy:
       matrix:
         node-version: [24.x]
+
+    env:
+      DATABASE_URL: mysql://root:root@localhost:3306/vura_test
+      DB_HOST: localhost
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_NAME: vura_test
 
     steps:
       - name: Checkout code
