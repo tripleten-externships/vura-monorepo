@@ -28,8 +28,8 @@
       "cache": false
     },
     "storybook": {
-      "dependsOn": ["^build"],
-      "outputs": ["storybook-static/**"]
+      "cache": false,
+      "persistent": true
     }
   }
 }
