@@ -132,8 +132,7 @@ jobs:
         run: npm test
 
       - name: Build frontend application
-        working-directory: ./apps/frontend
-        run: npm run build
+        run: npm run frontend:build
         env:
           VITE_API_URL: ${{ secrets.API_URL }}
 
@@ -158,8 +157,7 @@ jobs:
         run: npm ci
 
       - name: Build Storybook
-        working-directory: ./apps/frontend
-        run: npm run build-storybook
+        run: npm run storybook:build
 
   build-packages:
     runs-on: ubuntu-latest
