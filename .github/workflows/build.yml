@@ -25,7 +25,7 @@ jobs:
         id: set-matrix
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo 'matrix={"environment":["staging","prod"]}' >> $GITHUB_OUTPUT
+            echo 'matrix={"environment":["staging"]}' >> $GITHUB_OUTPUT
           elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
             echo 'matrix={"environment":["dev"]}' >> $GITHUB_OUTPUT
           else
@@ -78,7 +78,7 @@ jobs:
         id: set-env
         run: |
           if [ "${{ matrix.environment }}" = "prod" ]; then
-            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "environment=prod" >> $GITHUB_OUTPUT
             echo "image_tag=latest" >> $GITHUB_OUTPUT
             echo "additional_tag=prod" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.environment }}" = "dev" ]; then
@@ -150,6 +150,24 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.set_matrix.outputs.matrix) }}
     environment: ${{ matrix.environment }}
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: vura_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    env:
+      DATABASE_URL: mysql://root:root@localhost:3306/vura_test
+      DB_HOST: localhost
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_NAME: vura_test
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -170,6 +188,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend, build-packages]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: vura_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    env:
+      DATABASE_URL: mysql://root:root@localhost:3306/vura_test
+      DB_HOST: localhost
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_NAME: vura_test
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
