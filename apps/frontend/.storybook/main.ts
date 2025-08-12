@@ -1,26 +1,32 @@
 import type { StorybookConfig } from '@storybook/react-vite';
+import path from 'path';
+
+// const _require = typeof require === 'undefined' ? import.meta : require;
+
+const getAbsolutePath = (packageName: string): any =>
+  path.dirname(require.resolve(path.join(packageName, 'package.json'))).replace(/^file:\/\//, '');
 
 const config: StorybookConfig = {
-  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  stories: ['../../../packages/ui/src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
 
   addons: [
-    '@storybook/addon-onboarding',
-    '@storybook/addon-links',
-    '@chromatic-com/storybook',
-    '@storybook/addon-a11y',
-    '@storybook/addon-docs',
-    '@storybook/preset-scss',
-    '@storybook/react-vite',
-    '@storybook/testing-library',
+    getAbsolutePath('@storybook/addon-onboarding'),
+    getAbsolutePath('@storybook/addon-links'),
+    getAbsolutePath('@chromatic-com/storybook'),
+    getAbsolutePath('@storybook/addon-a11y'),
+    getAbsolutePath('@storybook/addon-docs'),
+    getAbsolutePath('@storybook/preset-scss'),
+    getAbsolutePath('@storybook/react-vite'),
+    getAbsolutePath('@storybook/testing-library'),
   ],
 
   framework: {
-    name: '@storybook/react-vite',
+    name: getAbsolutePath('@storybook/react-vite'),
     options: {},
   },
 
   typescript: {
-    reactDocgen: 'react-docgen-typescript',
+    reactDocgen: getAbsolutePath('react-docgen-typescript'),
   },
 };
 export default config;

@@ -20,7 +20,9 @@
     "backend:dev": "turbo run dev --filter=vura-backend",
     "backend:build": "turbo run build --filter=vura-backend",
     "frontend:dev": "turbo run dev --filter=vura-frontend",
-    "frontend:build": "turbo run build --filter=vura-frontend"
+    "frontend:build": "turbo run build --filter=vura-frontend",
+    "storybook:dev": "turbo run storybook --filter=vura-frontend",
+    "storybook:build": "turbo run build-storybook --filter=vura-frontend"
   },
   "devDependencies": {
     "@turbo/gen": "^1.12.4",
