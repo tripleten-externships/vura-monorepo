@@ -59,7 +59,8 @@ TASK_DEFINITION=$(echo $TASK_DEFINITION | jq '.containerDefinitions[0].environme
   {"name": "DB_HOST", "value": "'$DB_HOST'"},
   {"name": "DB_NAME", "value": "'$DB_NAME'"},
   {"name": "DB_PORT", "value": "'$DB_PORT'"},
-  {"name": "PORT", "value": "80"}
+  {"name": "PORT", "value": "80"},
+  {"name": "DEPLOY_BASE_PATH", "value": "'$DEPLOY_BASE_PATH'"}
 ]')
           
 # Remove fields that can't be updated
