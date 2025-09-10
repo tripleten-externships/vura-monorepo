@@ -18,14 +18,14 @@ export default withAuth(
         ? parseInt(process.env.PORT)
         : process.env.NODE_ENV === 'production'
           ? 80
-          : 3000,
+          : 3001,
       cors: {
         origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       },
     },
     ui: {
-      isAccessAllowed: (context) => !!context.session?.data,
+      isAccessAllowed: (context) => context.session !== undefined,
     },
     db: {
       provider: 'mysql',
