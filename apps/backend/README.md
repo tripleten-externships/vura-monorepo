@@ -22,18 +22,18 @@ If you want an overview of all the features Keystone offers, check out our [feat
 
 ### Changing the database
 
-We've set you up with an [SQLite database](https://keystonejs.com/docs/apis/config#sqlite) for ease-of-use. If you're wanting to use PostgreSQL, you can!
+We've set you up with an [SQLite database](https://keystonejs.com/docs/apis/config#sqlite) for ease-of-use. If you're wanting to use MySQL, you can!
 
 Just change the `db` property on line 16 of the Keystone file [./keystone.ts](./keystone.ts) to
 
 ```typescript
 db: {
-    provider: 'postgresql',
+    provider: 'mysql',
     url: process.env.DATABASE_URL || 'DATABASE_URL_TO_REPLACE',
 }
 ```
 
-And provide your database url from PostgreSQL.
+And provide your database url from MySQL.
 
 For more on database configuration, check out or [DB API Docs](https://keystonejs.com/docs/apis/config#db)
 

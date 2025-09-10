@@ -5,7 +5,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './global/default.css';
 import { client } from './store';
 
-// import Expo app components
 import HomePage from '../app/index';
 import WelcomePage from '../app/welcome';
 
