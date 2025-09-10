@@ -26,11 +26,6 @@ export default withAuth(
         origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       },
-      ...(basePath && {
-        options: {
-          basePath,
-        },
-      }),
     },
     ui: {
       isAccessAllowed: (context) => context.session !== undefined,
