@@ -10,6 +10,9 @@ const dbUrl =
   process.env.DATABASE_URL ||
   `mysql://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:3306/${process.env.DB_NAME}`;
 
+// configure base path for deployment behind API Gateway
+const basePath = process.env.DEPLOY_BASE_PATH || '/local';
+
 export default withAuth(
   config({
     server: {
@@ -23,9 +26,17 @@ export default withAuth(
         origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       },
+      ...(basePath && {
+        options: {
+          basePath,
+        },
+      }),
     },
     ui: {
       isAccessAllowed: (context) => context.session !== undefined,
+      ...(basePath && {
+        basePath,
+      }),
     },
     db: {
       provider: 'mysql',
@@ -35,7 +46,7 @@ export default withAuth(
     },
     telemetry: false,
     graphql: {
-      path: '/api/graphql',
+      path: `${basePath}/api/graphql`,
       playground: true,
       apolloConfig: {
         introspection: true,
