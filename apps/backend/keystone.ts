@@ -25,7 +25,7 @@ export default withAuth(
       },
     },
     ui: {
-      isAccessAllowed: (context) => context.session !== undefined,
+      // isAccessAllowed: (context) => context.session !== undefined,
       basePath: '/admin/ui',
     },
     db: {
