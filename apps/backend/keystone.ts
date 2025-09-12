@@ -26,11 +26,42 @@ export default withAuth(
         origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       },
-      ...(basePath && {
-        options: {
-          basePath,
-        },
-      }),
+      // static asset serving for API Gateway deployment
+      ...(process.env.NODE_ENV === 'production' &&
+        basePath && {
+          extendExpressApp: (app: any) => {
+            const express = require('express');
+            const path = require('path');
+
+            // serve Next.js static assets with base path
+            app.use(
+              `${basePath}/_next/static`,
+              express.static(path.join(__dirname, '.next/static'), {
+                maxAge: '1y',
+                immutable: true,
+              })
+            );
+
+            // also serve without base path for direct requests
+            app.use(
+              '/_next/static',
+              express.static(path.join(__dirname, '.next/static'), {
+                maxAge: '1y',
+                immutable: true,
+              })
+            );
+
+            // serve favicon and other root assets
+            app.use(
+              `${basePath}/favicon.ico`,
+              express.static(path.join(__dirname, '.next/static/favicon.ico'))
+            );
+            app.use(
+              '/favicon.ico',
+              express.static(path.join(__dirname, '.next/static/favicon.ico'))
+            );
+          },
+        }),
     },
     ui: {
       isAccessAllowed: (context) => context.session !== undefined,
