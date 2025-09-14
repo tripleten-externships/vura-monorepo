@@ -30,6 +30,7 @@ COPY ${APP_DIR} .
 RUN npx prisma generate
 
 # set API Gateway stage for asset prefix configuration
+ARG API_GATEWAY_STAGE
 ENV API_GATEWAY_STAGE=${API_GATEWAY_STAGE}
 
 # build app and Admin UI
@@ -37,12 +38,12 @@ ENV API_GATEWAY_STAGE=${API_GATEWAY_STAGE}
 RUN NODE_ENV=production npx keystone build
 
 # startup script
-RUN printf "#!/bin/sh\n" > /app/start.sh && \
-    printf "echo 'Running database migrations...'\n" >> /app/start.sh && \
-    printf "npx prisma migrate deploy\n" >> /app/start.sh && \
-    printf "echo 'Starting Keystone...'\n" >> /app/start.sh && \
-    printf "exec npm start\n" >> /app/start.sh && \
-    chmod +x /app/start.sh
+RUN printf "#!/bin/sh\n" > ./start.sh && \
+    printf "echo 'Running database migrations...'\n" >> ./start.sh && \
+    printf "npx prisma migrate deploy\n" >> ./start.sh && \
+    printf "echo 'Starting Keystone...'\n" >> ./start.sh && \
+    printf "exec npm start\n" >> ./start.sh && \
+    chmod +x ./start.sh
 
 EXPOSE 80
 
@@ -50,4 +51,4 @@ ENV NODE_ENV=production
 ENV PORT=80
 
 # start app with migrations
-CMD ["/bin/sh", "/app/start.sh"] 
+CMD ["/bin/sh", "./start.sh"] 
