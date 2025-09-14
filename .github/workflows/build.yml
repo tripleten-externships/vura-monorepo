@@ -97,9 +97,10 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: ${{ steps.set-env.outputs.image_tag }}
           ADDITIONAL_TAG: ${{ steps.set-env.outputs.additional_tag }}
+          API_GATEWAY_STAGE: ${{ steps.set-env.outputs.environment }}
         run: |
           echo "Building Docker image for ${{ steps.set-env.outputs.environment }} environment..."
-          docker build -f apps/backend/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -f apps/backend/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --build-arg API_GATEWAY_STAGE=$API_GATEWAY_STAGE .
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$ADDITIONAL_TAG
           echo "Pushing image to ECR..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

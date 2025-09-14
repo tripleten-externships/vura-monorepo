@@ -4,15 +4,19 @@ FROM node:24-alpine
 # install OpenSSL and other required dependencies
 RUN apk add --no-cache openssl openssl-dev libc6-compat python3 make g++
 
-WORKDIR /app
+# Set up the directory structure to match monorepo
+WORKDIR /vura-monorepo
 
 ARG APP_DIR=apps/backend
 
-COPY ${APP_DIR}/package*.json ./
+# Copy package files to the backend directory
+COPY ${APP_DIR}/package*.json ./${APP_DIR}/
 
-# Copy base and backend TypeScript configs
-COPY packages/config/tsconfig.base.json ./packages/config/tsconfig.base.json
-COPY packages/config/tsconfig.backend.json ./packages/config/tsconfig.backend.json
+# Copy shared packages
+COPY packages/ ./packages/
+
+# Set working directory to backend
+WORKDIR /vura-monorepo/${APP_DIR}
 
 # Install dependencies
 RUN if [ -f package-lock.json ]; then \
@@ -24,6 +28,9 @@ RUN if [ -f package-lock.json ]; then \
 COPY ${APP_DIR} .
 
 RUN npx prisma generate
+
+# set API Gateway stage for asset prefix configuration
+ENV API_GATEWAY_STAGE=${API_GATEWAY_STAGE}
 
 # build app and Admin UI
 # note: Admin UI build may have warnings but should still work
