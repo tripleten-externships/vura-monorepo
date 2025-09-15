@@ -1,5 +1,10 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
+
+const env = loadEnv('', process.cwd(), '');
+
+const deploymentEnv = env.DEPLOYMENT_ENV || 'local';
+const viteApiUrl = env.VITE_API_URL || 'http://localhost:3001';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,7 +19,9 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis',
-    'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || ''),
+    'process.env.DEPLOYMENT_ENV': `'${deploymentEnv}'`,
+    VITE_API_URL: `'${viteApiUrl}'`,
+    'process.env.NODE_ENV': `'${deploymentEnv === 'local' ? 'development' : 'production'}'`,
   },
   optimizeDeps: {
     include: ['react-native-web'],
