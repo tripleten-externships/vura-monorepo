@@ -139,6 +139,7 @@ jobs:
         run: npm run frontend:build
         env:
           VITE_API_URL: ${{ secrets.API_URL }}
+          DEPLOYMENT_ENV: ${{ matrix.environment }}
 
   build-storybook:
     runs-on: ubuntu-latest
