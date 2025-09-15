@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const AUTH_TOKEN = '__drops_token';
 // Support configuration via Vite env with a sensible local default
-const apiBaseUrl = (process.env.VITE_API_URL as string | undefined) || 'http://localhost:3000';
+const apiBaseUrl = (process.env.VITE_API_URL as string | undefined) || 'http://localhost:3001';
 
 export const httpLink = new HttpLink({ uri: `${apiBaseUrl.replace(/\/$/, '')}/api/graphql` });
 
