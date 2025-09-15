@@ -23,6 +23,7 @@ vura-monorepo/
 
 - Node.js >= 18.0.0
 - npm >= 8.0.0
+- MySQL >= 8.0
 
 ### Installation
 
@@ -141,9 +142,47 @@ npm install <package-name> --workspace=apps/frontend
 Contributors are not allowed to commit directly to `main`. This rule is enforced using git hooks. Instead, you must create a new branch off of `main` using the following naming pattern:
 
 ```
-Pattern:"/^(master|main|develop){1}$|^(feature|fix|hotfix|release|BH-[^/]+)\/.+$/g"
+Pattern:"/^(master|main|develop){1}$|^(feature|fix|hotfix|release|VURA-[^/]+)\/.+$/g"
 ```
 
 Example:
 `feature/my-dev-task`
-`BH-[JIRA-KEY]/my-dev-task`
+`VURA-[JIRA-KEY]/my-dev-task`
+
+## Deployment
+
+### Environment Configuration
+
+For production deployment to `api-vura.net`, you need to set the following environment variables:
+
+#### Frontend Environment Variables
+
+- `VITE_API_URL=https://api-vura.net` - Points the frontend to the production API
+
+#### Backend Environment Variables
+
+The backend automatically configures itself for production when `NODE_ENV=production` and runs on port 80.
+
+CORS is automatically configured to allow requests from:
+
+- **Production**: `https://api-vura.net` and `http://api-vura.net`
+- **Development**: `http://localhost:3000` and `http://localhost:3001`
+
+### Local Development vs Production URLs
+
+| Environment | Frontend URL                          | Backend URL           | GraphQL Endpoint                  |
+| ----------- | ------------------------------------- | --------------------- | --------------------------------- |
+| Local       | http://localhost:3000                 | http://localhost:3001 | http://localhost:3001/api/graphql |
+| Production  | https://d146pooersq68i.cloudfront.net | https://api-vura.net  | https://api-vura.net/api/graphql  |
+
+### Code Generation
+
+When working with a production backend, update GraphQL code generation:
+
+```bash
+export VITE_API_URL=https://api-vura.net
+
+npm run graphql:codegen
+```
+
+For local development, the codegen will automatically use `http://localhost:3001/api/graphql`.
