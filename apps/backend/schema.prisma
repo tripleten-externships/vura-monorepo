@@ -11,12 +11,34 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model AiChatSession {
+  id           String                  @id @default(uuid())
+  title        String                  @default("")
+  status       AiChatSessionStatusType @default(active)
+  metadata     Json?                   @default("{}")
+  createdAt    DateTime?               @default(now())
+  updatedAt    DateTime?               @default(now()) @updatedAt
+  lastActiveAt DateTime?               @default(now()) @updatedAt
+  user         User?                   @relation("AiChatSession_user", fields: [userId], references: [id])
+  userId       String?                 @map("user")
+
+  @@index([userId])
+}
+
 model User {
-  id            String    @id @default(uuid())
-  name          String    @default("")
-  email         String    @unique @default("")
-  password      String
-  isAdmin       Boolean   @default(true)
-  createdAt     DateTime? @default(now())
-  lastLoginDate DateTime? @default(now())
+  id             String          @id @default(uuid())
+  name           String          @default("")
+  email          String          @unique @default("")
+  password       String
+  isAdmin        Boolean         @default(true)
+  createdAt      DateTime?       @default(now())
+  lastLoginDate  DateTime?       @default(now())
+  aiChatSessions AiChatSession[] @relation("AiChatSession_user")
+}
+
+enum AiChatSessionStatusType {
+  active
+  paused
+  completed
+  archived
 }
