@@ -21,8 +21,34 @@ model AiChatSession {
   lastActiveAt DateTime?               @default(now()) @updatedAt
   user         User?                   @relation("AiChatSession_user", fields: [userId], references: [id])
   userId       String?                 @map("user")
+  messages     AiMessage[]             @relation("AiMessage_session")
 
   @@index([userId])
+}
+
+model AiMessage {
+  id               String              @id @default(uuid())
+  content          String              @default("")
+  author           AiMessageAuthorType
+  model            String              @default("")
+  createdAt        DateTime?           @default(now())
+  temperature      Float?
+  latencyMs        Int?
+  promptTokens     Int?
+  completionTokens Int?
+  totalTokens      Int?
+  toolName         String              @default("")
+  toolArgs         Json?
+  toolResult       Json?
+  error            Json?
+  session          AiChatSession?      @relation("AiMessage_session", fields: [sessionId], references: [id])
+  sessionId        String?             @map("session")
+  parentMessage    AiMessage?          @relation("AiMessage_parentMessage", fields: [parentMessageId], references: [id])
+  parentMessageId  String?             @map("parentMessage")
+  childMessages    AiMessage[]         @relation("AiMessage_parentMessage")
+
+  @@index([sessionId])
+  @@index([parentMessageId])
 }
 
 model User {
@@ -41,4 +67,11 @@ enum AiChatSessionStatusType {
   paused
   completed
   archived
+}
+
+enum AiMessageAuthorType {
+  user
+  assistant
+  system
+  tool
 }

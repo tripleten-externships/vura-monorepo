@@ -62,6 +62,12 @@ export const AiChatSession = list({
       ref: 'User.aiChatSessions',
       many: false,
     }),
+
+    // relationship to AiMessages
+    messages: relationship({
+      ref: 'AiMessage.session',
+      many: true,
+    }),
   },
   hooks: {
     beforeOperation: async ({ operation, resolvedData, context }) => {

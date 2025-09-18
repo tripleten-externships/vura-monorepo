@@ -10,6 +10,14 @@ type AiChatSession {
   updatedAt: DateTime
   lastActiveAt: DateTime
   user: User
+  messages(
+    where: AiMessageWhereInput! = {}
+    orderBy: [AiMessageOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: AiMessageWhereUniqueInput
+  ): [AiMessage!]
+  messagesCount(where: AiMessageWhereInput! = {}): Int
 }
 
 enum AiChatSessionStatusType {
@@ -36,6 +44,7 @@ input AiChatSessionWhereInput {
   updatedAt: DateTimeNullableFilter
   lastActiveAt: DateTimeNullableFilter
   user: UserWhereInput
+  messages: AiMessageManyRelationFilter
 }
 
 input IDFilter {
@@ -95,6 +104,12 @@ input DateTimeNullableFilter {
   not: DateTimeNullableFilter
 }
 
+input AiMessageManyRelationFilter {
+  every: AiMessageWhereInput
+  some: AiMessageWhereInput
+  none: AiMessageWhereInput
+}
+
 input AiChatSessionOrderByInput {
   id: OrderDirection
   title: OrderDirection
@@ -117,12 +132,20 @@ input AiChatSessionUpdateInput {
   updatedAt: DateTime
   lastActiveAt: DateTime
   user: UserRelateToOneForUpdateInput
+  messages: AiMessageRelateToManyForUpdateInput
 }
 
 input UserRelateToOneForUpdateInput {
   create: UserCreateInput
   connect: UserWhereUniqueInput
   disconnect: Boolean
+}
+
+input AiMessageRelateToManyForUpdateInput {
+  disconnect: [AiMessageWhereUniqueInput!]
+  set: [AiMessageWhereUniqueInput!]
+  create: [AiMessageCreateInput!]
+  connect: [AiMessageWhereUniqueInput!]
 }
 
 input AiChatSessionUpdateArgs {
@@ -138,11 +161,183 @@ input AiChatSessionCreateInput {
   updatedAt: DateTime
   lastActiveAt: DateTime
   user: UserRelateToOneForCreateInput
+  messages: AiMessageRelateToManyForCreateInput
 }
 
 input UserRelateToOneForCreateInput {
   create: UserCreateInput
   connect: UserWhereUniqueInput
+}
+
+input AiMessageRelateToManyForCreateInput {
+  create: [AiMessageCreateInput!]
+  connect: [AiMessageWhereUniqueInput!]
+}
+
+type AiMessage {
+  id: ID!
+  content: String
+  author: AiMessageAuthorType
+  model: String
+  createdAt: DateTime
+  temperature: Float
+  latencyMs: Int
+  promptTokens: Int
+  completionTokens: Int
+  totalTokens: Int
+  toolName: String
+  toolArgs: JSON
+  toolResult: JSON
+  error: JSON
+  session: AiChatSession
+  parentMessage: AiMessage
+  childMessages(
+    where: AiMessageWhereInput! = {}
+    orderBy: [AiMessageOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: AiMessageWhereUniqueInput
+  ): [AiMessage!]
+  childMessagesCount(where: AiMessageWhereInput! = {}): Int
+}
+
+enum AiMessageAuthorType {
+  user
+  assistant
+  system
+  tool
+}
+
+input AiMessageWhereUniqueInput {
+  id: ID
+}
+
+input AiMessageWhereInput {
+  AND: [AiMessageWhereInput!]
+  OR: [AiMessageWhereInput!]
+  NOT: [AiMessageWhereInput!]
+  id: IDFilter
+  content: StringFilter
+  author: AiMessageAuthorTypeNullableFilter
+  model: StringFilter
+  createdAt: DateTimeNullableFilter
+  temperature: FloatNullableFilter
+  latencyMs: IntNullableFilter
+  promptTokens: IntNullableFilter
+  completionTokens: IntNullableFilter
+  totalTokens: IntNullableFilter
+  toolName: StringFilter
+  session: AiChatSessionWhereInput
+  parentMessage: AiMessageWhereInput
+  childMessages: AiMessageManyRelationFilter
+}
+
+input AiMessageAuthorTypeNullableFilter {
+  equals: AiMessageAuthorType
+  in: [AiMessageAuthorType!]
+  notIn: [AiMessageAuthorType!]
+  not: AiMessageAuthorTypeNullableFilter
+}
+
+input FloatNullableFilter {
+  equals: Float
+  in: [Float!]
+  notIn: [Float!]
+  lt: Float
+  lte: Float
+  gt: Float
+  gte: Float
+  not: FloatNullableFilter
+}
+
+input IntNullableFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: IntNullableFilter
+}
+
+input AiMessageOrderByInput {
+  id: OrderDirection
+  content: OrderDirection
+  author: OrderDirection
+  model: OrderDirection
+  createdAt: OrderDirection
+  temperature: OrderDirection
+  latencyMs: OrderDirection
+  promptTokens: OrderDirection
+  completionTokens: OrderDirection
+  totalTokens: OrderDirection
+  toolName: OrderDirection
+}
+
+input AiMessageUpdateInput {
+  content: String
+  author: AiMessageAuthorType
+  model: String
+  createdAt: DateTime
+  temperature: Float
+  latencyMs: Int
+  promptTokens: Int
+  completionTokens: Int
+  totalTokens: Int
+  toolName: String
+  toolArgs: JSON
+  toolResult: JSON
+  error: JSON
+  session: AiChatSessionRelateToOneForUpdateInput
+  parentMessage: AiMessageRelateToOneForUpdateInput
+  childMessages: AiMessageRelateToManyForUpdateInput
+}
+
+input AiChatSessionRelateToOneForUpdateInput {
+  create: AiChatSessionCreateInput
+  connect: AiChatSessionWhereUniqueInput
+  disconnect: Boolean
+}
+
+input AiMessageRelateToOneForUpdateInput {
+  create: AiMessageCreateInput
+  connect: AiMessageWhereUniqueInput
+  disconnect: Boolean
+}
+
+input AiMessageUpdateArgs {
+  where: AiMessageWhereUniqueInput!
+  data: AiMessageUpdateInput!
+}
+
+input AiMessageCreateInput {
+  content: String
+  author: AiMessageAuthorType
+  model: String
+  createdAt: DateTime
+  temperature: Float
+  latencyMs: Int
+  promptTokens: Int
+  completionTokens: Int
+  totalTokens: Int
+  toolName: String
+  toolArgs: JSON
+  toolResult: JSON
+  error: JSON
+  session: AiChatSessionRelateToOneForCreateInput
+  parentMessage: AiMessageRelateToOneForCreateInput
+  childMessages: AiMessageRelateToManyForCreateInput
+}
+
+input AiChatSessionRelateToOneForCreateInput {
+  create: AiChatSessionCreateInput
+  connect: AiChatSessionWhereUniqueInput
+}
+
+input AiMessageRelateToOneForCreateInput {
+  create: AiMessageCreateInput
+  connect: AiMessageWhereUniqueInput
 }
 
 type User {
@@ -258,6 +453,12 @@ type Mutation {
   updateAiChatSessions(data: [AiChatSessionUpdateArgs!]!): [AiChatSession]
   deleteAiChatSession(where: AiChatSessionWhereUniqueInput!): AiChatSession
   deleteAiChatSessions(where: [AiChatSessionWhereUniqueInput!]!): [AiChatSession]
+  createAiMessage(data: AiMessageCreateInput!): AiMessage
+  createAiMessages(data: [AiMessageCreateInput!]!): [AiMessage]
+  updateAiMessage(where: AiMessageWhereUniqueInput!, data: AiMessageUpdateInput!): AiMessage
+  updateAiMessages(data: [AiMessageUpdateArgs!]!): [AiMessage]
+  deleteAiMessage(where: AiMessageWhereUniqueInput!): AiMessage
+  deleteAiMessages(where: [AiMessageWhereUniqueInput!]!): [AiMessage]
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -301,6 +502,15 @@ type Query {
     cursor: AiChatSessionWhereUniqueInput
   ): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
+  aiMessage(where: AiMessageWhereUniqueInput!): AiMessage
+  aiMessages(
+    where: AiMessageWhereInput! = {}
+    orderBy: [AiMessageOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: AiMessageWhereUniqueInput
+  ): [AiMessage!]
+  aiMessagesCount(where: AiMessageWhereInput! = {}): Int
   user(where: UserWhereUniqueInput!): User
   users(
     where: UserWhereInput! = {}
