@@ -1,6 +1,15 @@
 import { list } from '@keystone-6/core';
 import type { Lists } from '.keystone/types';
-import { checkbox, text, password, timestamp, relationship } from '@keystone-6/core/fields';
+import {
+  checkbox,
+  text,
+  password,
+  timestamp,
+  relationship,
+  integer,
+  select,
+} from '@keystone-6/core/fields';
+import { isAbsoluteUrl } from 'next/dist/shared/lib/utils';
 
 export const User = list({
   access: {
@@ -27,6 +36,7 @@ export const User = list({
       isIndexed: 'unique',
     }),
     password: password({
+      //keystone password field automatically hashes password
       validation: {
         length: { min: 10, max: 100 },
         isRequired: true,
@@ -34,14 +44,35 @@ export const User = list({
       },
       bcrypt: require('bcryptjs'),
     }),
+    avatarUrl: text({
+      validation: {
+        match: { regex: /^https?:\/\/.+/i, explanation: 'Avatar must be a valid URL' },
+      },
+    }),
+    age: integer({
+      validation: { isRequired: true },
+    }),
+    gender: select({
+      options: [
+        { label: 'Female', value: 'female' },
+        { label: 'Male', value: 'male' },
+        { label: 'Non-Binary', value: 'non-binary' },
+      ],
+      validation: { isRequired: true },
+    }),
+    privacyToggle: checkbox({ defaultValue: true }),
     isAdmin: checkbox({ defaultValue: true }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
     lastLoginDate: timestamp({
-      defaultValue: { kind: 'now' },
+      db: { updatedAt: true },
     }),
-    // relationship to AiChatSessions
+    lastUpdateDate: timestamp({
+      db: { updatedAt: true },
+    }),
+    parent: relationship({ ref: 'parent.user' }),
+    carePlan: relationship({ ref: 'carePlan.user' }), // need to define only one care plan?
     aiChatSessions: relationship({
       ref: 'AiChatSession.user',
       many: true,
