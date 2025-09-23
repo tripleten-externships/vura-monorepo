@@ -4,19 +4,20 @@ import { text, timestamp, relationship } from '@keystone-6/core/fields';
 export const ForumPost = list({
   access: {
     operation: {
-      query: () => true,
-      create: () => true,
+      query: ({ session }) => !!session,
+      create: ({ session }) => !!session,
       update: ({ session }) => !!session,
       delete: ({ session }) => !!session,
     },
     filter: {
-      query: ({ session }) => true,
-      // if(!session?.data?.id) return false;
-      // return {
-      //     author: {id : {equals:session.data.id}},
-      // };
+      // only logged-in user can see posts
+      query: ({ session }) => {
+        if (!session?.data?.id) return false;
+        return true;
+      },
     },
     item: {
+      //only logged-in users can update and delete their own posts
       update: ({ session, item }) => {
         if (!session?.data?.id) return false;
         return session?.data?.id === item.userId;
@@ -28,8 +29,9 @@ export const ForumPost = list({
     },
   },
   fields: {
+    //forumpost content
     title: text({
-      validation: { isRequired: true, length: { max: 50 } },
+      validation: { isRequired: true, length: { max: 30 } },
     }),
     topic: text({
       validation: { isRequired: true, length: { max: 50 } },
@@ -40,25 +42,40 @@ export const ForumPost = list({
         displayMode: 'textarea',
       },
     }),
-
+    //timestamp
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
     updatedAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    author: relationship({ ref: 'User.forumPost', many: true }),
-    parent: relationship({ ref: 'ForumPost.child', many: false }),
-    child: relationship({ ref: 'ForumPost.parent', many: true }),
-    //carePlan: relationship({ref:'CarePlan.user', many:true}),
-    // groupMessage : relationship({ref:'GroupMessage.group', many:true}),
+    //relationship
+    author: relationship({
+      ref: 'User.forumPost',
+      many: false,
+      ui: {
+        displayMode: 'select',
+      },
+    }),
   },
   hooks: {
+    //Automatically connect the author to the logged-in user and get their user ID.
+    resolveInput: async ({ resolvedData, context }) => {
+      if (context.session?.data?.id) {
+        return {
+          ...resolvedData,
+          author: { connect: { id: context.session.data.id } },
+        };
+      }
+      return resolvedData;
+    },
+    // Automatically update the time when a post is updated.
     beforeOperation: async ({ operation, resolvedData }) => {
       if (operation === 'update') {
         resolvedData.forumPost = new Date();
       }
     },
+    // Automatically delete when a post is deleted.
     afterOperation: async ({ operation, item }) => {
       if (operation === 'delete') {
         console.log('Deleted item:', item);
