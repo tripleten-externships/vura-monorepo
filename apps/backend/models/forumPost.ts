@@ -46,6 +46,7 @@ export const ForumPost = list({
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
+    //timestamp
     updatedAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
