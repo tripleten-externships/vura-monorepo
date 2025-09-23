@@ -24,7 +24,7 @@ export const Button: React.FC<ButtonProps> = ({ children, ...props }) => {
 export const Card: React.FC<CardProps> = ({ children, title, className }) => {
   return (
     <div className={className}>
-      {title && <h3>{title}</h3>}
+      {title && <h2>{title}</h2>}
       {children}
     </div>
   );

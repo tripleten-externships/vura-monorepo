@@ -1,2 +1,3 @@
 export * from './user';
-export * from './forumPost';
+export * from './ai-chat-session';
+export * from './ai-message';

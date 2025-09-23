@@ -41,6 +41,10 @@ export const User = list({
     lastLoginDate: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
+    // relationship to AiChatSessions
+    aiChatSessions: relationship({
+      ref: 'AiChatSession.user',
+      many: true,
+    }),
   },
 });

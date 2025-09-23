@@ -11,28 +11,67 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model ForumPost {
-  id        String      @id @default(uuid())
-  title     String      @default("")
-  topic     String      @default("")
-  content   String      @default("")
-  createdAt DateTime?   @default(now())
-  updatedAt DateTime?   @default(now())
-  author    User[]      @relation("ForumPost_author")
-  parent    ForumPost?  @relation("ForumPost_parent", fields: [parentId], references: [id])
-  parentId  String?     @map("parent")
-  child     ForumPost[] @relation("ForumPost_parent")
+model AiChatSession {
+  id           String                  @id @default(uuid())
+  title        String                  @default("")
+  status       AiChatSessionStatusType @default(active)
+  metadata     Json?                   @default("{}")
+  createdAt    DateTime?               @default(now())
+  updatedAt    DateTime?               @default(now()) @updatedAt
+  lastActiveAt DateTime?               @default(now()) @updatedAt
+  user         User?                   @relation("AiChatSession_user", fields: [userId], references: [id])
+  userId       String?                 @map("user")
+  messages     AiMessage[]             @relation("AiMessage_session")
 
-  @@index([parentId])
+  @@index([userId])
+}
+
+model AiMessage {
+  id               String              @id @default(uuid())
+  content          String              @default("")
+  author           AiMessageAuthorType
+  model            String              @default("")
+  createdAt        DateTime?           @default(now())
+  temperature      Float?
+  latencyMs        Int?
+  promptTokens     Int?
+  completionTokens Int?
+  totalTokens      Int?
+  toolName         String              @default("")
+  toolArgs         Json?
+  toolResult       Json?
+  error            Json?
+  session          AiChatSession?      @relation("AiMessage_session", fields: [sessionId], references: [id])
+  sessionId        String?             @map("session")
+  parentMessage    AiMessage?          @relation("AiMessage_parentMessage", fields: [parentMessageId], references: [id])
+  parentMessageId  String?             @map("parentMessage")
+  childMessages    AiMessage[]         @relation("AiMessage_parentMessage")
+
+  @@index([sessionId])
+  @@index([parentMessageId])
 }
 
 model User {
-  id            String      @id @default(uuid())
-  name          String      @default("")
-  email         String      @unique @default("")
-  password      String
-  isAdmin       Boolean     @default(true)
-  createdAt     DateTime?   @default(now())
-  lastLoginDate DateTime?   @default(now())
-  forumPost     ForumPost[] @relation("ForumPost_author")
+  id             String          @id @default(uuid())
+  name           String          @default("")
+  email          String          @unique @default("")
+  password       String
+  isAdmin        Boolean         @default(true)
+  createdAt      DateTime?       @default(now())
+  lastLoginDate  DateTime?       @default(now())
+  aiChatSessions AiChatSession[] @relation("AiChatSession_user")
+}
+
+enum AiChatSessionStatusType {
+  active
+  paused
+  completed
+  archived
+}
+
+enum AiMessageAuthorType {
+  user
+  assistant
+  system
+  tool
 }
