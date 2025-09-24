@@ -9,7 +9,6 @@ import {
   integer,
   select,
 } from '@keystone-6/core/fields';
-import { isAbsoluteUrl } from 'next/dist/shared/lib/utils';
 
 export const User = list({
   access: {
@@ -46,7 +45,7 @@ export const User = list({
     }),
     avatarUrl: text({
       validation: {
-        match: { regex: /^https?:\/\/.+/i, explanation: 'Avatar must be a valid URL' },
+        match: { regex: /^https?:\/\/.+/i, explanation: 'Avatar must be a valid URL' }, // ensure that the string contains http:// or https:// and at least one letter after
       },
     }),
     age: integer({
@@ -71,8 +70,8 @@ export const User = list({
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
     }),
-    parent: relationship({ ref: 'parent.user' }),
-    carePlan: relationship({ ref: 'carePlan.user' }), // need to define only one care plan?
+    parent: relationship({ ref: 'Parent.user' }),
+    carePlan: relationship({ ref: 'CarePlan.user' }), // need to define only one care plan?
     aiChatSessions: relationship({
       ref: 'AiChatSession.user',
       many: true,
