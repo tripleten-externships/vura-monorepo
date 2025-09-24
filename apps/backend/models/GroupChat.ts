@@ -1,29 +1,31 @@
 import { list } from '@keystone-6/core';
-import type { Lists } from '.keystone/types';
-import { relationship, text, timestamp, checkbox } from '@keystone-6/core/fields';
+import { relationship, text, timestamp } from '@keystone-6/core/fields';
 
 export const GroupChat = list({
   access: {
     operation: {
-      query: () => true,
-      create: () => true,
+      query: ({}) => true,
+      create: ({}) => true,
       update: ({ session }) => !!session,
       delete: ({ session }) => !!session,
     },
     filter: {
       query: ({ session }) => ({
-        id: { equals: session.data.id },
+        OR: [
+          // Owner or members have read access
+          { owner: { id: { equals: session?.data?.id } } },
+          { members: { some: { id: { equals: session?.data?.id } } } },
+        ],
       }),
-    },
-    item: {
-      update: ({ session, item }) => item.id === session.data.id,
-      delete: ({ session, item }) => item.id === session.data.id,
+      update: ({ session }) => ({ owner: { id: { equals: session?.data?.id } } }),
+      delete: ({ session }) => ({ owner: { id: { equals: session?.data?.id } } }),
     },
   },
   fields: {
     groupName: text({ validation: { isRequired: true } }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
+      db: { map: 'created_at' },
     }),
     updatedAt: timestamp({
       db: {
@@ -31,5 +33,14 @@ export const GroupChat = list({
         map: 'updated_at',
       },
     }),
+
+    // relationship to User
+    owner: relationship({
+      ref: 'User.ownedChats',
+      db: { foreignKey: { map: 'ownerId' } },
+    }),
+    members: relationship({ ref: 'User.membersChat', many: true }),
+
+    //messages: relationship({ ref: 'ChatMessage.group', many: true }), // needs to reference the ChatMessage model
   },
 });

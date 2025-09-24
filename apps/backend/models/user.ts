@@ -1,5 +1,4 @@
 import { list } from '@keystone-6/core';
-import type { Lists } from '.keystone/types';
 import { checkbox, text, password, timestamp, relationship } from '@keystone-6/core/fields';
 
 export const User = list({
@@ -46,5 +45,9 @@ export const User = list({
       ref: 'AiChatSession.user',
       many: true,
     }),
+
+    // relationship to GroupChat
+    ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
+    membersChat: relationship({ ref: 'GroupChat.members', many: true }),
   },
 });

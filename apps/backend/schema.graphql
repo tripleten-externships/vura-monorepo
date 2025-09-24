@@ -10,13 +10,7 @@ type AiChatSession {
   updatedAt: DateTime
   lastActiveAt: DateTime
   user: User
-  messages(
-    where: AiMessageWhereInput! = {}
-    orderBy: [AiMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiMessageWhereUniqueInput
-  ): [AiMessage!]
+  messages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   messagesCount(where: AiMessageWhereInput! = {}): Int
 }
 
@@ -191,13 +185,7 @@ type AiMessage {
   error: JSON
   session: AiChatSession
   parentMessage: AiMessage
-  childMessages(
-    where: AiMessageWhereInput! = {}
-    orderBy: [AiMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiMessageWhereUniqueInput
-  ): [AiMessage!]
+  childMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   childMessagesCount(where: AiMessageWhereInput! = {}): Int
 }
 
@@ -340,6 +328,78 @@ input AiMessageRelateToOneForCreateInput {
   connect: AiMessageWhereUniqueInput
 }
 
+type GroupChat {
+  id: ID!
+  groupName: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  owner: User
+  members(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
+  membersCount(where: UserWhereInput! = {}): Int
+}
+
+input GroupChatWhereUniqueInput {
+  id: ID
+}
+
+input GroupChatWhereInput {
+  AND: [GroupChatWhereInput!]
+  OR: [GroupChatWhereInput!]
+  NOT: [GroupChatWhereInput!]
+  id: IDFilter
+  groupName: StringFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
+  owner: UserWhereInput
+  members: UserManyRelationFilter
+}
+
+input UserManyRelationFilter {
+  every: UserWhereInput
+  some: UserWhereInput
+  none: UserWhereInput
+}
+
+input GroupChatOrderByInput {
+  id: OrderDirection
+  groupName: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
+}
+
+input GroupChatUpdateInput {
+  groupName: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  owner: UserRelateToOneForUpdateInput
+  members: UserRelateToManyForUpdateInput
+}
+
+input UserRelateToManyForUpdateInput {
+  disconnect: [UserWhereUniqueInput!]
+  set: [UserWhereUniqueInput!]
+  create: [UserCreateInput!]
+  connect: [UserWhereUniqueInput!]
+}
+
+input GroupChatUpdateArgs {
+  where: GroupChatWhereUniqueInput!
+  data: GroupChatUpdateInput!
+}
+
+input GroupChatCreateInput {
+  groupName: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  owner: UserRelateToOneForCreateInput
+  members: UserRelateToManyForCreateInput
+}
+
+input UserRelateToManyForCreateInput {
+  create: [UserCreateInput!]
+  connect: [UserWhereUniqueInput!]
+}
+
 type User {
   id: ID!
   name: String
@@ -348,14 +408,12 @@ type User {
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
-  aiChatSessions(
-    where: AiChatSessionWhereInput! = {}
-    orderBy: [AiChatSessionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiChatSessionWhereUniqueInput
-  ): [AiChatSession!]
+  aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
+  ownedChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
+  ownedChatsCount(where: GroupChatWhereInput! = {}): Int
+  membersChat(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
+  membersChatCount(where: GroupChatWhereInput! = {}): Int
 }
 
 type PasswordState {
@@ -378,6 +436,8 @@ input UserWhereInput {
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
   aiChatSessions: AiChatSessionManyRelationFilter
+  ownedChats: GroupChatManyRelationFilter
+  membersChat: GroupChatManyRelationFilter
 }
 
 input BooleanFilter {
@@ -389,6 +449,12 @@ input AiChatSessionManyRelationFilter {
   every: AiChatSessionWhereInput
   some: AiChatSessionWhereInput
   none: AiChatSessionWhereInput
+}
+
+input GroupChatManyRelationFilter {
+  every: GroupChatWhereInput
+  some: GroupChatWhereInput
+  none: GroupChatWhereInput
 }
 
 input UserOrderByInput {
@@ -408,6 +474,8 @@ input UserUpdateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
+  ownedChats: GroupChatRelateToManyForUpdateInput
+  membersChat: GroupChatRelateToManyForUpdateInput
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -415,6 +483,13 @@ input AiChatSessionRelateToManyForUpdateInput {
   set: [AiChatSessionWhereUniqueInput!]
   create: [AiChatSessionCreateInput!]
   connect: [AiChatSessionWhereUniqueInput!]
+}
+
+input GroupChatRelateToManyForUpdateInput {
+  disconnect: [GroupChatWhereUniqueInput!]
+  set: [GroupChatWhereUniqueInput!]
+  create: [GroupChatCreateInput!]
+  connect: [GroupChatWhereUniqueInput!]
 }
 
 input UserUpdateArgs {
@@ -430,6 +505,8 @@ input UserCreateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
+  ownedChats: GroupChatRelateToManyForCreateInput
+  membersChat: GroupChatRelateToManyForCreateInput
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -437,19 +514,20 @@ input AiChatSessionRelateToManyForCreateInput {
   connect: [AiChatSessionWhereUniqueInput!]
 }
 
+input GroupChatRelateToManyForCreateInput {
+  create: [GroupChatCreateInput!]
+  connect: [GroupChatWhereUniqueInput!]
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
-scalar JSON
-  @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type Mutation {
   createAiChatSession(data: AiChatSessionCreateInput!): AiChatSession
   createAiChatSessions(data: [AiChatSessionCreateInput!]!): [AiChatSession]
-  updateAiChatSession(
-    where: AiChatSessionWhereUniqueInput!
-    data: AiChatSessionUpdateInput!
-  ): AiChatSession
+  updateAiChatSession(where: AiChatSessionWhereUniqueInput!, data: AiChatSessionUpdateInput!): AiChatSession
   updateAiChatSessions(data: [AiChatSessionUpdateArgs!]!): [AiChatSession]
   deleteAiChatSession(where: AiChatSessionWhereUniqueInput!): AiChatSession
   deleteAiChatSessions(where: [AiChatSessionWhereUniqueInput!]!): [AiChatSession]
@@ -459,6 +537,12 @@ type Mutation {
   updateAiMessages(data: [AiMessageUpdateArgs!]!): [AiMessage]
   deleteAiMessage(where: AiMessageWhereUniqueInput!): AiMessage
   deleteAiMessages(where: [AiMessageWhereUniqueInput!]!): [AiMessage]
+  createGroupChat(data: GroupChatCreateInput!): GroupChat
+  createGroupChats(data: [GroupChatCreateInput!]!): [GroupChat]
+  updateGroupChat(where: GroupChatWhereUniqueInput!, data: GroupChatUpdateInput!): GroupChat
+  updateGroupChats(data: [GroupChatUpdateArgs!]!): [GroupChat]
+  deleteGroupChat(where: GroupChatWhereUniqueInput!): GroupChat
+  deleteGroupChats(where: [GroupChatWhereUniqueInput!]!): [GroupChat]
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -466,16 +550,11 @@ type Mutation {
   deleteUser(where: UserWhereUniqueInput!): User
   deleteUsers(where: [UserWhereUniqueInput!]!): [User]
   endSession: Boolean!
-  authenticateUserWithPassword(
-    email: String!
-    password: String!
-  ): UserAuthenticationWithPasswordResult
+  authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
 }
 
-union UserAuthenticationWithPasswordResult =
-  | UserAuthenticationWithPasswordSuccess
-  | UserAuthenticationWithPasswordFailure
+union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
 
 type UserAuthenticationWithPasswordSuccess {
   sessionToken: String!
@@ -494,31 +573,16 @@ input CreateInitialUserInput {
 
 type Query {
   aiChatSession(where: AiChatSessionWhereUniqueInput!): AiChatSession
-  aiChatSessions(
-    where: AiChatSessionWhereInput! = {}
-    orderBy: [AiChatSessionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiChatSessionWhereUniqueInput
-  ): [AiChatSession!]
+  aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
   aiMessage(where: AiMessageWhereUniqueInput!): AiMessage
-  aiMessages(
-    where: AiMessageWhereInput! = {}
-    orderBy: [AiMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiMessageWhereUniqueInput
-  ): [AiMessage!]
+  aiMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   aiMessagesCount(where: AiMessageWhereInput! = {}): Int
+  groupChat(where: GroupChatWhereUniqueInput!): GroupChat
+  groupChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
+  groupChatsCount(where: GroupChatWhereInput! = {}): Int
   user(where: UserWhereUniqueInput!): User
-  users(
-    where: UserWhereInput! = {}
-    orderBy: [UserOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: UserWhereUniqueInput
-  ): [User!]
+  users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   usersCount(where: UserWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem

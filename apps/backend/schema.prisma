@@ -51,6 +51,18 @@ model AiMessage {
   @@index([parentMessageId])
 }
 
+model GroupChat {
+  id        String    @id @default(uuid())
+  groupName String    @default("")
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  owner     User?     @relation("GroupChat_owner", fields: [ownerId], references: [id])
+  ownerId   String?   @map("ownerId")
+  members   User[]    @relation("GroupChat_members")
+
+  @@index([ownerId])
+}
+
 model User {
   id             String          @id @default(uuid())
   name           String          @default("")
@@ -60,6 +72,8 @@ model User {
   createdAt      DateTime?       @default(now())
   lastLoginDate  DateTime?       @default(now())
   aiChatSessions AiChatSession[] @relation("AiChatSession_user")
+  ownedChats     GroupChat[]     @relation("GroupChat_owner")
+  membersChat    GroupChat[]     @relation("GroupChat_members")
 }
 
 enum AiChatSessionStatusType {
