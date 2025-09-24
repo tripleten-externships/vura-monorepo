@@ -35,6 +35,8 @@ export const User = list({
       },
       bcrypt: require('bcryptjs'),
     }),
+
+    //relationship to chat messages
     messages: relationship({ ref: 'ChatMessage.sender', many: true }),
 
     isAdmin: checkbox({ defaultValue: true }),

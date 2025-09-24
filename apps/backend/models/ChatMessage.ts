@@ -1,6 +1,7 @@
 import { list } from '@keystone-6/core';
 import { text, relationship, timestamp, integer } from '@keystone-6/core/fields';
 
+// ChatMessage model to store messages in a group chat. Each message belongs to one group chat and one sender (user)
 export const ChatMessage = list({
   fields: {
     message: text({ validation: { isRequired: true } }),
