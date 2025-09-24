@@ -11,36 +11,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-<<<<<<< HEAD
-model ChatMessage {
-  id        String     @id @default(uuid())
-  message   String     @default("")
-  createdAt DateTime?  @default(now())
-  group     GroupChat? @relation("ChatMessage_group", fields: [groupId], references: [id])
-  groupId   String?    @map("group")
-  sender    User?      @relation("ChatMessage_sender", fields: [senderId], references: [id])
-  senderId  String?    @map("sender")
-
-  @@index([groupId])
-  @@index([senderId])
-}
-
-model GroupChat {
-  id       String        @id @default(uuid())
-  name     String        @default("")
-  messages ChatMessage[] @relation("ChatMessage_group")
-}
-
-model User {
-  id            String        @id @default(uuid())
-  name          String        @default("")
-  email         String        @unique @default("")
-  password      String
-  messages      ChatMessage[] @relation("ChatMessage_sender")
-  isAdmin       Boolean       @default(true)
-  createdAt     DateTime?     @default(now())
-  lastLoginDate DateTime?     @default(now())
-=======
 model AiChatSession {
   id           String                  @id @default(uuid())
   title        String                  @default("")
@@ -81,11 +51,31 @@ model AiMessage {
   @@index([parentMessageId])
 }
 
+model ChatMessage {
+  id        String     @id @default(uuid())
+  message   String     @default("")
+  createdAt DateTime?  @default(now())
+  group     GroupChat? @relation("ChatMessage_group", fields: [groupId], references: [id])
+  groupId   String?    @map("group")
+  sender    User?      @relation("ChatMessage_sender", fields: [senderId], references: [id])
+  senderId  String?    @map("sender")
+
+  @@index([groupId])
+  @@index([senderId])
+}
+
+model GroupChat {
+  id       String        @id @default(uuid())
+  name     String        @default("")
+  messages ChatMessage[] @relation("ChatMessage_group")
+}
+
 model User {
   id             String          @id @default(uuid())
   name           String          @default("")
   email          String          @unique @default("")
   password       String
+  messages       ChatMessage[]   @relation("ChatMessage_sender")
   isAdmin        Boolean         @default(true)
   createdAt      DateTime?       @default(now())
   lastLoginDate  DateTime?       @default(now())
@@ -104,5 +94,4 @@ enum AiMessageAuthorType {
   assistant
   system
   tool
->>>>>>> 6463269fa2b76ad7dedb23ce7b01e16f80224dc9
 }
