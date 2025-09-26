@@ -62,6 +62,18 @@ model User {
   aiChatSessions AiChatSession[] @relation("AiChatSession_user")
 }
 
+model Parent {
+  id              Int      @id @default(autoincrement())
+  name            String
+  age             Int
+  relationship    String
+  health_conditions Json?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id])
+}
+
 enum AiChatSessionStatusType {
   active
   paused
