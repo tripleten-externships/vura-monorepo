@@ -46,5 +46,9 @@ export const User = list({
       ref: 'AiChatSession.user',
       many: true,
     }),
+    parents: relationship({
+      ref: 'Parent.user',
+      many: true,
+    }),
   },
 });

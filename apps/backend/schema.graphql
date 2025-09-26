@@ -10,13 +10,7 @@ type AiChatSession {
   updatedAt: DateTime
   lastActiveAt: DateTime
   user: User
-  messages(
-    where: AiMessageWhereInput! = {}
-    orderBy: [AiMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiMessageWhereUniqueInput
-  ): [AiMessage!]
+  messages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   messagesCount(where: AiMessageWhereInput! = {}): Int
 }
 
@@ -191,13 +185,7 @@ type AiMessage {
   error: JSON
   session: AiChatSession
   parentMessage: AiMessage
-  childMessages(
-    where: AiMessageWhereInput! = {}
-    orderBy: [AiMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiMessageWhereUniqueInput
-  ): [AiMessage!]
+  childMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   childMessagesCount(where: AiMessageWhereInput! = {}): Int
 }
 
@@ -340,6 +328,79 @@ input AiMessageRelateToOneForCreateInput {
   connect: AiMessageWhereUniqueInput
 }
 
+type Parent {
+  id: ID!
+  name: String
+  age: Int
+  relationship: String
+  health_conditions: JSON
+  created_at: DateTime
+  updated_at: DateTime
+  user: User
+}
+
+input ParentWhereUniqueInput {
+  id: ID
+}
+
+input ParentWhereInput {
+  AND: [ParentWhereInput!]
+  OR: [ParentWhereInput!]
+  NOT: [ParentWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  age: IntFilter
+  relationship: StringFilter
+  created_at: DateTimeNullableFilter
+  updated_at: DateTimeNullableFilter
+  user: UserWhereInput
+}
+
+input IntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: IntFilter
+}
+
+input ParentOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+  age: OrderDirection
+  relationship: OrderDirection
+  created_at: OrderDirection
+  updated_at: OrderDirection
+}
+
+input ParentUpdateInput {
+  name: String
+  age: Int
+  relationship: String
+  health_conditions: JSON
+  created_at: DateTime
+  updated_at: DateTime
+  user: UserRelateToOneForUpdateInput
+}
+
+input ParentUpdateArgs {
+  where: ParentWhereUniqueInput!
+  data: ParentUpdateInput!
+}
+
+input ParentCreateInput {
+  name: String
+  age: Int
+  relationship: String
+  health_conditions: JSON
+  created_at: DateTime
+  updated_at: DateTime
+  user: UserRelateToOneForCreateInput
+}
+
 type User {
   id: ID!
   name: String
@@ -348,14 +409,10 @@ type User {
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
-  aiChatSessions(
-    where: AiChatSessionWhereInput! = {}
-    orderBy: [AiChatSessionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiChatSessionWhereUniqueInput
-  ): [AiChatSession!]
+  aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
+  parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
+  parentsCount(where: ParentWhereInput! = {}): Int
 }
 
 type PasswordState {
@@ -378,6 +435,7 @@ input UserWhereInput {
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
   aiChatSessions: AiChatSessionManyRelationFilter
+  parents: ParentManyRelationFilter
 }
 
 input BooleanFilter {
@@ -389,6 +447,12 @@ input AiChatSessionManyRelationFilter {
   every: AiChatSessionWhereInput
   some: AiChatSessionWhereInput
   none: AiChatSessionWhereInput
+}
+
+input ParentManyRelationFilter {
+  every: ParentWhereInput
+  some: ParentWhereInput
+  none: ParentWhereInput
 }
 
 input UserOrderByInput {
@@ -408,6 +472,7 @@ input UserUpdateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
+  parents: ParentRelateToManyForUpdateInput
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -415,6 +480,13 @@ input AiChatSessionRelateToManyForUpdateInput {
   set: [AiChatSessionWhereUniqueInput!]
   create: [AiChatSessionCreateInput!]
   connect: [AiChatSessionWhereUniqueInput!]
+}
+
+input ParentRelateToManyForUpdateInput {
+  disconnect: [ParentWhereUniqueInput!]
+  set: [ParentWhereUniqueInput!]
+  create: [ParentCreateInput!]
+  connect: [ParentWhereUniqueInput!]
 }
 
 input UserUpdateArgs {
@@ -430,11 +502,17 @@ input UserCreateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
+  parents: ParentRelateToManyForCreateInput
 }
 
 input AiChatSessionRelateToManyForCreateInput {
   create: [AiChatSessionCreateInput!]
   connect: [AiChatSessionWhereUniqueInput!]
+}
+
+input ParentRelateToManyForCreateInput {
+  create: [ParentCreateInput!]
+  connect: [ParentWhereUniqueInput!]
 }
 
 """
@@ -445,10 +523,7 @@ scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/fi
 type Mutation {
   createAiChatSession(data: AiChatSessionCreateInput!): AiChatSession
   createAiChatSessions(data: [AiChatSessionCreateInput!]!): [AiChatSession]
-  updateAiChatSession(
-    where: AiChatSessionWhereUniqueInput!
-    data: AiChatSessionUpdateInput!
-  ): AiChatSession
+  updateAiChatSession(where: AiChatSessionWhereUniqueInput!, data: AiChatSessionUpdateInput!): AiChatSession
   updateAiChatSessions(data: [AiChatSessionUpdateArgs!]!): [AiChatSession]
   deleteAiChatSession(where: AiChatSessionWhereUniqueInput!): AiChatSession
   deleteAiChatSessions(where: [AiChatSessionWhereUniqueInput!]!): [AiChatSession]
@@ -458,6 +533,12 @@ type Mutation {
   updateAiMessages(data: [AiMessageUpdateArgs!]!): [AiMessage]
   deleteAiMessage(where: AiMessageWhereUniqueInput!): AiMessage
   deleteAiMessages(where: [AiMessageWhereUniqueInput!]!): [AiMessage]
+  createParent(data: ParentCreateInput!): Parent
+  createParents(data: [ParentCreateInput!]!): [Parent]
+  updateParent(where: ParentWhereUniqueInput!, data: ParentUpdateInput!): Parent
+  updateParents(data: [ParentUpdateArgs!]!): [Parent]
+  deleteParent(where: ParentWhereUniqueInput!): Parent
+  deleteParents(where: [ParentWhereUniqueInput!]!): [Parent]
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -488,23 +569,14 @@ input CreateInitialUserInput {
 
 type Query {
   aiChatSession(where: AiChatSessionWhereUniqueInput!): AiChatSession
-  aiChatSessions(
-    where: AiChatSessionWhereInput! = {}
-    orderBy: [AiChatSessionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiChatSessionWhereUniqueInput
-  ): [AiChatSession!]
+  aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
   aiMessage(where: AiMessageWhereUniqueInput!): AiMessage
-  aiMessages(
-    where: AiMessageWhereInput! = {}
-    orderBy: [AiMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiMessageWhereUniqueInput
-  ): [AiMessage!]
+  aiMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   aiMessagesCount(where: AiMessageWhereInput! = {}): Int
+  parent(where: ParentWhereUniqueInput!): Parent
+  parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
+  parentsCount(where: ParentWhereInput! = {}): Int
   user(where: UserWhereUniqueInput!): User
   users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   usersCount(where: UserWhereInput! = {}): Int
