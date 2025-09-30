@@ -11,20 +11,17 @@ export const ForumPost = list({
     },
     filter: {
       // only logged-in user can see posts
-      query: ({ session }) => {
-        if (!session?.data?.id) return false;
-        return true;
-      },
+      query: ({ session }) => !!session?.data?.id,
     },
     item: {
       //only logged-in users can update and delete their own posts
       update: ({ session, item }) => {
         if (!session?.data?.id) return false;
-        return session?.data?.id === item.userId;
+        return session?.data?.id === item.authorId;
       },
       delete: ({ session, item }) => {
         if (!session?.data?.id) return false;
-        return session?.data?.id === item.userId;
+        return session?.data?.id === item.authorId;
       },
     },
   },
@@ -73,7 +70,7 @@ export const ForumPost = list({
     // Automatically update the time when a post is updated.
     beforeOperation: async ({ operation, resolvedData }) => {
       if (operation === 'update') {
-        resolvedData.forumPost = new Date();
+        resolvedData.updatedAt = new Date();
       }
     },
     // Automatically delete when a post is deleted.
