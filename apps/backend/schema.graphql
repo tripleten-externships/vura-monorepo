@@ -399,6 +399,70 @@ input GroupChatRelateToOneForCreateInput {
   connect: GroupChatWhereUniqueInput
 }
 
+type Checklist {
+  id: ID!
+  name: String
+  resources(
+    where: ResourceWhereInput! = {}
+    orderBy: [ResourceOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ResourceWhereUniqueInput
+  ): [Resource!]
+  resourcesCount(where: ResourceWhereInput! = {}): Int
+}
+
+input ChecklistWhereUniqueInput {
+  id: ID
+}
+
+input ChecklistWhereInput {
+  AND: [ChecklistWhereInput!]
+  OR: [ChecklistWhereInput!]
+  NOT: [ChecklistWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  resources: ResourceManyRelationFilter
+}
+
+input ResourceManyRelationFilter {
+  every: ResourceWhereInput
+  some: ResourceWhereInput
+  none: ResourceWhereInput
+}
+
+input ChecklistOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+}
+
+input ChecklistUpdateInput {
+  name: String
+  resources: ResourceRelateToManyForUpdateInput
+}
+
+input ResourceRelateToManyForUpdateInput {
+  disconnect: [ResourceWhereUniqueInput!]
+  set: [ResourceWhereUniqueInput!]
+  create: [ResourceCreateInput!]
+  connect: [ResourceWhereUniqueInput!]
+}
+
+input ChecklistUpdateArgs {
+  where: ChecklistWhereUniqueInput!
+  data: ChecklistUpdateInput!
+}
+
+input ChecklistCreateInput {
+  name: String
+  resources: ResourceRelateToManyForCreateInput
+}
+
+input ResourceRelateToManyForCreateInput {
+  create: [ResourceCreateInput!]
+  connect: [ResourceWhereUniqueInput!]
+}
+
 type ForumPost {
   id: ID!
   title: String
@@ -638,6 +702,61 @@ input ParentCreateInput {
   user: UserRelateToOneForCreateInput
 }
 
+type Resource {
+  id: ID!
+  link: String
+  content: String
+  checklist: Checklist
+}
+
+input ResourceWhereUniqueInput {
+  id: ID
+}
+
+input ResourceWhereInput {
+  AND: [ResourceWhereInput!]
+  OR: [ResourceWhereInput!]
+  NOT: [ResourceWhereInput!]
+  id: IDFilter
+  link: StringFilter
+  content: StringFilter
+  checklist: ChecklistWhereInput
+}
+
+input ResourceOrderByInput {
+  id: OrderDirection
+  link: OrderDirection
+  content: OrderDirection
+}
+
+input ResourceUpdateInput {
+  link: String
+  content: String
+  checklist: ChecklistRelateToOneForUpdateInput
+}
+
+input ChecklistRelateToOneForUpdateInput {
+  create: ChecklistCreateInput
+  connect: ChecklistWhereUniqueInput
+  disconnect: Boolean
+}
+
+input ResourceUpdateArgs {
+  where: ResourceWhereUniqueInput!
+  data: ResourceUpdateInput!
+}
+
+input ResourceCreateInput {
+  link: String
+  content: String
+  checklist: ChecklistRelateToOneForCreateInput
+}
+
+input ChecklistRelateToOneForCreateInput {
+  create: ChecklistCreateInput
+  connect: ChecklistWhereUniqueInput
+}
+
 type User {
   id: ID!
   name: String
@@ -872,6 +991,12 @@ type Mutation {
   updateChatMessages(data: [ChatMessageUpdateArgs!]!): [ChatMessage]
   deleteChatMessage(where: ChatMessageWhereUniqueInput!): ChatMessage
   deleteChatMessages(where: [ChatMessageWhereUniqueInput!]!): [ChatMessage]
+  createChecklist(data: ChecklistCreateInput!): Checklist
+  createChecklists(data: [ChecklistCreateInput!]!): [Checklist]
+  updateChecklist(where: ChecklistWhereUniqueInput!, data: ChecklistUpdateInput!): Checklist
+  updateChecklists(data: [ChecklistUpdateArgs!]!): [Checklist]
+  deleteChecklist(where: ChecklistWhereUniqueInput!): Checklist
+  deleteChecklists(where: [ChecklistWhereUniqueInput!]!): [Checklist]
   createForumPost(data: ForumPostCreateInput!): ForumPost
   createForumPosts(data: [ForumPostCreateInput!]!): [ForumPost]
   updateForumPost(where: ForumPostWhereUniqueInput!, data: ForumPostUpdateInput!): ForumPost
@@ -890,6 +1015,12 @@ type Mutation {
   updateParents(data: [ParentUpdateArgs!]!): [Parent]
   deleteParent(where: ParentWhereUniqueInput!): Parent
   deleteParents(where: [ParentWhereUniqueInput!]!): [Parent]
+  createResource(data: ResourceCreateInput!): Resource
+  createResources(data: [ResourceCreateInput!]!): [Resource]
+  updateResource(where: ResourceWhereUniqueInput!, data: ResourceUpdateInput!): Resource
+  updateResources(data: [ResourceUpdateArgs!]!): [Resource]
+  deleteResource(where: ResourceWhereUniqueInput!): Resource
+  deleteResources(where: [ResourceWhereUniqueInput!]!): [Resource]
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -951,6 +1082,15 @@ type Query {
     cursor: ChatMessageWhereUniqueInput
   ): [ChatMessage!]
   chatMessagesCount(where: ChatMessageWhereInput! = {}): Int
+  checklist(where: ChecklistWhereUniqueInput!): Checklist
+  checklists(
+    where: ChecklistWhereInput! = {}
+    orderBy: [ChecklistOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ChecklistWhereUniqueInput
+  ): [Checklist!]
+  checklistsCount(where: ChecklistWhereInput! = {}): Int
   forumPost(where: ForumPostWhereUniqueInput!): ForumPost
   forumPosts(
     where: ForumPostWhereInput! = {}
@@ -978,6 +1118,15 @@ type Query {
     cursor: ParentWhereUniqueInput
   ): [Parent!]
   parentsCount(where: ParentWhereInput! = {}): Int
+  resource(where: ResourceWhereUniqueInput!): Resource
+  resources(
+    where: ResourceWhereInput! = {}
+    orderBy: [ResourceOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ResourceWhereUniqueInput
+  ): [Resource!]
+  resourcesCount(where: ResourceWhereInput! = {}): Int
   user(where: UserWhereUniqueInput!): User
   users(
     where: UserWhereInput! = {}

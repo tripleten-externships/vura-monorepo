@@ -64,6 +64,12 @@ model ChatMessage {
   @@index([senderId])
 }
 
+model Checklist {
+  id        String     @id @default(uuid())
+  name      String     @default("")
+  resources Resource[] @relation("Resource_checklist")
+}
+
 model ForumPost {
   id        String    @id @default(uuid())
   title     String    @default("")
@@ -102,6 +108,16 @@ model Parent {
   userId            String?   @map("user")
 
   @@index([userId])
+}
+
+model Resource {
+  id          String     @id @default(uuid())
+  link        String     @default("")
+  content     String     @default("")
+  checklist   Checklist? @relation("Resource_checklist", fields: [checklistId], references: [id])
+  checklistId String?    @map("checklist")
+
+  @@index([checklistId])
 }
 
 model User {
