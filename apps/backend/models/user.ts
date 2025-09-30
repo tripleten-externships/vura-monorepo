@@ -1,5 +1,4 @@
 import { list } from '@keystone-6/core';
-import type { Lists } from '.keystone/types';
 import { checkbox, text, password, timestamp, relationship } from '@keystone-6/core/fields';
 
 export const User = list({
@@ -11,9 +10,10 @@ export const User = list({
       delete: ({ session }) => !!session,
     },
     filter: {
-      query: ({ session }) => ({
-        id: { equals: session.data.id },
-      }),
+      query: ({ session }) => {
+        if (!session?.data?.id) return false;
+        return { id: { equals: session.data.id } };
+      },
     },
     item: {
       update: ({ session, item }) => item.id === session.data.id,
@@ -34,6 +34,10 @@ export const User = list({
       },
       bcrypt: require('bcryptjs'),
     }),
+
+    //relationship to chat messages
+    messages: relationship({ ref: 'ChatMessage.sender', many: true }),
+
     isAdmin: checkbox({ defaultValue: true }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
@@ -50,5 +54,11 @@ export const User = list({
       ref: 'Parent.user',
       many: true,
     }),
+
+    // relationship to GroupChat
+    ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
+    memberChats: relationship({ ref: 'GroupChat.members', many: true }),
+    // relationship to forumPost
+    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
   },
 });
