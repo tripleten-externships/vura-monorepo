@@ -1,13 +1,22 @@
 import { list } from '@keystone-6/core';
 import { relationship, text, timestamp } from '@keystone-6/core/fields';
+import { isItemAccess } from '../utils/access';
 
 export const GroupChat = list({
   access: {
     operation: {
       query: ({}) => true,
       create: ({}) => true,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
+      update: (args) => {
+        const { session } = args;
+        if (!session?.data?.id || !isItemAccess(args)) return false;
+        return session.data.id === args?.item?.owner?.id;
+      },
+      delete: (args) => {
+        const { session } = args;
+        if (!session?.data?.id || !isItemAccess(args)) return false;
+        return session.data.id === args?.item?.owner?.id;
+      },
     },
     filter: {
       query: ({ session }) => ({
@@ -23,6 +32,7 @@ export const GroupChat = list({
   },
   fields: {
     groupName: text({ validation: { isRequired: true } }),
+    messages: relationship({ ref: 'ChatMessage.group', many: true }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
       db: { map: 'created_at' },
