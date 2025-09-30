@@ -51,13 +51,6 @@ model AiMessage {
   @@index([parentMessageId])
 }
 
-<<<<<<< HEAD
-model CarePlan {
-  id     String  @id @default(uuid())
-  name   String  @default("")
-  user   User?   @relation("CarePlan_user", fields: [userId], references: [id])
-  userId String? @unique @map("user")
-=======
 model ChatMessage {
   id        String     @id @default(uuid())
   message   String     @default("")
@@ -75,7 +68,6 @@ model Checklist {
   id        String     @id @default(uuid())
   name      String     @default("")
   resources Resource[] @relation("Resource_checklist")
->>>>>>> main
 }
 
 model ForumPost {
@@ -105,12 +97,6 @@ model GroupChat {
 }
 
 model Parent {
-<<<<<<< HEAD
-  id     String  @id @default(uuid())
-  name   String  @default("")
-  user   User?   @relation("Parent_user", fields: [userId], references: [id])
-  userId String? @unique @map("user")
-=======
   id                Int       @id @default(autoincrement())
   name              String    @default("")
   age               Int
@@ -132,7 +118,6 @@ model Resource {
   checklistId String?    @map("checklist")
 
   @@index([checklistId])
->>>>>>> main
 }
 
 model User {
@@ -140,14 +125,7 @@ model User {
   name           String          @default("")
   email          String          @unique @default("")
   password       String
-<<<<<<< HEAD
-  avatarUrl      String          @default("")
-  age            Int
-  gender         String
-  privacyToggle  Boolean         @default(true)
-=======
   messages       ChatMessage[]   @relation("ChatMessage_sender")
->>>>>>> main
   isAdmin        Boolean         @default(true)
   createdAt      DateTime?       @default(now())
   lastLoginDate  DateTime?       @updatedAt

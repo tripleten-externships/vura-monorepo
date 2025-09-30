@@ -75,7 +75,6 @@ export const User = list({
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
     }),
-    parent: relationship({ ref: 'Parent.user' }),
     carePlan: relationship({ ref: 'CarePlan.user' }), // need to define only one care plan?
     aiChatSessions: relationship({
       ref: 'AiChatSession.user',

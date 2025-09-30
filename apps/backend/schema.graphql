@@ -340,29 +340,6 @@ input AiMessageRelateToOneForCreateInput {
   connect: AiMessageWhereUniqueInput
 }
 
-<<<<<<< HEAD
-type CarePlan {
-  id: ID!
-  name: String
-  user: User
-}
-
-input CarePlanWhereUniqueInput {
-  id: ID
-  user: UserWhereUniqueInput
-}
-
-input CarePlanWhereInput {
-  AND: [CarePlanWhereInput!]
-  OR: [CarePlanWhereInput!]
-  NOT: [CarePlanWhereInput!]
-  id: IDFilter
-  name: StringFilter
-  user: UserWhereInput
-}
-
-input CarePlanOrderByInput {
-=======
 type ChatMessage {
   id: ID!
   message: String
@@ -455,26 +432,10 @@ input ResourceManyRelationFilter {
 }
 
 input ChecklistOrderByInput {
->>>>>>> main
   id: OrderDirection
   name: OrderDirection
 }
 
-<<<<<<< HEAD
-input CarePlanUpdateInput {
-  name: String
-  user: UserRelateToOneForUpdateInput
-}
-
-input CarePlanUpdateArgs {
-  where: CarePlanWhereUniqueInput!
-  data: CarePlanUpdateInput!
-}
-
-input CarePlanCreateInput {
-  name: String
-  user: UserRelateToOneForCreateInput
-=======
 input ChecklistUpdateInput {
   name: String
   resources: ResourceRelateToManyForUpdateInput
@@ -500,7 +461,6 @@ input ChecklistCreateInput {
 input ResourceRelateToManyForCreateInput {
   create: [ResourceCreateInput!]
   connect: [ResourceWhereUniqueInput!]
->>>>>>> main
 }
 
 type ForumPost {
@@ -672,23 +632,16 @@ input UserRelateToManyForCreateInput {
 type Parent {
   id: ID!
   name: String
-<<<<<<< HEAD
-=======
   age: Int
   relationship: String
   health_conditions: JSON
   created_at: DateTime
   updated_at: DateTime
->>>>>>> main
   user: User
 }
 
 input ParentWhereUniqueInput {
   id: ID
-<<<<<<< HEAD
-  user: UserWhereUniqueInput
-=======
->>>>>>> main
 }
 
 input ParentWhereInput {
@@ -697,14 +650,6 @@ input ParentWhereInput {
   NOT: [ParentWhereInput!]
   id: IDFilter
   name: StringFilter
-<<<<<<< HEAD
-  user: UserWhereInput
-}
-
-input ParentOrderByInput {
-  id: OrderDirection
-  name: OrderDirection
-=======
   age: IntFilter
   relationship: StringFilter
   created_at: DateTimeNullableFilter
@@ -730,19 +675,15 @@ input ParentOrderByInput {
   relationship: OrderDirection
   created_at: OrderDirection
   updated_at: OrderDirection
->>>>>>> main
 }
 
 input ParentUpdateInput {
   name: String
-<<<<<<< HEAD
-=======
   age: Int
   relationship: String
   health_conditions: JSON
   created_at: DateTime
   updated_at: DateTime
->>>>>>> main
   user: UserRelateToOneForUpdateInput
 }
 
@@ -753,11 +694,6 @@ input ParentUpdateArgs {
 
 input ParentCreateInput {
   name: String
-<<<<<<< HEAD
-  user: UserRelateToOneForCreateInput
-}
-
-=======
   age: Int
   relationship: String
   health_conditions: JSON
@@ -821,25 +757,11 @@ input ChecklistRelateToOneForCreateInput {
   connect: ChecklistWhereUniqueInput
 }
 
->>>>>>> main
 type User {
   id: ID!
   name: String
   email: String
   password: PasswordState
-<<<<<<< HEAD
-  avatarUrl: String
-  age: Int
-  gender: String
-  privacyToggle: Boolean
-  isAdmin: Boolean
-  createdAt: DateTime
-  lastLoginDate: DateTime
-  lastUpdateDate: DateTime
-  parent: Parent
-  carePlan: CarePlan
-  aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
-=======
   messages(
     where: ChatMessageWhereInput! = {}
     orderBy: [ChatMessageOrderByInput!]! = []
@@ -858,7 +780,6 @@ type User {
     skip: Int! = 0
     cursor: AiChatSessionWhereUniqueInput
   ): [AiChatSession!]
->>>>>>> main
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
   parents(
     where: ParentWhereInput! = {}
@@ -912,14 +833,7 @@ input UserWhereInput {
   id: IDFilter
   name: StringFilter
   email: StringFilter
-<<<<<<< HEAD
-  avatarUrl: StringFilter
-  age: IntFilter
-  gender: StringFilter
-  privacyToggle: BooleanFilter
-=======
   messages: ChatMessageManyRelationFilter
->>>>>>> main
   isAdmin: BooleanFilter
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
@@ -991,14 +905,7 @@ input UserUpdateInput {
   name: String
   email: String
   password: String
-<<<<<<< HEAD
-  avatarUrl: String
-  age: Int
-  gender: String
-  privacyToggle: Boolean
-=======
   messages: ChatMessageRelateToManyForUpdateInput
->>>>>>> main
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
@@ -1061,14 +968,7 @@ input UserCreateInput {
   name: String
   email: String
   password: String
-<<<<<<< HEAD
-  avatarUrl: String
-  age: Int
-  gender: String
-  privacyToggle: Boolean
-=======
   messages: ChatMessageRelateToManyForCreateInput
->>>>>>> main
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
@@ -1134,14 +1034,6 @@ type Mutation {
   updateAiMessages(data: [AiMessageUpdateArgs!]!): [AiMessage]
   deleteAiMessage(where: AiMessageWhereUniqueInput!): AiMessage
   deleteAiMessages(where: [AiMessageWhereUniqueInput!]!): [AiMessage]
-<<<<<<< HEAD
-  createCarePlan(data: CarePlanCreateInput!): CarePlan
-  createCarePlans(data: [CarePlanCreateInput!]!): [CarePlan]
-  updateCarePlan(where: CarePlanWhereUniqueInput!, data: CarePlanUpdateInput!): CarePlan
-  updateCarePlans(data: [CarePlanUpdateArgs!]!): [CarePlan]
-  deleteCarePlan(where: CarePlanWhereUniqueInput!): CarePlan
-  deleteCarePlans(where: [CarePlanWhereUniqueInput!]!): [CarePlan]
-=======
   createChatMessage(data: ChatMessageCreateInput!): ChatMessage
   createChatMessages(data: [ChatMessageCreateInput!]!): [ChatMessage]
   updateChatMessage(where: ChatMessageWhereUniqueInput!, data: ChatMessageUpdateInput!): ChatMessage
@@ -1154,7 +1046,6 @@ type Mutation {
   updateChecklists(data: [ChecklistUpdateArgs!]!): [Checklist]
   deleteChecklist(where: ChecklistWhereUniqueInput!): Checklist
   deleteChecklists(where: [ChecklistWhereUniqueInput!]!): [Checklist]
->>>>>>> main
   createForumPost(data: ForumPostCreateInput!): ForumPost
   createForumPosts(data: [ForumPostCreateInput!]!): [ForumPost]
   updateForumPost(where: ForumPostWhereUniqueInput!, data: ForumPostUpdateInput!): ForumPost
@@ -1173,15 +1064,12 @@ type Mutation {
   updateParents(data: [ParentUpdateArgs!]!): [Parent]
   deleteParent(where: ParentWhereUniqueInput!): Parent
   deleteParents(where: [ParentWhereUniqueInput!]!): [Parent]
-<<<<<<< HEAD
-=======
   createResource(data: ResourceCreateInput!): Resource
   createResources(data: [ResourceCreateInput!]!): [Resource]
   updateResource(where: ResourceWhereUniqueInput!, data: ResourceUpdateInput!): Resource
   updateResources(data: [ResourceUpdateArgs!]!): [Resource]
   deleteResource(where: ResourceWhereUniqueInput!): Resource
   deleteResources(where: [ResourceWhereUniqueInput!]!): [Resource]
->>>>>>> main
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -1234,11 +1122,6 @@ type Query {
     cursor: AiMessageWhereUniqueInput
   ): [AiMessage!]
   aiMessagesCount(where: AiMessageWhereInput! = {}): Int
-<<<<<<< HEAD
-  carePlan(where: CarePlanWhereUniqueInput!): CarePlan
-  carePlans(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
-  carePlansCount(where: CarePlanWhereInput! = {}): Int
-=======
   chatMessage(where: ChatMessageWhereUniqueInput!): ChatMessage
   chatMessages(
     where: ChatMessageWhereInput! = {}
@@ -1257,7 +1140,6 @@ type Query {
     cursor: ChecklistWhereUniqueInput
   ): [Checklist!]
   checklistsCount(where: ChecklistWhereInput! = {}): Int
->>>>>>> main
   forumPost(where: ForumPostWhereUniqueInput!): ForumPost
   forumPosts(
     where: ForumPostWhereInput! = {}
@@ -1277,10 +1159,6 @@ type Query {
   ): [GroupChat!]
   groupChatsCount(where: GroupChatWhereInput! = {}): Int
   parent(where: ParentWhereUniqueInput!): Parent
-<<<<<<< HEAD
-  parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
-  parentsCount(where: ParentWhereInput! = {}): Int
-=======
   parents(
     where: ParentWhereInput! = {}
     orderBy: [ParentOrderByInput!]! = []
@@ -1298,7 +1176,6 @@ type Query {
     cursor: ResourceWhereUniqueInput
   ): [Resource!]
   resourcesCount(where: ResourceWhereInput! = {}): Int
->>>>>>> main
   user(where: UserWhereUniqueInput!): User
   users(
     where: UserWhereInput! = {}
