@@ -39,11 +39,16 @@ CREATE TABLE `ForumPost` (
 
 -- CreateTable
 CREATE TABLE `Parent` (
-    `id` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL DEFAULT '',
+    `age` INTEGER NOT NULL,
+    `relationship` VARCHAR(191) NOT NULL DEFAULT '',
+    `health_conditions` JSON NULL,
+    `created_at` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NULL,
     `user` VARCHAR(191) NULL,
 
-    UNIQUE INDEX `Parent_user_key`(`user`),
+    INDEX `Parent_user_idx`(`user`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
