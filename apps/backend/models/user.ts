@@ -76,5 +76,7 @@ export const User = list({
       ref: 'AiChatSession.user',
       many: true,
     }),
+    // relationship to forumPost
+    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
   },
 });

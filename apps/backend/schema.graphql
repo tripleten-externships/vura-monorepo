@@ -328,84 +328,63 @@ input AiMessageRelateToOneForCreateInput {
   connect: AiMessageWhereUniqueInput
 }
 
-type CarePlan {
+type ForumPost {
   id: ID!
-  name: String
-  user: User
+  title: String
+  topic: String
+  content: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  author: User
 }
 
-input CarePlanWhereUniqueInput {
+input ForumPostWhereUniqueInput {
   id: ID
-  user: UserWhereUniqueInput
 }
 
-input CarePlanWhereInput {
-  AND: [CarePlanWhereInput!]
-  OR: [CarePlanWhereInput!]
-  NOT: [CarePlanWhereInput!]
+input ForumPostWhereInput {
+  AND: [ForumPostWhereInput!]
+  OR: [ForumPostWhereInput!]
+  NOT: [ForumPostWhereInput!]
   id: IDFilter
-  name: StringFilter
-  user: UserWhereInput
+  title: StringFilter
+  topic: StringFilter
+  content: StringFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
+  author: UserWhereInput
 }
 
-input CarePlanOrderByInput {
+input ForumPostOrderByInput {
   id: OrderDirection
-  name: OrderDirection
+  title: OrderDirection
+  topic: OrderDirection
+  content: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
 }
 
-input CarePlanUpdateInput {
-  name: String
-  user: UserRelateToOneForUpdateInput
+input ForumPostUpdateInput {
+  title: String
+  topic: String
+  content: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  author: UserRelateToOneForUpdateInput
 }
 
-input CarePlanUpdateArgs {
-  where: CarePlanWhereUniqueInput!
-  data: CarePlanUpdateInput!
+input ForumPostUpdateArgs {
+  where: ForumPostWhereUniqueInput!
+  data: ForumPostUpdateInput!
 }
 
-input CarePlanCreateInput {
-  name: String
-  user: UserRelateToOneForCreateInput
-}
-
-type Parent {
-  id: ID!
-  name: String
-  user: User
-}
-
-input ParentWhereUniqueInput {
-  id: ID
-  user: UserWhereUniqueInput
-}
-
-input ParentWhereInput {
-  AND: [ParentWhereInput!]
-  OR: [ParentWhereInput!]
-  NOT: [ParentWhereInput!]
-  id: IDFilter
-  name: StringFilter
-  user: UserWhereInput
-}
-
-input ParentOrderByInput {
-  id: OrderDirection
-  name: OrderDirection
-}
-
-input ParentUpdateInput {
-  name: String
-  user: UserRelateToOneForUpdateInput
-}
-
-input ParentUpdateArgs {
-  where: ParentWhereUniqueInput!
-  data: ParentUpdateInput!
-}
-
-input ParentCreateInput {
-  name: String
-  user: UserRelateToOneForCreateInput
+input ForumPostCreateInput {
+  title: String
+  topic: String
+  content: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  author: UserRelateToOneForCreateInput
 }
 
 type User {
@@ -420,11 +399,10 @@ type User {
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
-  lastUpdateDate: DateTime
-  parent: Parent
-  carePlan: CarePlan
   aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
+  forumPost(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
+  forumPostCount(where: ForumPostWhereInput! = {}): Int
 }
 
 type PasswordState {
@@ -456,6 +434,7 @@ input UserWhereInput {
   parent: ParentWhereInput
   carePlan: CarePlanWhereInput
   aiChatSessions: AiChatSessionManyRelationFilter
+  forumPost: ForumPostManyRelationFilter
 }
 
 input IntFilter {
@@ -478,6 +457,12 @@ input AiChatSessionManyRelationFilter {
   every: AiChatSessionWhereInput
   some: AiChatSessionWhereInput
   none: AiChatSessionWhereInput
+}
+
+input ForumPostManyRelationFilter {
+  every: ForumPostWhereInput
+  some: ForumPostWhereInput
+  none: ForumPostWhereInput
 }
 
 input UserOrderByInput {
@@ -509,6 +494,7 @@ input UserUpdateInput {
   parent: ParentRelateToOneForUpdateInput
   carePlan: CarePlanRelateToOneForUpdateInput
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
+  forumPost: ForumPostRelateToManyForUpdateInput
 }
 
 input ParentRelateToOneForUpdateInput {
@@ -528,6 +514,13 @@ input AiChatSessionRelateToManyForUpdateInput {
   set: [AiChatSessionWhereUniqueInput!]
   create: [AiChatSessionCreateInput!]
   connect: [AiChatSessionWhereUniqueInput!]
+}
+
+input ForumPostRelateToManyForUpdateInput {
+  disconnect: [ForumPostWhereUniqueInput!]
+  set: [ForumPostWhereUniqueInput!]
+  create: [ForumPostCreateInput!]
+  connect: [ForumPostWhereUniqueInput!]
 }
 
 input UserUpdateArgs {
@@ -550,6 +543,7 @@ input UserCreateInput {
   parent: ParentRelateToOneForCreateInput
   carePlan: CarePlanRelateToOneForCreateInput
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
+  forumPost: ForumPostRelateToManyForCreateInput
 }
 
 input ParentRelateToOneForCreateInput {
@@ -565,6 +559,11 @@ input CarePlanRelateToOneForCreateInput {
 input AiChatSessionRelateToManyForCreateInput {
   create: [AiChatSessionCreateInput!]
   connect: [AiChatSessionWhereUniqueInput!]
+}
+
+input ForumPostRelateToManyForCreateInput {
+  create: [ForumPostCreateInput!]
+  connect: [ForumPostWhereUniqueInput!]
 }
 
 """
@@ -585,18 +584,12 @@ type Mutation {
   updateAiMessages(data: [AiMessageUpdateArgs!]!): [AiMessage]
   deleteAiMessage(where: AiMessageWhereUniqueInput!): AiMessage
   deleteAiMessages(where: [AiMessageWhereUniqueInput!]!): [AiMessage]
-  createCarePlan(data: CarePlanCreateInput!): CarePlan
-  createCarePlans(data: [CarePlanCreateInput!]!): [CarePlan]
-  updateCarePlan(where: CarePlanWhereUniqueInput!, data: CarePlanUpdateInput!): CarePlan
-  updateCarePlans(data: [CarePlanUpdateArgs!]!): [CarePlan]
-  deleteCarePlan(where: CarePlanWhereUniqueInput!): CarePlan
-  deleteCarePlans(where: [CarePlanWhereUniqueInput!]!): [CarePlan]
-  createParent(data: ParentCreateInput!): Parent
-  createParents(data: [ParentCreateInput!]!): [Parent]
-  updateParent(where: ParentWhereUniqueInput!, data: ParentUpdateInput!): Parent
-  updateParents(data: [ParentUpdateArgs!]!): [Parent]
-  deleteParent(where: ParentWhereUniqueInput!): Parent
-  deleteParents(where: [ParentWhereUniqueInput!]!): [Parent]
+  createForumPost(data: ForumPostCreateInput!): ForumPost
+  createForumPosts(data: [ForumPostCreateInput!]!): [ForumPost]
+  updateForumPost(where: ForumPostWhereUniqueInput!, data: ForumPostUpdateInput!): ForumPost
+  updateForumPosts(data: [ForumPostUpdateArgs!]!): [ForumPost]
+  deleteForumPost(where: ForumPostWhereUniqueInput!): ForumPost
+  deleteForumPosts(where: [ForumPostWhereUniqueInput!]!): [ForumPost]
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -632,12 +625,9 @@ type Query {
   aiMessage(where: AiMessageWhereUniqueInput!): AiMessage
   aiMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   aiMessagesCount(where: AiMessageWhereInput! = {}): Int
-  carePlan(where: CarePlanWhereUniqueInput!): CarePlan
-  carePlans(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
-  carePlansCount(where: CarePlanWhereInput! = {}): Int
-  parent(where: ParentWhereUniqueInput!): Parent
-  parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
-  parentsCount(where: ParentWhereInput! = {}): Int
+  forumPost(where: ForumPostWhereUniqueInput!): ForumPost
+  forumPosts(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
+  forumPostsCount(where: ForumPostWhereInput! = {}): Int
   user(where: UserWhereUniqueInput!): User
   users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   usersCount(where: UserWhereInput! = {}): Int
