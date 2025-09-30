@@ -11,6 +11,22 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Checklist {
+  id        String     @id @default(uuid())
+  name      String     @default("")
+  resources Resource[] @relation("Resource_checklist")
+}
+
+model Resource {
+  id          String     @id @default(uuid())
+  link        String     @default("")
+  content     String     @default("")
+  checklist   Checklist? @relation("Resource_checklist", fields: [checklistId], references: [id])
+  checklistId String?    @map("checklist")
+
+  @@index([checklistId])
+}
+
 model User {
   id            String    @id @default(uuid())
   name          String    @default("")
