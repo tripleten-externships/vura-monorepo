@@ -51,6 +51,19 @@ model AiMessage {
   @@index([parentMessageId])
 }
 
+model ForumPost {
+  id        String    @id @default(uuid())
+  title     String    @default("")
+  topic     String    @default("")
+  content   String    @default("")
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
+  author    User?     @relation("ForumPost_author", fields: [authorId], references: [id])
+  authorId  String?   @map("author")
+
+  @@index([authorId])
+}
+
 model User {
   id             String          @id @default(uuid())
   name           String          @default("")
@@ -60,6 +73,7 @@ model User {
   createdAt      DateTime?       @default(now())
   lastLoginDate  DateTime?       @default(now())
   aiChatSessions AiChatSession[] @relation("AiChatSession_user")
+  forumPost      ForumPost[]     @relation("ForumPost_author")
 }
 
 enum AiChatSessionStatusType {
