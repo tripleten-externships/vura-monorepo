@@ -1,4 +1,5 @@
 export * from './user';
+export * from './parent';
 export * from './chat-message';
 export * from './ai-chat-session';
 export * from './ai-message';

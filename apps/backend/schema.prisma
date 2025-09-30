@@ -90,6 +90,20 @@ model GroupChat {
   @@index([ownerId])
 }
 
+model Parent {
+  id                Int       @id @default(autoincrement())
+  name              String    @default("")
+  age               Int
+  relationship      String    @default("")
+  health_conditions Json?
+  created_at        DateTime? @default(now())
+  updated_at        DateTime? @updatedAt
+  user              User?     @relation("Parent_user", fields: [userId], references: [id])
+  userId            String?   @map("user")
+
+  @@index([userId])
+}
+
 model User {
   id             String          @id @default(uuid())
   name           String          @default("")
@@ -100,6 +114,7 @@ model User {
   createdAt      DateTime?       @default(now())
   lastLoginDate  DateTime?       @default(now())
   aiChatSessions AiChatSession[] @relation("AiChatSession_user")
+  parents        Parent[]        @relation("Parent_user")
   ownedChats     GroupChat[]     @relation("GroupChat_owner")
   memberChats    GroupChat[]     @relation("GroupChat_members")
   forumPost      ForumPost[]     @relation("ForumPost_author")

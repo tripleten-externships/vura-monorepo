@@ -50,6 +50,10 @@ export const User = list({
       ref: 'AiChatSession.user',
       many: true,
     }),
+    parents: relationship({
+      ref: 'Parent.user',
+      many: true,
+    }),
 
     // relationship to GroupChat
     ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
