@@ -51,11 +51,31 @@ model AiMessage {
   @@index([parentMessageId])
 }
 
+<<<<<<< HEAD
 model CarePlan {
   id     String  @id @default(uuid())
   name   String  @default("")
   user   User?   @relation("CarePlan_user", fields: [userId], references: [id])
   userId String? @unique @map("user")
+=======
+model ChatMessage {
+  id        String     @id @default(uuid())
+  message   String     @default("")
+  createdAt DateTime?  @default(now())
+  group     GroupChat? @relation("ChatMessage_group", fields: [groupId], references: [id])
+  groupId   String?    @map("group")
+  sender    User?      @relation("ChatMessage_sender", fields: [senderId], references: [id])
+  senderId  String?    @map("sender")
+
+  @@index([groupId])
+  @@index([senderId])
+}
+
+model Checklist {
+  id        String     @id @default(uuid())
+  name      String     @default("")
+  resources Resource[] @relation("Resource_checklist")
+>>>>>>> main
 }
 
 model ForumPost {
@@ -72,22 +92,47 @@ model ForumPost {
 }
 
 model GroupChat {
-  id        String    @id @default(uuid())
-  groupName String    @default("")
-  createdAt DateTime? @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-  owner     User?     @relation("GroupChat_owner", fields: [ownerId], references: [id])
-  ownerId   String?   @map("ownerId")
-  members   User[]    @relation("GroupChat_members")
+  id        String        @id @default(uuid())
+  groupName String        @default("")
+  messages  ChatMessage[] @relation("ChatMessage_group")
+  createdAt DateTime?     @default(now()) @map("created_at")
+  updatedAt DateTime?     @updatedAt @map("updated_at")
+  owner     User?         @relation("GroupChat_owner", fields: [ownerId], references: [id])
+  ownerId   String?       @map("ownerId")
+  members   User[]        @relation("GroupChat_members")
 
   @@index([ownerId])
 }
 
 model Parent {
+<<<<<<< HEAD
   id     String  @id @default(uuid())
   name   String  @default("")
   user   User?   @relation("Parent_user", fields: [userId], references: [id])
   userId String? @unique @map("user")
+=======
+  id                Int       @id @default(autoincrement())
+  name              String    @default("")
+  age               Int
+  relationship      String    @default("")
+  health_conditions Json?
+  created_at        DateTime? @default(now())
+  updated_at        DateTime? @updatedAt
+  user              User?     @relation("Parent_user", fields: [userId], references: [id])
+  userId            String?   @map("user")
+
+  @@index([userId])
+}
+
+model Resource {
+  id          String     @id @default(uuid())
+  link        String     @default("")
+  content     String     @default("")
+  checklist   Checklist? @relation("Resource_checklist", fields: [checklistId], references: [id])
+  checklistId String?    @map("checklist")
+
+  @@index([checklistId])
+>>>>>>> main
 }
 
 model User {
@@ -95,10 +140,14 @@ model User {
   name           String          @default("")
   email          String          @unique @default("")
   password       String
+<<<<<<< HEAD
   avatarUrl      String          @default("")
   age            Int
   gender         String
   privacyToggle  Boolean         @default(true)
+=======
+  messages       ChatMessage[]   @relation("ChatMessage_sender")
+>>>>>>> main
   isAdmin        Boolean         @default(true)
   createdAt      DateTime?       @default(now())
   lastLoginDate  DateTime?       @updatedAt
@@ -106,6 +155,7 @@ model User {
   parent         Parent?         @relation("Parent_user")
   carePlan       CarePlan?       @relation("CarePlan_user")
   aiChatSessions AiChatSession[] @relation("AiChatSession_user")
+  parents        Parent[]        @relation("Parent_user")
   ownedChats     GroupChat[]     @relation("GroupChat_owner")
   memberChats    GroupChat[]     @relation("GroupChat_members")
   forumPost      ForumPost[]     @relation("ForumPost_author")

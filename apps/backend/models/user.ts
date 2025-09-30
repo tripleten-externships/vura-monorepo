@@ -19,9 +19,10 @@ export const User = list({
       delete: ({ session }) => !!session,
     },
     filter: {
-      query: ({ session }) => ({
-        id: { equals: session.data.id },
-      }),
+      query: ({ session }) => {
+        if (!session?.data?.id) return false;
+        return { id: { equals: session.data.id } };
+      },
     },
     item: {
       update: ({ session, item }) => item.id === session.data.id,
@@ -60,6 +61,10 @@ export const User = list({
       validation: { isRequired: true },
     }),
     privacyToggle: checkbox({ defaultValue: true }),
+
+    //relationship to chat messages
+    messages: relationship({ ref: 'ChatMessage.sender', many: true }),
+
     isAdmin: checkbox({ defaultValue: true }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
@@ -74,6 +79,10 @@ export const User = list({
     carePlan: relationship({ ref: 'CarePlan.user' }), // need to define only one care plan?
     aiChatSessions: relationship({
       ref: 'AiChatSession.user',
+      many: true,
+    }),
+    parents: relationship({
+      ref: 'Parent.user',
       many: true,
     }),
 

@@ -1,4 +1,8 @@
 export * from './user';
+export { Resource } from './resource';
+export { Checklist } from './checklist';
+export * from './parent';
+export * from './chat-message';
 export * from './ai-chat-session';
 export * from './ai-message';
 export * from './parent';

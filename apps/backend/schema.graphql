@@ -10,7 +10,13 @@ type AiChatSession {
   updatedAt: DateTime
   lastActiveAt: DateTime
   user: User
-  messages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
+  messages(
+    where: AiMessageWhereInput! = {}
+    orderBy: [AiMessageOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: AiMessageWhereUniqueInput
+  ): [AiMessage!]
   messagesCount(where: AiMessageWhereInput! = {}): Int
 }
 
@@ -185,7 +191,13 @@ type AiMessage {
   error: JSON
   session: AiChatSession
   parentMessage: AiMessage
-  childMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
+  childMessages(
+    where: AiMessageWhereInput! = {}
+    orderBy: [AiMessageOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: AiMessageWhereUniqueInput
+  ): [AiMessage!]
   childMessagesCount(where: AiMessageWhereInput! = {}): Int
 }
 
@@ -328,6 +340,7 @@ input AiMessageRelateToOneForCreateInput {
   connect: AiMessageWhereUniqueInput
 }
 
+<<<<<<< HEAD
 type CarePlan {
   id: ID!
   name: String
@@ -349,10 +362,105 @@ input CarePlanWhereInput {
 }
 
 input CarePlanOrderByInput {
+=======
+type ChatMessage {
+  id: ID!
+  message: String
+  createdAt: DateTime
+  group: GroupChat
+  sender: User
+}
+
+input ChatMessageWhereUniqueInput {
+  id: ID
+}
+
+input ChatMessageWhereInput {
+  AND: [ChatMessageWhereInput!]
+  OR: [ChatMessageWhereInput!]
+  NOT: [ChatMessageWhereInput!]
+  id: IDFilter
+  message: StringFilter
+  createdAt: DateTimeNullableFilter
+  group: GroupChatWhereInput
+  sender: UserWhereInput
+}
+
+input ChatMessageOrderByInput {
+  id: OrderDirection
+  message: OrderDirection
+  createdAt: OrderDirection
+}
+
+input ChatMessageUpdateInput {
+  message: String
+  createdAt: DateTime
+  group: GroupChatRelateToOneForUpdateInput
+  sender: UserRelateToOneForUpdateInput
+}
+
+input GroupChatRelateToOneForUpdateInput {
+  create: GroupChatCreateInput
+  connect: GroupChatWhereUniqueInput
+  disconnect: Boolean
+}
+
+input ChatMessageUpdateArgs {
+  where: ChatMessageWhereUniqueInput!
+  data: ChatMessageUpdateInput!
+}
+
+input ChatMessageCreateInput {
+  message: String
+  createdAt: DateTime
+  group: GroupChatRelateToOneForCreateInput
+  sender: UserRelateToOneForCreateInput
+}
+
+input GroupChatRelateToOneForCreateInput {
+  create: GroupChatCreateInput
+  connect: GroupChatWhereUniqueInput
+}
+
+type Checklist {
+  id: ID!
+  name: String
+  resources(
+    where: ResourceWhereInput! = {}
+    orderBy: [ResourceOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ResourceWhereUniqueInput
+  ): [Resource!]
+  resourcesCount(where: ResourceWhereInput! = {}): Int
+}
+
+input ChecklistWhereUniqueInput {
+  id: ID
+}
+
+input ChecklistWhereInput {
+  AND: [ChecklistWhereInput!]
+  OR: [ChecklistWhereInput!]
+  NOT: [ChecklistWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  resources: ResourceManyRelationFilter
+}
+
+input ResourceManyRelationFilter {
+  every: ResourceWhereInput
+  some: ResourceWhereInput
+  none: ResourceWhereInput
+}
+
+input ChecklistOrderByInput {
+>>>>>>> main
   id: OrderDirection
   name: OrderDirection
 }
 
+<<<<<<< HEAD
 input CarePlanUpdateInput {
   name: String
   user: UserRelateToOneForUpdateInput
@@ -366,6 +474,33 @@ input CarePlanUpdateArgs {
 input CarePlanCreateInput {
   name: String
   user: UserRelateToOneForCreateInput
+=======
+input ChecklistUpdateInput {
+  name: String
+  resources: ResourceRelateToManyForUpdateInput
+}
+
+input ResourceRelateToManyForUpdateInput {
+  disconnect: [ResourceWhereUniqueInput!]
+  set: [ResourceWhereUniqueInput!]
+  create: [ResourceCreateInput!]
+  connect: [ResourceWhereUniqueInput!]
+}
+
+input ChecklistUpdateArgs {
+  where: ChecklistWhereUniqueInput!
+  data: ChecklistUpdateInput!
+}
+
+input ChecklistCreateInput {
+  name: String
+  resources: ResourceRelateToManyForCreateInput
+}
+
+input ResourceRelateToManyForCreateInput {
+  create: [ResourceCreateInput!]
+  connect: [ResourceWhereUniqueInput!]
+>>>>>>> main
 }
 
 type ForumPost {
@@ -430,10 +565,24 @@ input ForumPostCreateInput {
 type GroupChat {
   id: ID!
   groupName: String
+  messages(
+    where: ChatMessageWhereInput! = {}
+    orderBy: [ChatMessageOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ChatMessageWhereUniqueInput
+  ): [ChatMessage!]
+  messagesCount(where: ChatMessageWhereInput! = {}): Int
   createdAt: DateTime
   updatedAt: DateTime
   owner: User
-  members(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
+  members(
+    where: UserWhereInput! = {}
+    orderBy: [UserOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: UserWhereUniqueInput
+  ): [User!]
   membersCount(where: UserWhereInput! = {}): Int
 }
 
@@ -447,10 +596,17 @@ input GroupChatWhereInput {
   NOT: [GroupChatWhereInput!]
   id: IDFilter
   groupName: StringFilter
+  messages: ChatMessageManyRelationFilter
   createdAt: DateTimeNullableFilter
   updatedAt: DateTimeNullableFilter
   owner: UserWhereInput
   members: UserManyRelationFilter
+}
+
+input ChatMessageManyRelationFilter {
+  every: ChatMessageWhereInput
+  some: ChatMessageWhereInput
+  none: ChatMessageWhereInput
 }
 
 input UserManyRelationFilter {
@@ -468,10 +624,18 @@ input GroupChatOrderByInput {
 
 input GroupChatUpdateInput {
   groupName: String
+  messages: ChatMessageRelateToManyForUpdateInput
   createdAt: DateTime
   updatedAt: DateTime
   owner: UserRelateToOneForUpdateInput
   members: UserRelateToManyForUpdateInput
+}
+
+input ChatMessageRelateToManyForUpdateInput {
+  disconnect: [ChatMessageWhereUniqueInput!]
+  set: [ChatMessageWhereUniqueInput!]
+  create: [ChatMessageCreateInput!]
+  connect: [ChatMessageWhereUniqueInput!]
 }
 
 input UserRelateToManyForUpdateInput {
@@ -488,10 +652,16 @@ input GroupChatUpdateArgs {
 
 input GroupChatCreateInput {
   groupName: String
+  messages: ChatMessageRelateToManyForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
   owner: UserRelateToOneForCreateInput
   members: UserRelateToManyForCreateInput
+}
+
+input ChatMessageRelateToManyForCreateInput {
+  create: [ChatMessageCreateInput!]
+  connect: [ChatMessageWhereUniqueInput!]
 }
 
 input UserRelateToManyForCreateInput {
@@ -502,12 +672,23 @@ input UserRelateToManyForCreateInput {
 type Parent {
   id: ID!
   name: String
+<<<<<<< HEAD
+=======
+  age: Int
+  relationship: String
+  health_conditions: JSON
+  created_at: DateTime
+  updated_at: DateTime
+>>>>>>> main
   user: User
 }
 
 input ParentWhereUniqueInput {
   id: ID
+<<<<<<< HEAD
   user: UserWhereUniqueInput
+=======
+>>>>>>> main
 }
 
 input ParentWhereInput {
@@ -516,16 +697,52 @@ input ParentWhereInput {
   NOT: [ParentWhereInput!]
   id: IDFilter
   name: StringFilter
+<<<<<<< HEAD
   user: UserWhereInput
 }
 
 input ParentOrderByInput {
   id: OrderDirection
   name: OrderDirection
+=======
+  age: IntFilter
+  relationship: StringFilter
+  created_at: DateTimeNullableFilter
+  updated_at: DateTimeNullableFilter
+  user: UserWhereInput
+}
+
+input IntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: IntFilter
+}
+
+input ParentOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+  age: OrderDirection
+  relationship: OrderDirection
+  created_at: OrderDirection
+  updated_at: OrderDirection
+>>>>>>> main
 }
 
 input ParentUpdateInput {
   name: String
+<<<<<<< HEAD
+=======
+  age: Int
+  relationship: String
+  health_conditions: JSON
+  created_at: DateTime
+  updated_at: DateTime
+>>>>>>> main
   user: UserRelateToOneForUpdateInput
 }
 
@@ -536,14 +753,81 @@ input ParentUpdateArgs {
 
 input ParentCreateInput {
   name: String
+<<<<<<< HEAD
   user: UserRelateToOneForCreateInput
 }
 
+=======
+  age: Int
+  relationship: String
+  health_conditions: JSON
+  created_at: DateTime
+  updated_at: DateTime
+  user: UserRelateToOneForCreateInput
+}
+
+type Resource {
+  id: ID!
+  link: String
+  content: String
+  checklist: Checklist
+}
+
+input ResourceWhereUniqueInput {
+  id: ID
+}
+
+input ResourceWhereInput {
+  AND: [ResourceWhereInput!]
+  OR: [ResourceWhereInput!]
+  NOT: [ResourceWhereInput!]
+  id: IDFilter
+  link: StringFilter
+  content: StringFilter
+  checklist: ChecklistWhereInput
+}
+
+input ResourceOrderByInput {
+  id: OrderDirection
+  link: OrderDirection
+  content: OrderDirection
+}
+
+input ResourceUpdateInput {
+  link: String
+  content: String
+  checklist: ChecklistRelateToOneForUpdateInput
+}
+
+input ChecklistRelateToOneForUpdateInput {
+  create: ChecklistCreateInput
+  connect: ChecklistWhereUniqueInput
+  disconnect: Boolean
+}
+
+input ResourceUpdateArgs {
+  where: ResourceWhereUniqueInput!
+  data: ResourceUpdateInput!
+}
+
+input ResourceCreateInput {
+  link: String
+  content: String
+  checklist: ChecklistRelateToOneForCreateInput
+}
+
+input ChecklistRelateToOneForCreateInput {
+  create: ChecklistCreateInput
+  connect: ChecklistWhereUniqueInput
+}
+
+>>>>>>> main
 type User {
   id: ID!
   name: String
   email: String
   password: PasswordState
+<<<<<<< HEAD
   avatarUrl: String
   age: Int
   gender: String
@@ -555,12 +839,58 @@ type User {
   parent: Parent
   carePlan: CarePlan
   aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
+=======
+  messages(
+    where: ChatMessageWhereInput! = {}
+    orderBy: [ChatMessageOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ChatMessageWhereUniqueInput
+  ): [ChatMessage!]
+  messagesCount(where: ChatMessageWhereInput! = {}): Int
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  aiChatSessions(
+    where: AiChatSessionWhereInput! = {}
+    orderBy: [AiChatSessionOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: AiChatSessionWhereUniqueInput
+  ): [AiChatSession!]
+>>>>>>> main
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
-  ownedChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
+  parents(
+    where: ParentWhereInput! = {}
+    orderBy: [ParentOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ParentWhereUniqueInput
+  ): [Parent!]
+  parentsCount(where: ParentWhereInput! = {}): Int
+  ownedChats(
+    where: GroupChatWhereInput! = {}
+    orderBy: [GroupChatOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: GroupChatWhereUniqueInput
+  ): [GroupChat!]
   ownedChatsCount(where: GroupChatWhereInput! = {}): Int
-  memberChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
+  memberChats(
+    where: GroupChatWhereInput! = {}
+    orderBy: [GroupChatOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: GroupChatWhereUniqueInput
+  ): [GroupChat!]
   memberChatsCount(where: GroupChatWhereInput! = {}): Int
-  forumPost(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
+  forumPost(
+    where: ForumPostWhereInput! = {}
+    orderBy: [ForumPostOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ForumPostWhereUniqueInput
+  ): [ForumPost!]
   forumPostCount(where: ForumPostWhereInput! = {}): Int
 }
 
@@ -582,10 +912,14 @@ input UserWhereInput {
   id: IDFilter
   name: StringFilter
   email: StringFilter
+<<<<<<< HEAD
   avatarUrl: StringFilter
   age: IntFilter
   gender: StringFilter
   privacyToggle: BooleanFilter
+=======
+  messages: ChatMessageManyRelationFilter
+>>>>>>> main
   isAdmin: BooleanFilter
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
@@ -593,6 +927,7 @@ input UserWhereInput {
   parent: ParentWhereInput
   carePlan: CarePlanWhereInput
   aiChatSessions: AiChatSessionManyRelationFilter
+  parents: ParentManyRelationFilter
   ownedChats: GroupChatManyRelationFilter
   memberChats: GroupChatManyRelationFilter
   forumPost: ForumPostManyRelationFilter
@@ -618,6 +953,12 @@ input AiChatSessionManyRelationFilter {
   every: AiChatSessionWhereInput
   some: AiChatSessionWhereInput
   none: AiChatSessionWhereInput
+}
+
+input ParentManyRelationFilter {
+  every: ParentWhereInput
+  some: ParentWhereInput
+  none: ParentWhereInput
 }
 
 input GroupChatManyRelationFilter {
@@ -650,10 +991,14 @@ input UserUpdateInput {
   name: String
   email: String
   password: String
+<<<<<<< HEAD
   avatarUrl: String
   age: Int
   gender: String
   privacyToggle: Boolean
+=======
+  messages: ChatMessageRelateToManyForUpdateInput
+>>>>>>> main
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
@@ -661,6 +1006,7 @@ input UserUpdateInput {
   parent: ParentRelateToOneForUpdateInput
   carePlan: CarePlanRelateToOneForUpdateInput
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
+  parents: ParentRelateToManyForUpdateInput
   ownedChats: GroupChatRelateToManyForUpdateInput
   memberChats: GroupChatRelateToManyForUpdateInput
   forumPost: ForumPostRelateToManyForUpdateInput
@@ -683,6 +1029,13 @@ input AiChatSessionRelateToManyForUpdateInput {
   set: [AiChatSessionWhereUniqueInput!]
   create: [AiChatSessionCreateInput!]
   connect: [AiChatSessionWhereUniqueInput!]
+}
+
+input ParentRelateToManyForUpdateInput {
+  disconnect: [ParentWhereUniqueInput!]
+  set: [ParentWhereUniqueInput!]
+  create: [ParentCreateInput!]
+  connect: [ParentWhereUniqueInput!]
 }
 
 input GroupChatRelateToManyForUpdateInput {
@@ -708,10 +1061,14 @@ input UserCreateInput {
   name: String
   email: String
   password: String
+<<<<<<< HEAD
   avatarUrl: String
   age: Int
   gender: String
   privacyToggle: Boolean
+=======
+  messages: ChatMessageRelateToManyForCreateInput
+>>>>>>> main
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
@@ -719,6 +1076,7 @@ input UserCreateInput {
   parent: ParentRelateToOneForCreateInput
   carePlan: CarePlanRelateToOneForCreateInput
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
+  parents: ParentRelateToManyForCreateInput
   ownedChats: GroupChatRelateToManyForCreateInput
   memberChats: GroupChatRelateToManyForCreateInput
   forumPost: ForumPostRelateToManyForCreateInput
@@ -739,6 +1097,11 @@ input AiChatSessionRelateToManyForCreateInput {
   connect: [AiChatSessionWhereUniqueInput!]
 }
 
+input ParentRelateToManyForCreateInput {
+  create: [ParentCreateInput!]
+  connect: [ParentWhereUniqueInput!]
+}
+
 input GroupChatRelateToManyForCreateInput {
   create: [GroupChatCreateInput!]
   connect: [GroupChatWhereUniqueInput!]
@@ -752,12 +1115,16 @@ input ForumPostRelateToManyForCreateInput {
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
-scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+scalar JSON
+  @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type Mutation {
   createAiChatSession(data: AiChatSessionCreateInput!): AiChatSession
   createAiChatSessions(data: [AiChatSessionCreateInput!]!): [AiChatSession]
-  updateAiChatSession(where: AiChatSessionWhereUniqueInput!, data: AiChatSessionUpdateInput!): AiChatSession
+  updateAiChatSession(
+    where: AiChatSessionWhereUniqueInput!
+    data: AiChatSessionUpdateInput!
+  ): AiChatSession
   updateAiChatSessions(data: [AiChatSessionUpdateArgs!]!): [AiChatSession]
   deleteAiChatSession(where: AiChatSessionWhereUniqueInput!): AiChatSession
   deleteAiChatSessions(where: [AiChatSessionWhereUniqueInput!]!): [AiChatSession]
@@ -767,12 +1134,27 @@ type Mutation {
   updateAiMessages(data: [AiMessageUpdateArgs!]!): [AiMessage]
   deleteAiMessage(where: AiMessageWhereUniqueInput!): AiMessage
   deleteAiMessages(where: [AiMessageWhereUniqueInput!]!): [AiMessage]
+<<<<<<< HEAD
   createCarePlan(data: CarePlanCreateInput!): CarePlan
   createCarePlans(data: [CarePlanCreateInput!]!): [CarePlan]
   updateCarePlan(where: CarePlanWhereUniqueInput!, data: CarePlanUpdateInput!): CarePlan
   updateCarePlans(data: [CarePlanUpdateArgs!]!): [CarePlan]
   deleteCarePlan(where: CarePlanWhereUniqueInput!): CarePlan
   deleteCarePlans(where: [CarePlanWhereUniqueInput!]!): [CarePlan]
+=======
+  createChatMessage(data: ChatMessageCreateInput!): ChatMessage
+  createChatMessages(data: [ChatMessageCreateInput!]!): [ChatMessage]
+  updateChatMessage(where: ChatMessageWhereUniqueInput!, data: ChatMessageUpdateInput!): ChatMessage
+  updateChatMessages(data: [ChatMessageUpdateArgs!]!): [ChatMessage]
+  deleteChatMessage(where: ChatMessageWhereUniqueInput!): ChatMessage
+  deleteChatMessages(where: [ChatMessageWhereUniqueInput!]!): [ChatMessage]
+  createChecklist(data: ChecklistCreateInput!): Checklist
+  createChecklists(data: [ChecklistCreateInput!]!): [Checklist]
+  updateChecklist(where: ChecklistWhereUniqueInput!, data: ChecklistUpdateInput!): Checklist
+  updateChecklists(data: [ChecklistUpdateArgs!]!): [Checklist]
+  deleteChecklist(where: ChecklistWhereUniqueInput!): Checklist
+  deleteChecklists(where: [ChecklistWhereUniqueInput!]!): [Checklist]
+>>>>>>> main
   createForumPost(data: ForumPostCreateInput!): ForumPost
   createForumPosts(data: [ForumPostCreateInput!]!): [ForumPost]
   updateForumPost(where: ForumPostWhereUniqueInput!, data: ForumPostUpdateInput!): ForumPost
@@ -791,6 +1173,15 @@ type Mutation {
   updateParents(data: [ParentUpdateArgs!]!): [Parent]
   deleteParent(where: ParentWhereUniqueInput!): Parent
   deleteParents(where: [ParentWhereUniqueInput!]!): [Parent]
+<<<<<<< HEAD
+=======
+  createResource(data: ResourceCreateInput!): Resource
+  createResources(data: [ResourceCreateInput!]!): [Resource]
+  updateResource(where: ResourceWhereUniqueInput!, data: ResourceUpdateInput!): Resource
+  updateResources(data: [ResourceUpdateArgs!]!): [Resource]
+  deleteResource(where: ResourceWhereUniqueInput!): Resource
+  deleteResources(where: [ResourceWhereUniqueInput!]!): [Resource]
+>>>>>>> main
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -798,11 +1189,16 @@ type Mutation {
   deleteUser(where: UserWhereUniqueInput!): User
   deleteUsers(where: [UserWhereUniqueInput!]!): [User]
   endSession: Boolean!
-  authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult
+  authenticateUserWithPassword(
+    email: String!
+    password: String!
+  ): UserAuthenticationWithPasswordResult
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
 }
 
-union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
+union UserAuthenticationWithPasswordResult =
+  | UserAuthenticationWithPasswordSuccess
+  | UserAuthenticationWithPasswordFailure
 
 type UserAuthenticationWithPasswordSuccess {
   sessionToken: String!
@@ -821,25 +1217,96 @@ input CreateInitialUserInput {
 
 type Query {
   aiChatSession(where: AiChatSessionWhereUniqueInput!): AiChatSession
-  aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
+  aiChatSessions(
+    where: AiChatSessionWhereInput! = {}
+    orderBy: [AiChatSessionOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: AiChatSessionWhereUniqueInput
+  ): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
   aiMessage(where: AiMessageWhereUniqueInput!): AiMessage
-  aiMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
+  aiMessages(
+    where: AiMessageWhereInput! = {}
+    orderBy: [AiMessageOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: AiMessageWhereUniqueInput
+  ): [AiMessage!]
   aiMessagesCount(where: AiMessageWhereInput! = {}): Int
+<<<<<<< HEAD
   carePlan(where: CarePlanWhereUniqueInput!): CarePlan
   carePlans(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
   carePlansCount(where: CarePlanWhereInput! = {}): Int
+=======
+  chatMessage(where: ChatMessageWhereUniqueInput!): ChatMessage
+  chatMessages(
+    where: ChatMessageWhereInput! = {}
+    orderBy: [ChatMessageOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ChatMessageWhereUniqueInput
+  ): [ChatMessage!]
+  chatMessagesCount(where: ChatMessageWhereInput! = {}): Int
+  checklist(where: ChecklistWhereUniqueInput!): Checklist
+  checklists(
+    where: ChecklistWhereInput! = {}
+    orderBy: [ChecklistOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ChecklistWhereUniqueInput
+  ): [Checklist!]
+  checklistsCount(where: ChecklistWhereInput! = {}): Int
+>>>>>>> main
   forumPost(where: ForumPostWhereUniqueInput!): ForumPost
-  forumPosts(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
+  forumPosts(
+    where: ForumPostWhereInput! = {}
+    orderBy: [ForumPostOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ForumPostWhereUniqueInput
+  ): [ForumPost!]
   forumPostsCount(where: ForumPostWhereInput! = {}): Int
   groupChat(where: GroupChatWhereUniqueInput!): GroupChat
-  groupChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
+  groupChats(
+    where: GroupChatWhereInput! = {}
+    orderBy: [GroupChatOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: GroupChatWhereUniqueInput
+  ): [GroupChat!]
   groupChatsCount(where: GroupChatWhereInput! = {}): Int
   parent(where: ParentWhereUniqueInput!): Parent
+<<<<<<< HEAD
   parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
   parentsCount(where: ParentWhereInput! = {}): Int
+=======
+  parents(
+    where: ParentWhereInput! = {}
+    orderBy: [ParentOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ParentWhereUniqueInput
+  ): [Parent!]
+  parentsCount(where: ParentWhereInput! = {}): Int
+  resource(where: ResourceWhereUniqueInput!): Resource
+  resources(
+    where: ResourceWhereInput! = {}
+    orderBy: [ResourceOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ResourceWhereUniqueInput
+  ): [Resource!]
+  resourcesCount(where: ResourceWhereInput! = {}): Int
+>>>>>>> main
   user(where: UserWhereUniqueInput!): User
-  users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
+  users(
+    where: UserWhereInput! = {}
+    orderBy: [UserOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: UserWhereUniqueInput
+  ): [User!]
   usersCount(where: UserWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
