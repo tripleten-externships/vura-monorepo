@@ -499,6 +499,46 @@ input UserRelateToManyForCreateInput {
   connect: [UserWhereUniqueInput!]
 }
 
+type Parent {
+  id: ID!
+  name: String
+  user: User
+}
+
+input ParentWhereUniqueInput {
+  id: ID
+  user: UserWhereUniqueInput
+}
+
+input ParentWhereInput {
+  AND: [ParentWhereInput!]
+  OR: [ParentWhereInput!]
+  NOT: [ParentWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  user: UserWhereInput
+}
+
+input ParentOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+}
+
+input ParentUpdateInput {
+  name: String
+  user: UserRelateToOneForUpdateInput
+}
+
+input ParentUpdateArgs {
+  where: ParentWhereUniqueInput!
+  data: ParentUpdateInput!
+}
+
+input ParentCreateInput {
+  name: String
+  user: UserRelateToOneForCreateInput
+}
+
 type User {
   id: ID!
   name: String
@@ -745,6 +785,12 @@ type Mutation {
   updateGroupChats(data: [GroupChatUpdateArgs!]!): [GroupChat]
   deleteGroupChat(where: GroupChatWhereUniqueInput!): GroupChat
   deleteGroupChats(where: [GroupChatWhereUniqueInput!]!): [GroupChat]
+  createParent(data: ParentCreateInput!): Parent
+  createParents(data: [ParentCreateInput!]!): [Parent]
+  updateParent(where: ParentWhereUniqueInput!, data: ParentUpdateInput!): Parent
+  updateParents(data: [ParentUpdateArgs!]!): [Parent]
+  deleteParent(where: ParentWhereUniqueInput!): Parent
+  deleteParents(where: [ParentWhereUniqueInput!]!): [Parent]
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -789,6 +835,9 @@ type Query {
   groupChat(where: GroupChatWhereUniqueInput!): GroupChat
   groupChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
   groupChatsCount(where: GroupChatWhereInput! = {}): Int
+  parent(where: ParentWhereUniqueInput!): Parent
+  parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
+  parentsCount(where: ParentWhereInput! = {}): Int
   user(where: UserWhereUniqueInput!): User
   users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   usersCount(where: UserWhereInput! = {}): Int
