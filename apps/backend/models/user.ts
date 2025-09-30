@@ -49,5 +49,7 @@ export const User = list({
     // relationship to GroupChat
     ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
     memberChats: relationship({ ref: 'GroupChat.members', many: true }),
+    // relationship to forumPost
+    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
   },
 });

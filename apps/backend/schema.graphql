@@ -328,76 +328,63 @@ input AiMessageRelateToOneForCreateInput {
   connect: AiMessageWhereUniqueInput
 }
 
-type GroupChat {
+type ForumPost {
   id: ID!
-  groupName: String
+  title: String
+  topic: String
+  content: String
   createdAt: DateTime
   updatedAt: DateTime
-  owner: User
-  members(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
-  membersCount(where: UserWhereInput! = {}): Int
+  author: User
 }
 
-input GroupChatWhereUniqueInput {
+input ForumPostWhereUniqueInput {
   id: ID
 }
 
-input GroupChatWhereInput {
-  AND: [GroupChatWhereInput!]
-  OR: [GroupChatWhereInput!]
-  NOT: [GroupChatWhereInput!]
+input ForumPostWhereInput {
+  AND: [ForumPostWhereInput!]
+  OR: [ForumPostWhereInput!]
+  NOT: [ForumPostWhereInput!]
   id: IDFilter
-  groupName: StringFilter
+  title: StringFilter
+  topic: StringFilter
+  content: StringFilter
   createdAt: DateTimeNullableFilter
   updatedAt: DateTimeNullableFilter
-  owner: UserWhereInput
-  members: UserManyRelationFilter
+  author: UserWhereInput
 }
 
-input UserManyRelationFilter {
-  every: UserWhereInput
-  some: UserWhereInput
-  none: UserWhereInput
-}
-
-input GroupChatOrderByInput {
+input ForumPostOrderByInput {
   id: OrderDirection
-  groupName: OrderDirection
+  title: OrderDirection
+  topic: OrderDirection
+  content: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
 
-input GroupChatUpdateInput {
-  groupName: String
+input ForumPostUpdateInput {
+  title: String
+  topic: String
+  content: String
   createdAt: DateTime
   updatedAt: DateTime
-  owner: UserRelateToOneForUpdateInput
-  members: UserRelateToManyForUpdateInput
+  author: UserRelateToOneForUpdateInput
 }
 
-input UserRelateToManyForUpdateInput {
-  disconnect: [UserWhereUniqueInput!]
-  set: [UserWhereUniqueInput!]
-  create: [UserCreateInput!]
-  connect: [UserWhereUniqueInput!]
+input ForumPostUpdateArgs {
+  where: ForumPostWhereUniqueInput!
+  data: ForumPostUpdateInput!
 }
 
-input GroupChatUpdateArgs {
-  where: GroupChatWhereUniqueInput!
-  data: GroupChatUpdateInput!
-}
-
-input GroupChatCreateInput {
-  groupName: String
+input ForumPostCreateInput {
+  title: String
+  topic: String
+  content: String
   createdAt: DateTime
   updatedAt: DateTime
-  owner: UserRelateToOneForCreateInput
-  members: UserRelateToManyForCreateInput
-}
-
-input UserRelateToManyForCreateInput {
-  create: [UserCreateInput!]
-  connect: [UserWhereUniqueInput!]
+  author: UserRelateToOneForCreateInput
 }
 
 type User {
@@ -410,10 +397,8 @@ type User {
   lastLoginDate: DateTime
   aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
-  ownedChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
-  ownedChatsCount(where: GroupChatWhereInput! = {}): Int
-  membersChat(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
-  membersChatCount(where: GroupChatWhereInput! = {}): Int
+  forumPost(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
+  forumPostCount(where: ForumPostWhereInput! = {}): Int
 }
 
 type PasswordState {
@@ -436,8 +421,7 @@ input UserWhereInput {
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
   aiChatSessions: AiChatSessionManyRelationFilter
-  ownedChats: GroupChatManyRelationFilter
-  membersChat: GroupChatManyRelationFilter
+  forumPost: ForumPostManyRelationFilter
 }
 
 input BooleanFilter {
@@ -451,10 +435,10 @@ input AiChatSessionManyRelationFilter {
   none: AiChatSessionWhereInput
 }
 
-input GroupChatManyRelationFilter {
-  every: GroupChatWhereInput
-  some: GroupChatWhereInput
-  none: GroupChatWhereInput
+input ForumPostManyRelationFilter {
+  every: ForumPostWhereInput
+  some: ForumPostWhereInput
+  none: ForumPostWhereInput
 }
 
 input UserOrderByInput {
@@ -474,8 +458,7 @@ input UserUpdateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
-  ownedChats: GroupChatRelateToManyForUpdateInput
-  membersChat: GroupChatRelateToManyForUpdateInput
+  forumPost: ForumPostRelateToManyForUpdateInput
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -485,11 +468,11 @@ input AiChatSessionRelateToManyForUpdateInput {
   connect: [AiChatSessionWhereUniqueInput!]
 }
 
-input GroupChatRelateToManyForUpdateInput {
-  disconnect: [GroupChatWhereUniqueInput!]
-  set: [GroupChatWhereUniqueInput!]
-  create: [GroupChatCreateInput!]
-  connect: [GroupChatWhereUniqueInput!]
+input ForumPostRelateToManyForUpdateInput {
+  disconnect: [ForumPostWhereUniqueInput!]
+  set: [ForumPostWhereUniqueInput!]
+  create: [ForumPostCreateInput!]
+  connect: [ForumPostWhereUniqueInput!]
 }
 
 input UserUpdateArgs {
@@ -505,8 +488,7 @@ input UserCreateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
-  ownedChats: GroupChatRelateToManyForCreateInput
-  membersChat: GroupChatRelateToManyForCreateInput
+  forumPost: ForumPostRelateToManyForCreateInput
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -514,9 +496,9 @@ input AiChatSessionRelateToManyForCreateInput {
   connect: [AiChatSessionWhereUniqueInput!]
 }
 
-input GroupChatRelateToManyForCreateInput {
-  create: [GroupChatCreateInput!]
-  connect: [GroupChatWhereUniqueInput!]
+input ForumPostRelateToManyForCreateInput {
+  create: [ForumPostCreateInput!]
+  connect: [ForumPostWhereUniqueInput!]
 }
 
 """
@@ -537,12 +519,12 @@ type Mutation {
   updateAiMessages(data: [AiMessageUpdateArgs!]!): [AiMessage]
   deleteAiMessage(where: AiMessageWhereUniqueInput!): AiMessage
   deleteAiMessages(where: [AiMessageWhereUniqueInput!]!): [AiMessage]
-  createGroupChat(data: GroupChatCreateInput!): GroupChat
-  createGroupChats(data: [GroupChatCreateInput!]!): [GroupChat]
-  updateGroupChat(where: GroupChatWhereUniqueInput!, data: GroupChatUpdateInput!): GroupChat
-  updateGroupChats(data: [GroupChatUpdateArgs!]!): [GroupChat]
-  deleteGroupChat(where: GroupChatWhereUniqueInput!): GroupChat
-  deleteGroupChats(where: [GroupChatWhereUniqueInput!]!): [GroupChat]
+  createForumPost(data: ForumPostCreateInput!): ForumPost
+  createForumPosts(data: [ForumPostCreateInput!]!): [ForumPost]
+  updateForumPost(where: ForumPostWhereUniqueInput!, data: ForumPostUpdateInput!): ForumPost
+  updateForumPosts(data: [ForumPostUpdateArgs!]!): [ForumPost]
+  deleteForumPost(where: ForumPostWhereUniqueInput!): ForumPost
+  deleteForumPosts(where: [ForumPostWhereUniqueInput!]!): [ForumPost]
   createUser(data: UserCreateInput!): User
   createUsers(data: [UserCreateInput!]!): [User]
   updateUser(where: UserWhereUniqueInput!, data: UserUpdateInput!): User
@@ -578,9 +560,9 @@ type Query {
   aiMessage(where: AiMessageWhereUniqueInput!): AiMessage
   aiMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   aiMessagesCount(where: AiMessageWhereInput! = {}): Int
-  groupChat(where: GroupChatWhereUniqueInput!): GroupChat
-  groupChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
-  groupChatsCount(where: GroupChatWhereInput! = {}): Int
+  forumPost(where: ForumPostWhereUniqueInput!): ForumPost
+  forumPosts(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
+  forumPostsCount(where: ForumPostWhereInput! = {}): Int
   user(where: UserWhereUniqueInput!): User
   users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   usersCount(where: UserWhereInput! = {}): Int
