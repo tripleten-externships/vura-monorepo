@@ -3,7 +3,7 @@
 [](https://tripleten-apiary.atlassian.net/browse/)
 
 <!-- Instructions: Add the Jira issue number between the brackets above -->
-<!-- Example: [ABC-1234](https://tripleten-apiary.atlassian.net/browse/ABC-1234) -->
+<!-- Example: [VURA-1234](https://tripleten-apiary.atlassian.net/browse/VURA-1234) -->
 
 ## Describe your changes
 
