@@ -111,7 +111,7 @@ model Parent {
 }
 
 model Resource {
-  id          String     @id @default(uuid())
+  id          Int        @id @default(autoincrement())
   link        String     @default("")
   content     String     @default("")
   checklist   Checklist? @relation("Resource_checklist", fields: [checklistId], references: [id])
