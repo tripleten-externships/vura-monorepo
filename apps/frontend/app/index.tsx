@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import ProtectedRoute from '../src/components/protected-route';
+import ProtectedRoute from '../src/components/ProtectedRoute';
 
 export default function HomePage() {
   return (

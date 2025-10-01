@@ -1,6 +1,5 @@
 import { list } from '@keystone-6/core';
-import type { Lists } from '.keystone/types';
-import { checkbox, text, relationship, password, timestamp } from '@keystone-6/core/fields';
+import { checkbox, text, password, timestamp, relationship } from '@keystone-6/core/fields';
 
 export const User = list({
   access: {
@@ -35,6 +34,8 @@ export const User = list({
       },
       bcrypt: require('bcryptjs'),
     }),
+
+    //relationship to chat messages
     messages: relationship({ ref: 'ChatMessage.sender', many: true }),
 
     isAdmin: checkbox({ defaultValue: true }),
@@ -44,5 +45,20 @@ export const User = list({
     lastLoginDate: timestamp({
       defaultValue: { kind: 'now' },
     }),
+    // relationship to AiChatSessions
+    aiChatSessions: relationship({
+      ref: 'AiChatSession.user',
+      many: true,
+    }),
+    parents: relationship({
+      ref: 'Parent.user',
+      many: true,
+    }),
+
+    // relationship to GroupChat
+    ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
+    memberChats: relationship({ ref: 'GroupChat.members', many: true }),
+    // relationship to forumPost
+    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
   },
 });
