@@ -1,3 +1,3 @@
 export * from './types';
-export * from './aiService';
-export { GeminiProvider } from './providers/gemini';
+export * from './ai.service';
+export { GeminiProvider } from './provider/gemini';
