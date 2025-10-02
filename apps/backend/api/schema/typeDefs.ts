@@ -1,5 +1,4 @@
 import { gql } from 'graphql-tag';
-
 // SDL for custom types/inputs/enums
 export const typeDefs = gql`
   scalar DateTime
