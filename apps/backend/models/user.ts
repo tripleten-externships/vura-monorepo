@@ -50,7 +50,7 @@ export const User = list({
       },
     }),
     age: integer({
-      validation: { isRequired: true },
+      validation: { isRequired: false },
     }),
     gender: select({
       options: [
@@ -58,7 +58,7 @@ export const User = list({
         { label: 'Male', value: 'male' },
         { label: 'Non-Binary', value: 'non-binary' },
       ],
-      validation: { isRequired: true },
+      validation: { isRequired: false },
     }),
     privacyToggle: checkbox({ defaultValue: true }),
 
@@ -69,13 +69,11 @@ export const User = list({
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    lastLoginDate: timestamp({
-      db: { updatedAt: true },
-    }),
+    lastLoginDate: timestamp(), // manually updated lastLoginDate
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
     }),
-    carePlan: relationship({ ref: 'CarePlan.user' }), // need to define only one care plan?
+    carePlan: relationship({ ref: 'CarePlan.user', many: true }),
     aiChatSessions: relationship({
       ref: 'AiChatSession.user',
       many: true,
