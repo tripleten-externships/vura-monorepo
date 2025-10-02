@@ -340,6 +340,45 @@ input AiMessageRelateToOneForCreateInput {
   connect: AiMessageWhereUniqueInput
 }
 
+type CarePlan {
+  id: ID!
+  name: String
+  user: User
+}
+
+input CarePlanWhereUniqueInput {
+  id: ID
+}
+
+input CarePlanWhereInput {
+  AND: [CarePlanWhereInput!]
+  OR: [CarePlanWhereInput!]
+  NOT: [CarePlanWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  user: UserWhereInput
+}
+
+input CarePlanOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+}
+
+input CarePlanUpdateInput {
+  name: String
+  user: UserRelateToOneForUpdateInput
+}
+
+input CarePlanUpdateArgs {
+  where: CarePlanWhereUniqueInput!
+  data: CarePlanUpdateInput!
+}
+
+input CarePlanCreateInput {
+  name: String
+  user: UserRelateToOneForCreateInput
+}
+
 type ChatMessage {
   id: ID!
   message: String
@@ -634,9 +673,9 @@ type Parent {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: User
 }
 
@@ -652,8 +691,8 @@ input ParentWhereInput {
   name: StringFilter
   age: IntFilter
   relationship: StringFilter
-  created_at: DateTimeNullableFilter
-  updated_at: DateTimeNullableFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
   user: UserWhereInput
 }
 
@@ -673,17 +712,17 @@ input ParentOrderByInput {
   name: OrderDirection
   age: OrderDirection
   relationship: OrderDirection
-  created_at: OrderDirection
-  updated_at: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
 }
 
 input ParentUpdateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForUpdateInput
 }
 
@@ -696,9 +735,9 @@ input ParentCreateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForCreateInput
 }
 
@@ -762,6 +801,10 @@ type User {
   name: String
   email: String
   password: PasswordState
+  avatarUrl: String
+  age: Int
+  gender: String
+  privacyToggle: Boolean
   messages(
     where: ChatMessageWhereInput! = {}
     orderBy: [ChatMessageOrderByInput!]! = []
@@ -773,6 +816,15 @@ type User {
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
+  lastUpdateDate: DateTime
+  carePlan(
+    where: CarePlanWhereInput! = {}
+    orderBy: [CarePlanOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: CarePlanWhereUniqueInput
+  ): [CarePlan!]
+  carePlanCount(where: CarePlanWhereInput! = {}): Int
   aiChatSessions(
     where: AiChatSessionWhereInput! = {}
     orderBy: [AiChatSessionOrderByInput!]! = []
@@ -831,10 +883,16 @@ input UserWhereInput {
   id: IDFilter
   name: StringFilter
   email: StringFilter
+  avatarUrl: StringFilter
+  age: IntNullableFilter
+  gender: StringNullableFilter
+  privacyToggle: BooleanFilter
   messages: ChatMessageManyRelationFilter
   isAdmin: BooleanFilter
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
+  lastUpdateDate: DateTimeNullableFilter
+  carePlan: CarePlanManyRelationFilter
   aiChatSessions: AiChatSessionManyRelationFilter
   parents: ParentManyRelationFilter
   ownedChats: GroupChatManyRelationFilter
@@ -842,9 +900,29 @@ input UserWhereInput {
   forumPost: ForumPostManyRelationFilter
 }
 
+input StringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: StringNullableFilter
+}
+
 input BooleanFilter {
   equals: Boolean
   not: BooleanFilter
+}
+
+input CarePlanManyRelationFilter {
+  every: CarePlanWhereInput
+  some: CarePlanWhereInput
+  none: CarePlanWhereInput
 }
 
 input AiChatSessionManyRelationFilter {
@@ -875,24 +953,42 @@ input UserOrderByInput {
   id: OrderDirection
   name: OrderDirection
   email: OrderDirection
+  avatarUrl: OrderDirection
+  age: OrderDirection
+  gender: OrderDirection
+  privacyToggle: OrderDirection
   isAdmin: OrderDirection
   createdAt: OrderDirection
   lastLoginDate: OrderDirection
+  lastUpdateDate: OrderDirection
 }
 
 input UserUpdateInput {
   name: String
   email: String
   password: String
+  avatarUrl: String
+  age: Int
+  gender: String
+  privacyToggle: Boolean
   messages: ChatMessageRelateToManyForUpdateInput
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
+  lastUpdateDate: DateTime
+  carePlan: CarePlanRelateToManyForUpdateInput
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
   parents: ParentRelateToManyForUpdateInput
   ownedChats: GroupChatRelateToManyForUpdateInput
   memberChats: GroupChatRelateToManyForUpdateInput
   forumPost: ForumPostRelateToManyForUpdateInput
+}
+
+input CarePlanRelateToManyForUpdateInput {
+  disconnect: [CarePlanWhereUniqueInput!]
+  set: [CarePlanWhereUniqueInput!]
+  create: [CarePlanCreateInput!]
+  connect: [CarePlanWhereUniqueInput!]
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -932,15 +1028,26 @@ input UserCreateInput {
   name: String
   email: String
   password: String
+  avatarUrl: String
+  age: Int
+  gender: String
+  privacyToggle: Boolean
   messages: ChatMessageRelateToManyForCreateInput
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
+  lastUpdateDate: DateTime
+  carePlan: CarePlanRelateToManyForCreateInput
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
   parents: ParentRelateToManyForCreateInput
   ownedChats: GroupChatRelateToManyForCreateInput
   memberChats: GroupChatRelateToManyForCreateInput
   forumPost: ForumPostRelateToManyForCreateInput
+}
+
+input CarePlanRelateToManyForCreateInput {
+  create: [CarePlanCreateInput!]
+  connect: [CarePlanWhereUniqueInput!]
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -985,6 +1092,12 @@ type Mutation {
   updateAiMessages(data: [AiMessageUpdateArgs!]!): [AiMessage]
   deleteAiMessage(where: AiMessageWhereUniqueInput!): AiMessage
   deleteAiMessages(where: [AiMessageWhereUniqueInput!]!): [AiMessage]
+  createCarePlan(data: CarePlanCreateInput!): CarePlan
+  createCarePlans(data: [CarePlanCreateInput!]!): [CarePlan]
+  updateCarePlan(where: CarePlanWhereUniqueInput!, data: CarePlanUpdateInput!): CarePlan
+  updateCarePlans(data: [CarePlanUpdateArgs!]!): [CarePlan]
+  deleteCarePlan(where: CarePlanWhereUniqueInput!): CarePlan
+  deleteCarePlans(where: [CarePlanWhereUniqueInput!]!): [CarePlan]
   createChatMessage(data: ChatMessageCreateInput!): ChatMessage
   createChatMessages(data: [ChatMessageCreateInput!]!): [ChatMessage]
   updateChatMessage(where: ChatMessageWhereUniqueInput!, data: ChatMessageUpdateInput!): ChatMessage
@@ -1073,6 +1186,15 @@ type Query {
     cursor: AiMessageWhereUniqueInput
   ): [AiMessage!]
   aiMessagesCount(where: AiMessageWhereInput! = {}): Int
+  carePlan(where: CarePlanWhereUniqueInput!): CarePlan
+  carePlans(
+    where: CarePlanWhereInput! = {}
+    orderBy: [CarePlanOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: CarePlanWhereUniqueInput
+  ): [CarePlan!]
+  carePlansCount(where: CarePlanWhereInput! = {}): Int
   chatMessage(where: ChatMessageWhereUniqueInput!): ChatMessage
   chatMessages(
     where: ChatMessageWhereInput! = {}
