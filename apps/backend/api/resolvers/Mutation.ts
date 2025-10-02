@@ -1,7 +1,6 @@
 // stitches mutation resolvers together
-// import { someMutation } from '../schema/mutations/someMutation';
+import { signup } from '../schema/mutations/signup';
 
 export const Mutation = {
-  // someMutation,
-  _empty: () => null,
+  signup,
 };
