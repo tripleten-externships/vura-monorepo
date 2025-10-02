@@ -27,7 +27,10 @@ enum AiChatSessionStatusType {
   archived
 }
 
-scalar DateTime @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
+"""
+Date custom scalar type
+"""
+scalar DateTime
 
 input AiChatSessionWhereUniqueInput {
   id: ID
@@ -1146,6 +1149,7 @@ type Mutation {
     password: String!
   ): UserAuthenticationWithPasswordResult
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
+  signup(input: SignupInput!): SignupResult!
 }
 
 union UserAuthenticationWithPasswordResult =
@@ -1260,6 +1264,7 @@ type Query {
   usersCount(where: UserWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
+  userProfile: UserProfile
 }
 
 union AuthenticatedItem = User
@@ -1398,4 +1403,32 @@ type KeystoneAdminUISort {
 enum KeystoneAdminUISortDirection {
   ASC
   DESC
+}
+
+input SignupInput {
+  name: String!
+  email: String!
+  password: String!
+  age: Int
+  gender: String
+  avatarUrl: String
+}
+
+type SignupResult {
+  user: UserProfile!
+  token: String!
+}
+
+type UserProfile {
+  id: ID!
+  name: String
+  email: String
+  avatarUrl: String
+  age: Int
+  gender: String
+  privacyToggle: Boolean
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
