@@ -46,7 +46,9 @@ export const User = list({
     }),
     avatarUrl: text({
       validation: {
-        match: { regex: /^https?:\/\/.+/i, explanation: 'Avatar must be a valid URL' }, // ensure that the string contains http:// or https:// and at least one letter after
+        isRequired: false,
+        // commenting out the regex validation temporarily until we are able to add a default avatar
+        // match: { regex: /^https?:\/\/.+/i, explanation: 'Avatar must be a valid URL' }, // ensure that the string contains http:// or https:// and at least one letter after
       },
     }),
     age: integer({

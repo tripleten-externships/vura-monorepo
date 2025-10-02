@@ -348,7 +348,6 @@ type CarePlan {
 
 input CarePlanWhereUniqueInput {
   id: ID
-  user: UserWhereUniqueInput
 }
 
 input CarePlanWhereInput {
@@ -674,9 +673,9 @@ type Parent {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: User
 }
 
@@ -692,8 +691,8 @@ input ParentWhereInput {
   name: StringFilter
   age: IntFilter
   relationship: StringFilter
-  created_at: DateTimeNullableFilter
-  updated_at: DateTimeNullableFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
   user: UserWhereInput
 }
 
@@ -713,17 +712,17 @@ input ParentOrderByInput {
   name: OrderDirection
   age: OrderDirection
   relationship: OrderDirection
-  created_at: OrderDirection
-  updated_at: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
 }
 
 input ParentUpdateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForUpdateInput
 }
 
@@ -736,9 +735,9 @@ input ParentCreateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForCreateInput
 }
 
@@ -818,7 +817,14 @@ type User {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlan: CarePlan
+  carePlan(
+    where: CarePlanWhereInput! = {}
+    orderBy: [CarePlanOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: CarePlanWhereUniqueInput
+  ): [CarePlan!]
+  carePlanCount(where: CarePlanWhereInput! = {}): Int
   aiChatSessions(
     where: AiChatSessionWhereInput! = {}
     orderBy: [AiChatSessionOrderByInput!]! = []
@@ -868,7 +874,6 @@ type PasswordState {
 input UserWhereUniqueInput {
   id: ID
   email: String
-  carePlan: CarePlanWhereUniqueInput
 }
 
 input UserWhereInput {
@@ -879,15 +884,15 @@ input UserWhereInput {
   name: StringFilter
   email: StringFilter
   avatarUrl: StringFilter
-  age: IntFilter
-  gender: StringFilter
+  age: IntNullableFilter
+  gender: StringNullableFilter
   privacyToggle: BooleanFilter
   messages: ChatMessageManyRelationFilter
   isAdmin: BooleanFilter
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
   lastUpdateDate: DateTimeNullableFilter
-  carePlan: CarePlanWhereInput
+  carePlan: CarePlanManyRelationFilter
   aiChatSessions: AiChatSessionManyRelationFilter
   parents: ParentManyRelationFilter
   ownedChats: GroupChatManyRelationFilter
@@ -895,9 +900,29 @@ input UserWhereInput {
   forumPost: ForumPostManyRelationFilter
 }
 
+input StringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: StringNullableFilter
+}
+
 input BooleanFilter {
   equals: Boolean
   not: BooleanFilter
+}
+
+input CarePlanManyRelationFilter {
+  every: CarePlanWhereInput
+  some: CarePlanWhereInput
+  none: CarePlanWhereInput
 }
 
 input AiChatSessionManyRelationFilter {
@@ -951,7 +976,7 @@ input UserUpdateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlan: CarePlanRelateToOneForUpdateInput
+  carePlan: CarePlanRelateToManyForUpdateInput
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
   parents: ParentRelateToManyForUpdateInput
   ownedChats: GroupChatRelateToManyForUpdateInput
@@ -959,10 +984,11 @@ input UserUpdateInput {
   forumPost: ForumPostRelateToManyForUpdateInput
 }
 
-input CarePlanRelateToOneForUpdateInput {
-  create: CarePlanCreateInput
-  connect: CarePlanWhereUniqueInput
-  disconnect: Boolean
+input CarePlanRelateToManyForUpdateInput {
+  disconnect: [CarePlanWhereUniqueInput!]
+  set: [CarePlanWhereUniqueInput!]
+  create: [CarePlanCreateInput!]
+  connect: [CarePlanWhereUniqueInput!]
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -1011,7 +1037,7 @@ input UserCreateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlan: CarePlanRelateToOneForCreateInput
+  carePlan: CarePlanRelateToManyForCreateInput
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
   parents: ParentRelateToManyForCreateInput
   ownedChats: GroupChatRelateToManyForCreateInput
@@ -1019,9 +1045,9 @@ input UserCreateInput {
   forumPost: ForumPostRelateToManyForCreateInput
 }
 
-input CarePlanRelateToOneForCreateInput {
-  create: CarePlanCreateInput
-  connect: CarePlanWhereUniqueInput
+input CarePlanRelateToManyForCreateInput {
+  create: [CarePlanCreateInput!]
+  connect: [CarePlanWhereUniqueInput!]
 }
 
 input AiChatSessionRelateToManyForCreateInput {

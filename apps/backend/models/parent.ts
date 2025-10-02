@@ -37,12 +37,12 @@ export const Parent = list({
       validation: { isRequired: true },
     }),
 
-    health_conditions: json(),
+    healthConditions: json(),
 
-    created_at: timestamp({
+    createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    updated_at: timestamp({
+    updatedAt: timestamp({
       db: { updatedAt: true },
     }),
     user: relationship({
