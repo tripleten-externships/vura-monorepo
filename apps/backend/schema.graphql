@@ -429,7 +429,7 @@ input GroupChatRelateToOneForCreateInput {
 
 type Checklist {
   id: ID!
-  name: String
+  name: String!
   resources(where: ResourceWhereInput! = {}, orderBy: [ResourceOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ResourceWhereUniqueInput): [Resource!]
   resourcesCount(where: ResourceWhereInput! = {}): Int
 }
@@ -714,8 +714,8 @@ input ParentCreateInput {
 
 type Resource {
   id: ID!
-  link: String
-  content: String
+  link: String!
+  content: String!
   checklist: Checklist
 }
 
@@ -1122,6 +1122,7 @@ type Query {
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
   _empty: String
+  getResources(input: GetResourcesInput): ResourceConnection!
 }
 
 union AuthenticatedItem = User
@@ -1260,4 +1261,37 @@ type KeystoneAdminUISort {
 enum KeystoneAdminUISortDirection {
   ASC
   DESC
+}
+
+input GetResourcesInput {
+  first: Int
+  after: String
+  checklistId: ID
+  searchTerm: String
+  orderBy: ResourceOrderBy
+}
+
+enum ResourceOrderBy {
+  ID_ASC
+  ID_DESC
+  CONTENT_ASC
+  CONTENT_DESC
+}
+
+type ResourceConnection {
+  edges: [ResourceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ResourceEdge {
+  node: Resource!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
 }
