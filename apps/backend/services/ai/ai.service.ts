@@ -1,5 +1,5 @@
 import { AIProvider, ChatMessage, ChatResponse, ChatOptions } from './types';
-import { GeminiProvider } from './providers/gemini';
+import { GeminiProvider } from './provider/gemini';
 
 export type ProviderType = 'gemini' | 'openai' | 'claude';
 

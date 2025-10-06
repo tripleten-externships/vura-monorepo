@@ -1,6 +1,14 @@
 import { list } from '@keystone-6/core';
 import type { Lists } from '.keystone/types';
-import { checkbox, text, password, timestamp, relationship } from '@keystone-6/core/fields';
+import {
+  checkbox,
+  text,
+  password,
+  timestamp,
+  relationship,
+  integer,
+  select,
+} from '@keystone-6/core/fields';
 
 export const User = list({
   access: {
@@ -11,9 +19,10 @@ export const User = list({
       delete: ({ session }) => !!session,
     },
     filter: {
-      query: ({ session }) => ({
-        id: { equals: session.data.id },
-      }),
+      query: ({ session }) => {
+        if (!session?.data?.id) return false;
+        return { id: { equals: session.data.id } };
+      },
     },
     item: {
       update: ({ session, item }) => item.id === session.data.id,
@@ -27,6 +36,7 @@ export const User = list({
       isIndexed: 'unique',
     }),
     password: password({
+      //keystone password field automatically hashes password
       validation: {
         length: { min: 10, max: 100 },
         isRequired: true,
@@ -34,17 +44,51 @@ export const User = list({
       },
       bcrypt: require('bcryptjs'),
     }),
+    avatarUrl: text({
+      validation: {
+        isRequired: false,
+        // commenting out the regex validation temporarily until we are able to add a default avatar
+        // match: { regex: /^https?:\/\/.+/i, explanation: 'Avatar must be a valid URL' }, // ensure that the string contains http:// or https:// and at least one letter after
+      },
+    }),
+    age: integer({
+      validation: { isRequired: false },
+    }),
+    gender: select({
+      options: [
+        { label: 'Female', value: 'female' },
+        { label: 'Male', value: 'male' },
+        { label: 'Non-Binary', value: 'non-binary' },
+      ],
+      validation: { isRequired: false },
+    }),
+    privacyToggle: checkbox({ defaultValue: true }),
+
+    //relationship to chat messages
+    messages: relationship({ ref: 'ChatMessage.sender', many: true }),
+
     isAdmin: checkbox({ defaultValue: true }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    lastLoginDate: timestamp({
-      defaultValue: { kind: 'now' },
+    lastLoginDate: timestamp(), // manually updated lastLoginDate
+    lastUpdateDate: timestamp({
+      db: { updatedAt: true },
     }),
-    // relationship to AiChatSessions
+    carePlan: relationship({ ref: 'CarePlan.user', many: true }),
     aiChatSessions: relationship({
       ref: 'AiChatSession.user',
       many: true,
     }),
+    parents: relationship({
+      ref: 'Parent.user',
+      many: true,
+    }),
+
+    // relationship to GroupChat
+    ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
+    memberChats: relationship({ ref: 'GroupChat.members', many: true }),
+    // relationship to forumPost
+    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
   },
 });
