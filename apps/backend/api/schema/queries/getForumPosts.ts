@@ -15,7 +15,7 @@ function encodeCursor(id: string): string {
 }
 
 export const getForumPosts = graphql.field({
-  type: graphql.inputObject()({
+  type: graphql.object()({
     // fields are from JIRA output schema
     name: 'ForumPostConnection',
     fields: {
