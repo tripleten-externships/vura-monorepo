@@ -10,4 +10,8 @@ export const typeDefs = gql`
   type Query {
     _empty: String
   }
+
+  extend type Query {
+    me: String
+  }
 `;

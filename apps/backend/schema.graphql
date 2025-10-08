@@ -1122,6 +1122,7 @@ type Query {
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
   _empty: String
+  me: String
 }
 
 union AuthenticatedItem = User
