@@ -58,4 +58,21 @@ export const typeDefs = gql`
     name: String!
     # add other fields as needed
   }
+
+  input SuggestResourcesInput {
+    carePlanId: ID
+    checklistId: ID
+    specificNeeds: String
+    suggestionType: ResourceSuggestionType
+    maxSuggestions: Int
+    saveToDatabase: Boolean
+  }
+
+  enum ResourceSuggestionType {
+    GENERAL
+    CARE_PLAN_SPECIFIC
+    EMERGENCY
+    EDUCATIONAL
+    SUPPORT_GROUPS
+  }
 `;
