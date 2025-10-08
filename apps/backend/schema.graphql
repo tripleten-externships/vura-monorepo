@@ -1122,7 +1122,7 @@ type Query {
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
   _empty: String
-  me: String
+  userProfile: UserProfile
 }
 
 union AuthenticatedItem = User
@@ -1261,4 +1261,18 @@ type KeystoneAdminUISort {
 enum KeystoneAdminUISortDirection {
   ASC
   DESC
+}
+
+type UserProfile {
+  id: ID!
+  name: String
+  email: String
+  avatarUrl: String
+  age: Int
+  gender: String
+  privacyToggle: Boolean
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
