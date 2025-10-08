@@ -1,10 +1,12 @@
 import { gql } from 'graphql-tag';
+import {carePlanTypeDefs} from './queries/carePlanTypeDefs';
 
 // SDL for custom types/inputs/enums
 export const typeDefs = gql`
   # Custom scalars
   scalar DateTime
   scalar JSON
+  scalar DateTime
 
   # Questionnaire Input Types
   input SaveQuestionnaireResponseInput {
@@ -279,4 +281,7 @@ export const typeDefs = gql`
     getForumPost(id: ID!): ForumPostDetails
     getForumPosts(input: GetForumPostsInput): ForumPostConnection!
   }
+
+  ${carePlanTypeDefs}
+
 `;

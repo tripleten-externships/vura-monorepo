@@ -331,12 +331,20 @@ input AiMessageRelateToOneForCreateInput {
 
 type CarePlan {
   id: ID!
-  name: String
-  progressScore: Float
-  lastAssessmentAt: DateTime
+  title: String
+  description: String
+  status: String
+  carePlanType: String
+  goals: JSON
+  activities: JSON
+  timeline: JSON
+  parentGuidance: String
+  aiGenerationMetadata: JSON
+  resources: JSON
+  milestones: JSON
+  user: User
   createdAt: DateTime
   updatedAt: DateTime
-  user: User
   questionnaires(where: QuestionnaireWhereInput! = {}, orderBy: [QuestionnaireOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireWhereUniqueInput): [Questionnaire!]
   questionnairesCount(where: QuestionnaireWhereInput! = {}): Int
   questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
@@ -345,6 +353,7 @@ type CarePlan {
 
 input CarePlanWhereUniqueInput {
   id: ID
+  title: String
 }
 
 input CarePlanWhereInput {
@@ -352,14 +361,30 @@ input CarePlanWhereInput {
   OR: [CarePlanWhereInput!]
   NOT: [CarePlanWhereInput!]
   id: IDFilter
-  name: StringFilter
-  progressScore: FloatNullableFilter
-  lastAssessmentAt: DateTimeNullableFilter
+  title: StringFilter
+  description: StringFilter
+  status: StringNullableFilter
+  carePlanType: StringFilter
+  parentGuidance: StringFilter
+  user: UserWhereInput
   createdAt: DateTimeNullableFilter
   updatedAt: DateTimeNullableFilter
-  user: UserWhereInput
   questionnaires: QuestionnaireManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
+}
+
+input StringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: StringNullableFilter
 }
 
 input QuestionnaireManyRelationFilter {
@@ -376,20 +401,30 @@ input QuestionnaireResponseManyRelationFilter {
 
 input CarePlanOrderByInput {
   id: OrderDirection
-  name: OrderDirection
-  progressScore: OrderDirection
-  lastAssessmentAt: OrderDirection
+  title: OrderDirection
+  description: OrderDirection
+  status: OrderDirection
+  carePlanType: OrderDirection
+  parentGuidance: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
 
 input CarePlanUpdateInput {
-  name: String
-  progressScore: Float
-  lastAssessmentAt: DateTime
+  title: String
+  description: String
+  status: String
+  carePlanType: String
+  goals: JSON
+  activities: JSON
+  timeline: JSON
+  parentGuidance: String
+  aiGenerationMetadata: JSON
+  resources: JSON
+  milestones: JSON
+  user: UserRelateToOneForUpdateInput
   createdAt: DateTime
   updatedAt: DateTime
-  user: UserRelateToOneForUpdateInput
   questionnaires: QuestionnaireRelateToManyForUpdateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
 }
@@ -414,12 +449,20 @@ input CarePlanUpdateArgs {
 }
 
 input CarePlanCreateInput {
-  name: String
-  progressScore: Float
-  lastAssessmentAt: DateTime
+  title: String
+  description: String
+  status: String
+  carePlanType: String
+  goals: JSON
+  activities: JSON
+  timeline: JSON
+  parentGuidance: String
+  aiGenerationMetadata: JSON
+  resources: JSON
+  milestones: JSON
+  user: UserRelateToOneForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
-  user: UserRelateToOneForCreateInput
   questionnaires: QuestionnaireRelateToManyForCreateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
 }
@@ -1388,20 +1431,6 @@ input UserWhereInput {
   memberChats: GroupChatManyRelationFilter
   forumPost: ForumPostManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
-}
-
-input StringNullableFilter {
-  equals: String
-  in: [String!]
-  notIn: [String!]
-  lt: String
-  lte: String
-  gt: String
-  gte: String
-  contains: String
-  startsWith: String
-  endsWith: String
-  not: StringNullableFilter
 }
 
 input AiChatSessionManyRelationFilter {
