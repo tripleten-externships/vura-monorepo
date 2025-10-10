@@ -332,6 +332,7 @@ input AiMessageRelateToOneForCreateInput {
 type CarePlan {
   id: ID!
   title: String
+<<<<<<< HEAD
   description: String
   status: String
   carePlanType: String
@@ -349,6 +350,11 @@ type CarePlan {
   questionnairesCount(where: QuestionnaireWhereInput! = {}): Int
   questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
+=======
+  user: User
+  createdAt: DateTime
+  updatedAt: DateTime
+>>>>>>> 2b26efd (VURA-36 CarePlan model + schema)
 }
 
 input CarePlanWhereUniqueInput {
@@ -362,6 +368,7 @@ input CarePlanWhereInput {
   NOT: [CarePlanWhereInput!]
   id: IDFilter
   title: StringFilter
+<<<<<<< HEAD
   description: StringFilter
   status: StringNullableFilter
   carePlanType: StringFilter
@@ -397,21 +404,30 @@ input QuestionnaireResponseManyRelationFilter {
   every: QuestionnaireResponseWhereInput
   some: QuestionnaireResponseWhereInput
   none: QuestionnaireResponseWhereInput
+=======
+  user: UserWhereInput
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
+>>>>>>> 2b26efd (VURA-36 CarePlan model + schema)
 }
 
 input CarePlanOrderByInput {
   id: OrderDirection
   title: OrderDirection
+<<<<<<< HEAD
   description: OrderDirection
   status: OrderDirection
   carePlanType: OrderDirection
   parentGuidance: OrderDirection
+=======
+>>>>>>> 2b26efd (VURA-36 CarePlan model + schema)
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
 
 input CarePlanUpdateInput {
   title: String
+<<<<<<< HEAD
   description: String
   status: String
   carePlanType: String
@@ -441,6 +457,11 @@ input QuestionnaireResponseRelateToManyForUpdateInput {
   set: [QuestionnaireResponseWhereUniqueInput!]
   create: [QuestionnaireResponseCreateInput!]
   connect: [QuestionnaireResponseWhereUniqueInput!]
+=======
+  user: UserRelateToOneForUpdateInput
+  createdAt: DateTime
+  updatedAt: DateTime
+>>>>>>> 2b26efd (VURA-36 CarePlan model + schema)
 }
 
 input CarePlanUpdateArgs {
@@ -450,6 +471,7 @@ input CarePlanUpdateArgs {
 
 input CarePlanCreateInput {
   title: String
+<<<<<<< HEAD
   description: String
   status: String
   carePlanType: String
@@ -475,6 +497,11 @@ input QuestionnaireRelateToManyForCreateInput {
 input QuestionnaireResponseRelateToManyForCreateInput {
   create: [QuestionnaireResponseCreateInput!]
   connect: [QuestionnaireResponseWhereUniqueInput!]
+=======
+  user: UserRelateToOneForCreateInput
+  createdAt: DateTime
+  updatedAt: DateTime
+>>>>>>> 2b26efd (VURA-36 CarePlan model + schema)
 }
 
 type ChatMessage {
@@ -1383,8 +1410,8 @@ type User {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlan(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
-  carePlanCount(where: CarePlanWhereInput! = {}): Int
+  carePlans(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
+  carePlansCount(where: CarePlanWhereInput! = {}): Int
   aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
   parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
@@ -1424,7 +1451,7 @@ input UserWhereInput {
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
   lastUpdateDate: DateTimeNullableFilter
-  carePlan: CarePlanManyRelationFilter
+  carePlans: CarePlanManyRelationFilter
   aiChatSessions: AiChatSessionManyRelationFilter
   parents: ParentManyRelationFilter
   ownedChats: GroupChatManyRelationFilter
@@ -1484,7 +1511,7 @@ input UserUpdateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlan: CarePlanRelateToManyForUpdateInput
+  carePlans: CarePlanRelateToManyForUpdateInput
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
   parents: ParentRelateToManyForUpdateInput
   ownedChats: GroupChatRelateToManyForUpdateInput
@@ -1539,7 +1566,7 @@ input UserCreateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlan: CarePlanRelateToManyForCreateInput
+  carePlans: CarePlanRelateToManyForCreateInput
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
   parents: ParentRelateToManyForCreateInput
   ownedChats: GroupChatRelateToManyForCreateInput

@@ -52,6 +52,7 @@ model AiMessage {
 }
 
 model CarePlan {
+<<<<<<< HEAD
   id                     String                  @id @default(uuid())
   title                  String                  @unique @default("")
   description            String                  @default("")
@@ -70,6 +71,14 @@ model CarePlan {
   updatedAt              DateTime?               @updatedAt @map("updated_at")
   questionnaires         Questionnaire[]         @relation("CarePlan_questionnaires")
   questionnaireResponses QuestionnaireResponse[] @relation("QuestionnaireResponse_carePlan")
+=======
+  id        String    @id @default(uuid())
+  title     String    @unique @default("")
+  user      User?     @relation("CarePlan_user", fields: [userId], references: [id])
+  userId    String?   @map("user")
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+>>>>>>> 2b26efd (VURA-36 CarePlan model + schema)
 
   @@index([userId])
 }
@@ -221,6 +230,7 @@ model Resource {
 }
 
 model User {
+<<<<<<< HEAD
   id                     String                  @id @default(uuid())
   name                   String                  @default("")
   email                  String                  @unique @default("")
@@ -241,6 +251,27 @@ model User {
   memberChats            GroupChat[]             @relation("GroupChat_members")
   forumPost              ForumPost[]             @relation("ForumPost_author")
   questionnaireResponses QuestionnaireResponse[] @relation("QuestionnaireResponse_user")
+=======
+  id             String          @id @default(uuid())
+  name           String          @default("")
+  email          String          @unique @default("")
+  password       String
+  avatarUrl      String          @default("")
+  age            Int?
+  gender         String?
+  privacyToggle  Boolean         @default(true)
+  messages       ChatMessage[]   @relation("ChatMessage_sender")
+  isAdmin        Boolean         @default(true)
+  createdAt      DateTime?       @default(now())
+  lastLoginDate  DateTime?       @default(now())
+  lastUpdateDate DateTime?       @updatedAt
+  carePlans      CarePlan[]      @relation("CarePlan_user")
+  aiChatSessions AiChatSession[] @relation("AiChatSession_user")
+  parents        Parent[]        @relation("Parent_user")
+  ownedChats     GroupChat[]     @relation("GroupChat_owner")
+  memberChats    GroupChat[]     @relation("GroupChat_members")
+  forumPost      ForumPost[]     @relation("ForumPost_author")
+>>>>>>> 2b26efd (VURA-36 CarePlan model + schema)
 }
 
 enum AiChatSessionStatusType {

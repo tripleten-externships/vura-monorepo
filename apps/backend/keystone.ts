@@ -6,10 +6,18 @@ import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
 import { withAuth, session } from './auth';
 import * as Models from './models';
 import { Query } from './api/resolvers/Query';
+<<<<<<< HEAD
 import { Mutation } from './api/resolvers/Mutation';
 import { DateTime, JSON } from './api/resolvers/scalars';
 import { typeDefs } from './api/schema/typeDefs';
 import { chatRoutes } from './routes/chat';
+=======
+import { DateTime } from './api/resolvers/scalars';
+import { mergeSchemas } from '@graphql-tools/schema';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { User } from './models';
+import { CarePlan } from './models';
+>>>>>>> 2b26efd (VURA-36 CarePlan model + schema)
 
 const dbUrl =
   process.env.DATABASE_URL ||
