@@ -52,10 +52,16 @@ model AiMessage {
 }
 
 model CarePlan {
-  id     String  @id @default(uuid())
-  name   String  @default("")
-  user   User?   @relation("CarePlan_user", fields: [userId], references: [id])
-  userId String? @map("user")
+  id                     String                  @id @default(uuid())
+  name                   String                  @default("")
+  progressScore          Float?
+  lastAssessmentAt       DateTime?
+  createdAt              DateTime?               @default(now())
+  updatedAt              DateTime?               @default(now()) @updatedAt
+  user                   User?                   @relation("CarePlan_user", fields: [userId], references: [id])
+  userId                 String?                 @map("user")
+  questionnaires         Questionnaire[]         @relation("CarePlan_questionnaires")
+  questionnaireResponses QuestionnaireResponse[] @relation("QuestionnaireResponse_carePlan")
 
   @@index([userId])
 }
@@ -74,9 +80,14 @@ model ChatMessage {
 }
 
 model Checklist {
-  id        String     @id @default(uuid())
-  name      String     @default("")
-  resources Resource[] @relation("Resource_checklist")
+  id                     String                  @id @default(uuid())
+  name                   String                  @default("")
+  completionScore        Float?
+  createdAt              DateTime?               @default(now())
+  updatedAt              DateTime?               @default(now()) @updatedAt
+  resources              Resource[]              @relation("Resource_checklist")
+  questionnaires         Questionnaire[]         @relation("Checklist_questionnaires")
+  questionnaireResponses QuestionnaireResponse[] @relation("QuestionnaireResponse_checklist")
 }
 
 model ForumPost {
@@ -119,6 +130,78 @@ model Parent {
   @@index([userId])
 }
 
+model Question {
+  id              String                   @id @default(uuid())
+  questionText    String                   @default("")
+  questionType    QuestionQuestionTypeType @default(text)
+  options         Json?
+  isRequired      Boolean                  @default(false)
+  order           Int?                     @default(0)
+  category        String                   @default("")
+  minValue        Int?
+  maxValue        Int?
+  questionnaire   Questionnaire?           @relation("Question_questionnaire", fields: [questionnaireId], references: [id])
+  questionnaireId String?                  @map("questionnaire")
+  responses       QuestionResponse[]       @relation("QuestionResponse_question")
+
+  @@index([questionnaireId])
+}
+
+model QuestionResponse {
+  id                      String                 @id @default(uuid())
+  answer                  Json?
+  confidence              Int?
+  notes                   String                 @default("")
+  answeredAt              DateTime?              @default(now())
+  updatedAt               DateTime?              @default(now()) @updatedAt
+  question                Question?              @relation("QuestionResponse_question", fields: [questionId], references: [id])
+  questionId              String?                @map("question")
+  questionnaireResponse   QuestionnaireResponse? @relation("QuestionResponse_questionnaireResponse", fields: [questionnaireResponseId], references: [id])
+  questionnaireResponseId String?                @map("questionnaireResponse")
+
+  @@index([questionId])
+  @@index([questionnaireResponseId])
+}
+
+model Questionnaire {
+  id                String                             @id @default(uuid())
+  title             String                             @default("")
+  description       String                             @default("")
+  questionnaireType QuestionnaireQuestionnaireTypeType @default(general_assessment)
+  category          String                             @default("")
+  isActive          Boolean                            @default(true)
+  createdAt         DateTime?                          @default(now())
+  updatedAt         DateTime?                          @default(now()) @updatedAt
+  questions         Question[]                         @relation("Question_questionnaire")
+  responses         QuestionnaireResponse[]            @relation("QuestionnaireResponse_questionnaire")
+  carePlans         CarePlan[]                         @relation("CarePlan_questionnaires")
+  checklists        Checklist[]                        @relation("Checklist_questionnaires")
+}
+
+model QuestionnaireResponse {
+  id                   String                          @id @default(uuid())
+  status               QuestionnaireResponseStatusType @default(draft)
+  progressScore        Float?
+  completionPercentage Float?
+  startedAt            DateTime?                       @default(now())
+  completedAt          DateTime?
+  lastSavedAt          DateTime?                       @default(now()) @updatedAt
+  user                 User?                           @relation("QuestionnaireResponse_user", fields: [userId], references: [id])
+  userId               String?                         @map("user")
+  questionnaire        Questionnaire?                  @relation("QuestionnaireResponse_questionnaire", fields: [questionnaireId], references: [id])
+  questionnaireId      String?                         @map("questionnaire")
+  carePlan             CarePlan?                       @relation("QuestionnaireResponse_carePlan", fields: [carePlanId], references: [id])
+  carePlanId           String?                         @map("carePlan")
+  checklist            Checklist?                      @relation("QuestionnaireResponse_checklist", fields: [checklistId], references: [id])
+  checklistId          String?                         @map("checklist")
+  questionResponses    QuestionResponse[]              @relation("QuestionResponse_questionnaireResponse")
+
+  @@index([userId])
+  @@index([questionnaireId])
+  @@index([carePlanId])
+  @@index([checklistId])
+}
+
 model Resource {
   id          Int        @id @default(autoincrement())
   link        String     @default("")
@@ -130,25 +213,26 @@ model Resource {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  name           String          @default("")
-  email          String          @unique @default("")
-  password       String
-  avatarUrl      String          @default("")
-  age            Int?
-  gender         String?
-  privacyToggle  Boolean         @default(true)
-  messages       ChatMessage[]   @relation("ChatMessage_sender")
-  isAdmin        Boolean         @default(true)
-  createdAt      DateTime?       @default(now())
-  lastLoginDate  DateTime?
-  lastUpdateDate DateTime?       @updatedAt
-  carePlan       CarePlan[]      @relation("CarePlan_user")
-  aiChatSessions AiChatSession[] @relation("AiChatSession_user")
-  parents        Parent[]        @relation("Parent_user")
-  ownedChats     GroupChat[]     @relation("GroupChat_owner")
-  memberChats    GroupChat[]     @relation("GroupChat_members")
-  forumPost      ForumPost[]     @relation("ForumPost_author")
+  id                     String                  @id @default(uuid())
+  name                   String                  @default("")
+  email                  String                  @unique @default("")
+  password               String
+  avatarUrl              String                  @default("")
+  age                    Int?
+  gender                 String?
+  privacyToggle          Boolean                 @default(true)
+  messages               ChatMessage[]           @relation("ChatMessage_sender")
+  isAdmin                Boolean                 @default(true)
+  createdAt              DateTime?               @default(now())
+  lastLoginDate          DateTime?
+  lastUpdateDate         DateTime?               @updatedAt
+  carePlan               CarePlan[]              @relation("CarePlan_user")
+  aiChatSessions         AiChatSession[]         @relation("AiChatSession_user")
+  parents                Parent[]                @relation("Parent_user")
+  ownedChats             GroupChat[]             @relation("GroupChat_owner")
+  memberChats            GroupChat[]             @relation("GroupChat_members")
+  forumPost              ForumPost[]             @relation("ForumPost_author")
+  questionnaireResponses QuestionnaireResponse[] @relation("QuestionnaireResponse_user")
 }
 
 enum AiChatSessionStatusType {
@@ -163,4 +247,25 @@ enum AiMessageAuthorType {
   assistant
   system
   tool
+}
+
+enum QuestionQuestionTypeType {
+  text
+  multiple_choice
+  rating_scale
+  boolean
+  scale
+}
+
+enum QuestionnaireQuestionnaireTypeType {
+  care_plan_assessment
+  checklist_evaluation
+  general_assessment
+  progress_review
+}
+
+enum QuestionnaireResponseStatusType {
+  draft
+  completed
+  in_progress
 }

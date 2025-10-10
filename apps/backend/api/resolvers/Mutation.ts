@@ -1,7 +1,8 @@
 // stitches mutation resolvers together
-// import { someMutation } from '../schema/mutations/someMutation';
+import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutations/questionnaire';
 
 export const Mutation = {
-  // someMutation,
+  saveQuestionnaireResponse,
+  submitQuestionnaire,
   _empty: () => null,
 };
