@@ -1,43 +1,42 @@
 import { list } from '@keystone-6/core';
-// import type { Lists } from '.keystone/types';
-import { text, timestamp, relationship } from '@keystone-6/core/fields';
-import { allowAll } from '@keystone-6/core/access';
+import { text, relationship, timestamp } from '@keystone-6/core/fields';
 
 export const CarePlan = list({
   access: {
     operation: {
-      // anyone can query
-      query: allowAll,
-      // must be logged in
-      create: ({ session }) => !!session?.data,
+      query: () => true,
+      create: ({ session }) => !!session,
       update: ({ session }) => !!session,
       delete: ({ session }) => !!session,
+    },
+    filter: {
+      update: ({ session }) => ({ user: { id: { equals: session?.itemId } } }),
+      delete: ({ session }) => ({ user: { id: { equals: session?.itemId } } }),
     },
   },
   fields: {
     title: text({
-      isIndexed: 'unique',
       validation: { isRequired: true },
+      isIndexed: 'unique',
+      db: { isNullable: false },
     }),
     user: relationship({
-      // users careplan list
       ref: 'User.carePlans',
-      many: false,
+      hooks: {
+        resolveInput: ({ operation, resolvedData, context }) => {
+          if (operation === 'create' && !resolvedData.user && context.session) {
+            return { connect: { id: context.session.itemId } };
+          }
+          return resolvedData.user;
+        },
+      },
     }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
-      ui: { createView: { fieldMode: 'hidden' } },
+      db: { map: 'created_at' },
     }),
     updatedAt: timestamp({
-      // auto-update on save
-      db: { updatedAt: true },
-      ui: { createView: { fieldMode: 'hidden' } },
+      db: { map: 'updated_at', updatedAt: true },
     }),
-  },
-  ui: {
-    labelField: 'title',
-    listView: {
-      initialColumns: ['title', 'user', 'createdAt', 'updatedAt'],
-    },
   },
 });

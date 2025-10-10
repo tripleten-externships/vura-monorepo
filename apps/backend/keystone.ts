@@ -11,6 +11,8 @@ import { Query } from './api/resolvers/Query';
 import { DateTime } from './api/resolvers/scalars';
 import { mergeSchemas } from '@graphql-tools/schema';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { User } from './models';
+import { CarePlan } from './models';
 
 const dbUrl =
   process.env.DATABASE_URL ||
