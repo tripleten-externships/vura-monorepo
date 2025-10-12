@@ -5,12 +5,12 @@ dotenv.config();
 
 import { withAuth, session } from './auth';
 import * as Models from './models';
-import { typeDefs } from './api/schema/typeDefs';
-import { Mutation } from './api/resolvers/Mutation';
 import { Query } from './api/resolvers/Query';
 import { DateTime } from './api/resolvers/scalars';
-import { mergeSchemas } from '@graphql-tools/schema';
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { addResolversToSchema } from '@graphql-tools/schema';
+import { typeDefs as customTypeDefs } from './api/schema/typeDefs';
+import { Mutation as customMutations } from './api/resolvers/Mutation';
+import { extendSchema } from 'graphql';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -48,35 +48,36 @@ export default withAuth(
       apolloConfig: {
         introspection: true,
       },
-      extendGraphqlSchema: (schema) => {
-        const customSchema = makeExecutableSchema({
-          typeDefs,
-          resolvers: {
-            DateTime,
-            Mutation,
-            Query,
-          },
-        });
+      extendGraphqlSchema: (baseSchema) => {
+        // Extend Keystone's generated base schema with our SDL extensions. Using
+        // extendSchema avoids redeclaring core types (Mutation/Query/User) which
+        // causes SDL validation errors when merged as a standalone schema.
+        const extended = extendSchema(baseSchema, customTypeDefs as any);
 
-        return mergeSchemas({
-          schemas: [schema, customSchema],
-        });
+        // Attach resolvers that need Keystone context (db access). The UpdateProfileResult.user
+        // resolver uses the userId field returned by the mutation to fetch the User.
+        const attachedResolvers = {
+          DateTime,
+          Mutation: customMutations,
+          Query,
+          UpdateProfileResult: {
+            user: async (parent: any, _args: any, context: any) => {
+              const id = parent?.userId;
+              if (!id) return null;
+              return context.db.User.findOne({ where: { id } });
+            },
+          },
+        };
+
+        addResolversToSchema({ schema: extended, resolvers: attachedResolvers as any });
+
+        return extended;
       },
     },
     storage: {
       s3_file_storage: {
         kind: 's3',
         type: 'file',
-        bucketName: process.env.S3_BUCKET_NAME || 'vura-keystonejs',
-        region: process.env.S3_REGION || 'us-east-1',
-        accessKeyId: process.env.S3_ACCESS_KEY_ID || 'keystone',
-        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || 'keystone',
-        signed: { expiry: 5000 },
-        forcePathStyle: true,
-      },
-      s3_image_storage: {
-        kind: 's3',
-        type: 'image',
         bucketName: process.env.S3_BUCKET_NAME || 'vura-keystonejs',
         region: process.env.S3_REGION || 'us-east-1',
         accessKeyId: process.env.S3_ACCESS_KEY_ID || 'keystone',

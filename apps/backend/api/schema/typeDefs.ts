@@ -2,15 +2,16 @@ import { gql } from 'graphql-tag';
 
 // SDL for custom types/inputs/enums
 export const typeDefs = gql`
-  scalar DateTime
-
-  type Mutation {
-    _empty: String
-    updateProfile(input: UpdateProfileInput!): UpdateProfileResult!
+  extend type Mutation {
+    # Make result nullable to allow returning structured errors without throwing
+    updateProfile(input: UpdateProfileInput!): UpdateProfileResult
   }
 
-  type Query {
+  extend type Query {
     _empty: String
+  }
+  extend type Query {
+    me: User
   }
 
   input UpdateProfileInput {
@@ -23,7 +24,9 @@ export const typeDefs = gql`
   }
 
   type UpdateProfileResult {
-    user: User!
-    message: String!
+    userId: ID
+    user: User
+    message: String
+    error: String
   }
 `;

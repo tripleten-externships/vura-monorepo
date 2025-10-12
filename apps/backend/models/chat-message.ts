@@ -13,16 +13,6 @@ export const ChatMessage = list({
     }),
     sender: relationship({ ref: 'User.messages', many: false }),
   },
-
-  // access: {
-  //   operation: {
-  //     query: () => true,
-  //     create: ({ session }) => !!session?.data,
-  //     update: ({ session, item }) => session?.data?.id === item.sender?.id,
-  //     delete: ({ session, item }) => session?.data?.id === item.sender?.id,
-  //   },
-  // },
-
   access: {
     operation: {
       query: () => true,

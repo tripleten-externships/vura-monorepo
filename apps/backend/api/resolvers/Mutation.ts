@@ -5,5 +5,4 @@ import { updateProfile } from '../schema/mutations/updateProfile';
 export const Mutation = {
   // someMutation,
   updateProfile,
-  _empty: () => null,
 };
