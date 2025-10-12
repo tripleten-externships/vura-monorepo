@@ -134,6 +134,7 @@ model User {
   name           String          @default("")
   email          String          @unique @default("")
   password       String
+  role           String?         @default("user")
   avatarUrl      String          @default("")
   age            Int?
   gender         String?

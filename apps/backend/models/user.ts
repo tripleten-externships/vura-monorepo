@@ -44,6 +44,16 @@ export const User = list({
       },
       bcrypt: require('bcryptjs'),
     }),
+    role: select({
+      options: [
+        { label: 'User', value: 'user' },
+        { label: 'Admin', value: 'admin' },
+      ],
+      defaultValue: 'user',
+      ui: {
+        displayMode: 'segmented-control', // optional, makes it look nice in Admin UI
+      },
+    }),
     avatarUrl: text({
       validation: {
         isRequired: false,

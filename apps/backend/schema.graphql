@@ -772,6 +772,7 @@ type User {
   name: String
   email: String
   password: PasswordState
+  role: String
   avatarUrl: String
   age: Int
   gender: String
@@ -812,6 +813,7 @@ input UserWhereInput {
   id: IDFilter
   name: StringFilter
   email: StringFilter
+  role: StringNullableFilter
   avatarUrl: StringFilter
   age: IntNullableFilter
   gender: StringNullableFilter
@@ -882,6 +884,7 @@ input UserOrderByInput {
   id: OrderDirection
   name: OrderDirection
   email: OrderDirection
+  role: OrderDirection
   avatarUrl: OrderDirection
   age: OrderDirection
   gender: OrderDirection
@@ -896,6 +899,7 @@ input UserUpdateInput {
   name: String
   email: String
   password: String
+  role: String
   avatarUrl: String
   age: Int
   gender: String
@@ -957,6 +961,7 @@ input UserCreateInput {
   name: String
   email: String
   password: String
+  role: String
   avatarUrl: String
   age: Int
   gender: String
