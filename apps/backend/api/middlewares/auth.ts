@@ -3,13 +3,13 @@
 import { createAuth } from '@keystone-6/auth';
 import { statelessSessions } from '@keystone-6/core/session';
 
-// ⚙️ 1. Define a secret for JWT/session signing
+// dDefine a secret for JWT/session signing
 const sessionSecret = process.env.SESSION_SECRET || 'a-super-secret-string';
 
-// ⚙️ 2. Define how long sessions last (in seconds)
+// define how long sessions last (in seconds)
 const sessionMaxAge = 60 * 60 * 24 * 30; // 30 days
 
-// ⚙️ 3. Configure Keystone Auth
+// configure Keystone Auth
 export const { withAuth } = createAuth({
   listKey: 'User', // which list (model) handles auth
   identityField: 'email', // field users log in with
@@ -20,13 +20,13 @@ export const { withAuth } = createAuth({
   },
 });
 
-// ⚙️ 4. Create a session strategy
+// create a session strategy
 export const session = statelessSessions({
   maxAge: sessionMaxAge,
   secret: sessionSecret,
 });
 
-// 🧠 Guard Helpers
+// Guard Helpers
 export const requireAuth = (session) => {
   if (!session?.data) {
     throw new Error('Authentication required');

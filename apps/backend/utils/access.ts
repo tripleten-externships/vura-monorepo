@@ -21,10 +21,9 @@ export function isItemAccess(args: any): args is { item: any } {
   return 'item' in args;
 }
 
-/*
-# Authentication & Authorization Checklist
+/*Authentication & Authorization Checklist
 
-## Setup & Config
+ Setup & Config
 - [x] Created `access.ts` with authentication and authorization helpers
 - [x] Added these helpers:
   - [x] `isAuthenticated`
@@ -33,41 +32,41 @@ export function isItemAccess(args: any): args is { item: any } {
 - [x] Checked that Keystone session and JWT are correctly configured
 - [x] Confirmed `sessionSecret` is included in `.env`
 
-## Authentication
+ Authentication
 - [ ] Hook up these helpers to relevant Keystone lists (User, CarePlan, Resource)
 - [ ] Protect sensitive queries/mutations with `isAuthenticated`
 - [ ] Verify login and session creation; make sure JWT is issued
 - [ ] Ensure public resources are visible to unauthenticated users only
 
-## Authorization
+ Authorization
 - [ ] Users can only access their own data via `canAccessOwnData`
 - [ ] Admins bypass access restrictions
 - [ ] Make sure roles exist in the User model (`user` and `admin`)
 - [ ] Create an admin account for testing
 
-## Public Access
+ Public Access
 - [ ] Create queries or endpoints for public resources
 - [ ] Allow unauthenticated users to generate temporary care plans
 
-## JWT
+ JWT
 - [ ] Ensure Keystone sessions use JWT (stateless or stored)
 - [ ] Set session expiration (ex: 30 days)
 - [ ] Confirm JWTs are decoded correctly in session context
 - [ ] Test logout to make sure tokens are invalidated
 
-## Optional: Third-Party Auth
+ Optional: Third-Party Auth
 - [ ] Explore Keystone OAuth for Google login
 - [ ] Register app in Google Developer Console
 - [ ] Add OAuth client ID/secret to `.env`
 - [ ] Test Google login flow
 
-## Testing
+ Testing
 - [ ] Seed test users (admin and regular)
 - [ ] Test CRUD operations for both user types
 - [ ] Confirm unauthorized access is blocked
 - [ ] Test GraphQL Playground access control
 
-## Final Steps
+ Final Steps
 - [ ] Remove `initFirstItem` before going to production
 - [ ] Update `.env.example` with all required variables
 - [ ] Commit and push changes
