@@ -141,7 +141,7 @@ model User {
   messages       ChatMessage[]   @relation("ChatMessage_sender")
   isAdmin        Boolean         @default(true)
   createdAt      DateTime?       @default(now())
-  lastLoginDate  DateTime?
+  lastLoginDate  DateTime?       @default(now())
   lastUpdateDate DateTime?       @updatedAt
   carePlan       CarePlan[]      @relation("CarePlan_user")
   aiChatSessions AiChatSession[] @relation("AiChatSession_user")
