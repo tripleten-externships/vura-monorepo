@@ -1,7 +1,8 @@
 // stitches query resolvers together
-// import { someQuery } from '../schema/queries/someQuery';
+import { getResources } from '../schema/queries/getResources';
+import { userProfile } from '../schema/queries/userProfile';
 
 export const Query = {
-  // someQuery,
-  _empty: () => null,
+  userProfile,
+  getResources,
 };
