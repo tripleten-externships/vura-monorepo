@@ -4,11 +4,22 @@ export const typeDefs = gql`
   type ForumPost {
     id: ID!
     title: String!
-    topic: String
+    topic: String!
     content: String!
-    author: String
+    author: String!
     createdAt: String!
     updatedAt: String!
+  }
+
+  input CreateForumPostInput {
+    title: String!
+    topic: String!
+    content: String!
+  }
+
+  type CreateForumPostResult {
+    forumPost: ForumPost!
+    message: String!
   }
 
   type Query {
@@ -16,7 +27,7 @@ export const typeDefs = gql`
   }
 
   type Mutation {
-    createForumPost(title: String!, topic: String, content: String!, author: String): ForumPost
+    createForumPost(data: CreateForumPostInput!): CreateForumPostResult!
   }
 `;
 
