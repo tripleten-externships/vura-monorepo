@@ -71,7 +71,7 @@ export const getForumPosts = {
 
       const totalCount = await context.db.ForumPost.count({ where: filters });
 
-      const edges = posts.map((post) => ({
+      const edges = posts.map((post: any) => ({
         node: post,
         cursor: Buffer.from(post.id).toString('base64'),
       }));
