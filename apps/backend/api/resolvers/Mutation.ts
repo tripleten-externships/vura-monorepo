@@ -1,7 +1,12 @@
 // stitches mutation resolvers together
-// import { someMutation } from '../schema/mutations/someMutation';
+import { signup } from '../schema/mutations/signup';
+import { login } from '../schema/mutations/login';
+import { createForumPost } from '../schema/mutations/createForumPost';
+import { deleteForumPost } from '../schema/mutations/deleteForumPost';
 
 export const Mutation = {
-  // someMutation,
-  _empty: () => null,
+  signup,
+  login,
+  customCreateForumPost: createForumPost,
+  customDeleteForumPost: deleteForumPost,
 };
