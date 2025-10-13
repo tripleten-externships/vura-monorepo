@@ -120,15 +120,8 @@ export const typeDefs = gql`
   }
 
   type ForumPostEdge {
-    node: ForumPost!
+    node: ForumPostDetails!
     cursor: String!
-  }
-
-  type PageInfo {
-    hasNextPage: Boolean!
-    hasPreviousPage: Boolean!
-    startCursor: String
-    endCursor: String
   }
 
   type Mutation {
@@ -141,11 +134,7 @@ export const typeDefs = gql`
   type Query {
     userProfile: UserProfile
     getResources(input: GetResourcesInput): ResourceConnection!
-    getForumPosts: [ForumPostDetails!]!
     getForumPost(id: ID!): ForumPostDetails
-  }
-
-  extend type Query {
     getForumPosts(input: GetForumPostsInput): ForumPostConnection!
   }
 
@@ -161,7 +150,7 @@ export const typeDefs = gql`
     name: String!
   }
 
-  # Define a ForumPostDetails type that matches our custom return type
+  # Define ForumPostDetails type
   type ForumPostDetails {
     id: ID!
     title: String!
