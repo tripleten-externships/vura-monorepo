@@ -75,14 +75,35 @@ export const typeDefs = gql`
     endCursor: String
   }
 
+  input CustomCreateForumPostInput {
+    title: String!
+    topic: String!
+    content: String!
+  }
+
+  type CustomCreateForumPostResult {
+    forumPost: ForumPostDetails!
+    message: String!
+  }
+
+  type CustomDeleteForumPostResult {
+    success: Boolean!
+    message: String!
+    deletedPostId: ID!
+  }
+
   type Mutation {
     signup(input: SignupInput!): SignupResult!
     login(input: LoginInput!): LoginResult!
+    customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
+    customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
   }
 
   type Query {
     userProfile: UserProfile
     getResources(input: GetResourcesInput): ResourceConnection!
+    getForumPosts: [ForumPostDetails!]!
+    getForumPost(id: ID!): ForumPostDetails
   }
 
   type Resource {
@@ -95,5 +116,16 @@ export const typeDefs = gql`
   type Checklist {
     id: ID!
     name: String!
+  }
+
+  # Define a ForumPostDetails type that matches our custom return type
+  type ForumPostDetails {
+    id: ID!
+    title: String!
+    topic: String!
+    content: String!
+    createdAt: DateTime!
+    updatedAt: DateTime
+    author: UserProfile
   }
 `;
