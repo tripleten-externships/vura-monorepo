@@ -1,6 +1,4 @@
 import { graphql } from '@keystone-6/core';
-import { ForumPost } from '../../../models';
-// import { ForumPost } from '../../../models';
 
 //helps make potentially dangerous content safe
 function sanitizeContent(content: string): string {
@@ -51,71 +49,67 @@ async function logAuditEvent(
   // not using throw error, so post will still go through even if there is an audit logging error
 }
 
-export const createForumPost = {
-  // resolver for mutation
-  Mutation: {
-    async createForumPost(_: any, { data }: any, context: any) {
-      try {
-        if (!context.session?.itemId) {
-          throw new Error('User must be authenticated to create forum posts');
-        }
+export const createForumPost = async (_: any, { data }: { data: any }, context: any) => {
+  try {
+    if (!context.session?.itemId) {
+      throw new Error('User must be authenticated to create forum posts');
+    }
 
-        const { title, topic, content, publishedAt, status } = data;
+    const { title, topic, content } = data;
 
-        // validation section aligns with Jira error handling instructions
-        if (!title || title.trim() === '') {
-          throw new Error('Title is required');
-        }
+    // validation section aligns with Jira error handling instructions
+    if (!title || title.trim() === '') {
+      throw new Error('Title is required');
+    }
 
-        const sanitizedTitle = sanitizeContent(title);
+    const sanitizedTitle = sanitizeContent(title);
 
-        const MAX_TITLE_LENGTH = 30;
-        if (title.length > MAX_TITLE_LENGTH) {
-          throw new Error('Title must be 30 characters or less');
-        }
+    const MAX_TITLE_LENGTH = 30;
+    if (title.length > MAX_TITLE_LENGTH) {
+      throw new Error('Title must be 30 characters or less');
+    }
 
-        if (!topic || topic.trim() === '') {
-          throw new Error('Topic is required');
-        }
-        const MAX_TOPIC_LENGTH = 50;
-        if (topic.length > MAX_TOPIC_LENGTH) {
-          throw new Error('Topic must be 50 characters or less');
-        }
+    if (!topic || topic.trim() === '') {
+      throw new Error('Topic is required');
+    }
+    const MAX_TOPIC_LENGTH = 50;
+    if (topic.length > MAX_TOPIC_LENGTH) {
+      throw new Error('Topic must be 50 characters or less');
+    }
 
-        if (!content || content.trim() === '') {
-          throw new Error('Content is required');
-        }
-        const sanitizedContent = sanitizeContent(content);
+    if (!content || content.trim() === '') {
+      throw new Error('Content is required');
+    }
+    const sanitizedContent = sanitizeContent(content);
 
-        const MIN_CONTENT_LENGTH = 10;
-        if (content.trim().length < MIN_CONTENT_LENGTH) {
-          throw new Error('Content must be at least 10 characters long');
-        }
-        const MAX_CONTENT_LENGTH = 5000;
-        if (content.length < MAX_CONTENT_LENGTH) {
-          throw new Error('Content cannot be longer than 5,000 characters');
-        }
-        const post = await context.db.Post.createOne({
-          date: {
-            title: sanitizedTitle,
-            content: sanitizedContent,
-            author: { connect: { id: context.session.itemId } },
-            publishedAt: publishedAt || new Date(),
-            status: status || 'draft',
-          },
-        });
-        await logAuditEvent(context, 'POST_CREATED', context.session.itemId, post.id, {
-          title: post.title,
-          status: post.status,
-        });
-        return {
-          post,
-          message: 'Post created successfully',
-        };
-      } catch (error) {
-        console.error('Create post error:', error);
-        throw new Error('Failed to create post');
-      }
-    },
-  },
+    const MIN_CONTENT_LENGTH = 10;
+    if (content.trim().length < MIN_CONTENT_LENGTH) {
+      throw new Error('Content must be at least 10 characters long');
+    }
+    const MAX_CONTENT_LENGTH = 5000;
+    if (content.length > MAX_CONTENT_LENGTH) {
+      throw new Error('Content cannot be longer than 5,000 characters');
+    }
+
+    const post = await context.db.ForumPost.createOne({
+      data: {
+        title: sanitizedTitle,
+        topic: topic,
+        content: sanitizedContent,
+        author: { connect: { id: context.session.itemId } },
+      },
+    });
+
+    await logAuditEvent(context, 'POST_CREATED', context.session.itemId, post.id, {
+      title: post.title,
+    });
+
+    return {
+      forumPost: post,
+      message: 'Post created successfully',
+    };
+  } catch (error) {
+    console.error('Create post error:', error);
+    throw new Error('Failed to create post');
+  }
 };

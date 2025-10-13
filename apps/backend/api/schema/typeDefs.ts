@@ -4,8 +4,6 @@ import { gql } from 'graphql-tag';
 
 export const typeDefs = gql`
   scalar DateTime
-
-  # Auth Inputs
   input SignupInput {
     name: String!
     email: String!
@@ -20,35 +18,6 @@ export const typeDefs = gql`
     password: String!
   }
 
-  # Forum Post Inputs
-  input CreateForumPostInput {
-    title: String!
-    topic: String!
-    content: String!
-  }
-
-  input DeleteForumPostInput {
-    postId: ID!
-  }
-
-  # Resource Inputs
-  input GetResourcesInput {
-    first: Int
-    after: String
-    checklistId: ID
-    searchTerm: String
-    orderBy: ResourceOrderBy
-  }
-
-  # Enums
-  enum ResourceOrderBy {
-    ID_ASC
-    ID_DESC
-    CONTENT_ASC
-    CONTENT_DESC
-  }
-
-  # Auth Results
   type SignupResult {
     user: UserProfile!
     token: String!
@@ -59,7 +28,6 @@ export const typeDefs = gql`
     token: String!
   }
 
-  # User Types
   type UserProfile {
     id: ID!
     name: String
@@ -74,29 +42,21 @@ export const typeDefs = gql`
     lastUpdateDate: DateTime
   }
 
-  # Forum Post Types
-  type ForumPost {
-    id: ID!
-    title: String!
-    topic: String!
-    content: String!
-    author: String!
-    createdAt: String!
-    updatedAt: String!
+  input GetResourcesInput {
+    first: Int
+    after: String
+    checklistId: ID
+    searchTerm: String
+    orderBy: ResourceOrderBy
   }
 
-  type CreateForumPostResult {
-    forumPost: ForumPost!
-    message: String!
+  enum ResourceOrderBy {
+    ID_ASC
+    ID_DESC
+    CONTENT_ASC
+    CONTENT_DESC
   }
 
-  type DeleteForumPostResult {
-    success: Boolean!
-    message: String!
-    deletedPostId: ID
-  }
-
-  # Resource Types
   type ResourceConnection {
     edges: [ResourceEdge!]!
     pageInfo: PageInfo!
@@ -115,6 +75,37 @@ export const typeDefs = gql`
     endCursor: String
   }
 
+  input CustomCreateForumPostInput {
+    title: String!
+    topic: String!
+    content: String!
+  }
+
+  type CustomCreateForumPostResult {
+    forumPost: ForumPostDetails!
+    message: String!
+  }
+
+  type CustomDeleteForumPostResult {
+    success: Boolean!
+    message: String!
+    deletedPostId: ID!
+  }
+
+  type Mutation {
+    signup(input: SignupInput!): SignupResult!
+    login(input: LoginInput!): LoginResult!
+    customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
+    customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
+  }
+
+  type Query {
+    userProfile: UserProfile
+    getResources(input: GetResourcesInput): ResourceConnection!
+    getForumPosts: [ForumPostDetails!]!
+    getForumPost(id: ID!): ForumPostDetails
+  }
+
   type Resource {
     id: ID!
     link: String!
@@ -127,20 +118,14 @@ export const typeDefs = gql`
     name: String!
   }
 
-  # Queries
-  type Query {
-    userProfile: UserProfile
-    getResources(input: GetResourcesInput): ResourceConnection!
-    getForumPost(id: ID!): ForumPost
-  }
-
-  # Mutations
-  type Mutation {
-    signup(input: SignupInput!): SignupResult!
-    login(input: LoginInput!): LoginResult!
-    createForumPost(data: CreateForumPostInput!): CreateForumPostResult!
-    deleteForumPost(id: ID!): DeleteForumPostResult!
+  # Define a ForumPostDetails type that matches our custom return type
+  type ForumPostDetails {
+    id: ID!
+    title: String!
+    topic: String!
+    content: String!
+    createdAt: DateTime!
+    updatedAt: DateTime
+    author: UserProfile
   }
 `;
-
-// typeDefs describe what types of data the API exposes and what operations are allowed

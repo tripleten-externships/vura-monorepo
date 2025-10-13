@@ -1151,6 +1151,8 @@ type Mutation {
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
   signup(input: SignupInput!): SignupResult!
   login(input: LoginInput!): LoginResult!
+  customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
+  customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
 }
 
 union UserAuthenticationWithPasswordResult =
@@ -1267,6 +1269,8 @@ type Query {
   authenticatedItem: AuthenticatedItem
   userProfile: UserProfile
   getResources(input: GetResourcesInput): ResourceConnection!
+  getForumPosts: [ForumPostDetails!]!
+  getForumPost(id: ID!): ForumPostDetails
 }
 
 union AuthenticatedItem = User
@@ -1476,4 +1480,31 @@ type PageInfo {
   hasPreviousPage: Boolean!
   startCursor: String
   endCursor: String
+}
+
+input CustomCreateForumPostInput {
+  title: String!
+  topic: String!
+  content: String!
+}
+
+type CustomCreateForumPostResult {
+  forumPost: ForumPostDetails!
+  message: String!
+}
+
+type CustomDeleteForumPostResult {
+  success: Boolean!
+  message: String!
+  deletedPostId: ID!
+}
+
+type ForumPostDetails {
+  id: ID!
+  title: String!
+  topic: String!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  author: UserProfile
 }

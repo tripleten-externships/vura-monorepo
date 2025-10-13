@@ -7,6 +7,6 @@ import { deleteForumPost } from '../schema/mutations/deleteForumPost';
 export const Mutation = {
   signup,
   login,
-  createForumPost,
-  deleteForumPost,
+  customCreateForumPost: createForumPost,
+  customDeleteForumPost: deleteForumPost,
 };
