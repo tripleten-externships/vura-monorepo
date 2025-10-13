@@ -35,7 +35,8 @@
     "axios": "^1.11.0",
     "googleapis": "^154.1.0",
     "jest": "^30.0.5",
-    "luxon": "^3.7.1"
+    "luxon": "^3.7.1",
+    "@types/bcryptjs": "^2.4.6"
   },
   "description": "Welcome to Keystone!",
   "main": "index.js",
