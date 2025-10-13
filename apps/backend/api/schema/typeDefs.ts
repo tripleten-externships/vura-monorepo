@@ -17,9 +17,19 @@ export const typeDefs = gql`
     content: String!
   }
 
+  input DeleteForumPostInput {
+    postId: ID!
+  }
+
   type CreateForumPostResult {
     forumPost: ForumPost!
     message: String!
+  }
+
+  type DeleteForumPostResult {
+    success: Boolean!
+    message: String!
+    deletedPostId: ID
   }
 
   type Query {
@@ -28,6 +38,7 @@ export const typeDefs = gql`
 
   type Mutation {
     createForumPost(data: CreateForumPostInput!): CreateForumPostResult!
+    deleteForumPost(id: ID!): DeleteForumPostResult!
   }
 `;
 

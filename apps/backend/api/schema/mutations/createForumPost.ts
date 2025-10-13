@@ -85,7 +85,7 @@ export const createForumPost = {
         if (!content || content.trim() === '') {
           throw new Error('Content is required');
         }
-        const sanitizedContent = sanitizeContent(args.content);
+        const sanitizedContent = sanitizeContent(content);
 
         const MIN_CONTENT_LENGTH = 10;
         if (content.trim().length < MIN_CONTENT_LENGTH) {
@@ -119,5 +119,3 @@ export const createForumPost = {
     },
   },
 };
-
-// import into api>resolvers>mutation or import into query depending on wht it is
