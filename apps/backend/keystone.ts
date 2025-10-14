@@ -8,7 +8,7 @@ import * as Models from './models';
 import { typeDefs } from './api/schema/typeDefs';
 import { Mutation } from './api/resolvers/Mutation';
 import { Query } from './api/resolvers/Query';
-import { DateTime } from './api/resolvers/scalars';
+import { DateTime, JSON } from './api/resolvers/scalars';
 import { mergeSchemas } from '@graphql-tools/schema';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
@@ -53,16 +53,17 @@ export default withAuth(
           typeDefs,
           resolvers: {
             DateTime,
+            JSON,
             Mutation,
             Query,
           },
         });
-
         return mergeSchemas({
           schemas: [schema, customSchema],
         });
       },
     },
+
     storage: {
       s3_file_storage: {
         kind: 's3',
@@ -85,6 +86,7 @@ export default withAuth(
         forcePathStyle: true,
       },
     },
+
     lists: Models,
     session,
   })

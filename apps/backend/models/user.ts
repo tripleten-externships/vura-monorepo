@@ -71,7 +71,9 @@ export const User = list({
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    lastLoginDate: timestamp(), // manually updated lastLoginDate
+    lastLoginDate: timestamp({
+      defaultValue: { kind: 'now' },
+    }), // manually updated lastLoginDate
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
     }),
@@ -90,5 +92,11 @@ export const User = list({
     memberChats: relationship({ ref: 'GroupChat.members', many: true }),
     // relationship to forumPost
     forumPost: relationship({ ref: 'ForumPost.author', many: true }),
+
+    // relationship to questionnaire responses
+    questionnaireResponses: relationship({
+      ref: 'QuestionnaireResponse.user',
+      many: true,
+    }),
   },
 });

@@ -1,9 +1,11 @@
 // stitches query resolvers together
-// import { someQuery } from '../schema/queries/someQuery';
-import { userProfileQueries } from '../schema/queries/userProfile';
+
+import { getResources } from '../schema/queries/getResources';
+import { userProfile } from '../schema/queries/userProfile';
+import { getForumPosts } from '../schema/queries/getForumPosts';
 
 export const Query = {
-  // someQuery,
-  _empty: () => null,
-  ...userProfileQueries,
+  userProfile,
+  getResources,
+  getForumPosts,
 };
