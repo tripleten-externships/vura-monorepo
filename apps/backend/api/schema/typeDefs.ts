@@ -236,4 +236,22 @@ export const typeDefs = gql`
     updatedAt: DateTime
     author: UserProfile
   }
+
+  type UserProfile {
+    id: ID!
+    name: String
+    email: String
+    avatarUrl: String
+    age: Int
+    gender: String
+    privacyToggle: Boolean
+    isAdmin: Boolean
+    createdAt: DateTime
+    lastLoginDate: DateTime
+    lastUpdateDate: DateTime
+  }
+
+  extend type Query {
+    userProfile: UserProfile
+  }
 `;
