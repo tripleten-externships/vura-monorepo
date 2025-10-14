@@ -130,8 +130,10 @@ export const typeDefs = gql`
     memberIds: [ID!]!
   }
 
-  type CreateGroupChatResult {
-    groupChat: GroupChat!
+  # Modified to not reference GroupChat directly
+  type CustomCreateGroupChatResult {
+    groupId: ID!
+    groupName: String!
     message: String!
   }
 
@@ -140,7 +142,7 @@ export const typeDefs = gql`
     login(input: LoginInput!): LoginResult!
     customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
     customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
-    createGroupChat(input: CreateGroupChatInput!): CreateGroupChatResult!
+    customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
   }
 
   type Query {
@@ -173,9 +175,3 @@ export const typeDefs = gql`
     author: UserProfile
   }
 `;
-
-export const resolvers = {
-  Mutation: {
-    createGroupChat,
-  },
-};

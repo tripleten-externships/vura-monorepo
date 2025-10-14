@@ -10,5 +10,5 @@ export const Mutation = {
   login,
   customCreateForumPost: createForumPost,
   customDeleteForumPost: deleteForumPost,
-  createGroupChat,
+  customCreateGroupChat: createGroupChat,
 };
