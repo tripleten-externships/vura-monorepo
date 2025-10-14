@@ -4,6 +4,7 @@ import { gql } from 'graphql-tag';
 
 export const typeDefs = gql`
   scalar DateTime
+
   input SignupInput {
     name: String!
     email: String!
@@ -92,6 +93,37 @@ export const typeDefs = gql`
     deletedPostId: ID!
   }
 
+  input GetForumPostsInput {
+    first: Int
+    after: String
+    topic: String
+    authorId: ID
+    searchTerm: String
+    dateFrom: DateTime
+    dateTo: DateTime
+    orderBy: ForumPostOrderBy
+  }
+
+  enum ForumPostOrderBy {
+    CREATED_AT_ASC
+    CREATED_AT_DESC
+    UPDATED_AT_ASC
+    UPDATED_AT_DESC
+    TITLE_ASC
+    TITLE_DESC
+  }
+
+  type ForumPostConnection {
+    edges: [ForumPostEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+  }
+
+  type ForumPostEdge {
+    node: ForumPostDetails!
+    cursor: String!
+  }
+
   type Mutation {
     signup(input: SignupInput!): SignupResult!
     login(input: LoginInput!): LoginResult!
@@ -102,8 +134,8 @@ export const typeDefs = gql`
   type Query {
     userProfile: UserProfile
     getResources(input: GetResourcesInput): ResourceConnection!
-    getForumPosts: [ForumPostDetails!]!
     getForumPost(id: ID!): ForumPostDetails
+    getForumPosts(input: GetForumPostsInput): ForumPostConnection!
   }
 
   type Resource {
@@ -118,7 +150,7 @@ export const typeDefs = gql`
     name: String!
   }
 
-  # Define a ForumPostDetails type that matches our custom return type
+  # Define ForumPostDetails type
   type ForumPostDetails {
     id: ID!
     title: String!

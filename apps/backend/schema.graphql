@@ -1269,8 +1269,8 @@ type Query {
   authenticatedItem: AuthenticatedItem
   userProfile: UserProfile
   getResources(input: GetResourcesInput): ResourceConnection!
-  getForumPosts: [ForumPostDetails!]!
   getForumPost(id: ID!): ForumPostDetails
+  getForumPosts(input: GetForumPostsInput): ForumPostConnection!
 }
 
 union AuthenticatedItem = User
@@ -1497,6 +1497,37 @@ type CustomDeleteForumPostResult {
   success: Boolean!
   message: String!
   deletedPostId: ID!
+}
+
+input GetForumPostsInput {
+  first: Int
+  after: String
+  topic: String
+  authorId: ID
+  searchTerm: String
+  dateFrom: DateTime
+  dateTo: DateTime
+  orderBy: ForumPostOrderBy
+}
+
+enum ForumPostOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  TITLE_ASC
+  TITLE_DESC
+}
+
+type ForumPostConnection {
+  edges: [ForumPostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ForumPostEdge {
+  node: ForumPostDetails!
+  cursor: String!
 }
 
 type ForumPostDetails {
