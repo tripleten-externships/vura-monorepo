@@ -10,13 +10,7 @@ type AiChatSession {
   updatedAt: DateTime
   lastActiveAt: DateTime
   user: User
-  messages(
-    where: AiMessageWhereInput! = {}
-    orderBy: [AiMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiMessageWhereUniqueInput
-  ): [AiMessage!]
+  messages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   messagesCount(where: AiMessageWhereInput! = {}): Int
 }
 
@@ -27,9 +21,7 @@ enum AiChatSessionStatusType {
   archived
 }
 
-"""
-Date custom scalar type
-"""
+"""Date custom scalar type"""
 scalar DateTime
 
 input AiChatSessionWhereUniqueInput {
@@ -194,13 +186,7 @@ type AiMessage {
   error: JSON
   session: AiChatSession
   parentMessage: AiMessage
-  childMessages(
-    where: AiMessageWhereInput! = {}
-    orderBy: [AiMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiMessageWhereUniqueInput
-  ): [AiMessage!]
+  childMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   childMessagesCount(where: AiMessageWhereInput! = {}): Int
 }
 
@@ -351,21 +337,9 @@ type CarePlan {
   createdAt: DateTime
   updatedAt: DateTime
   user: User
-  questionnaires(
-    where: QuestionnaireWhereInput! = {}
-    orderBy: [QuestionnaireOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionnaireWhereUniqueInput
-  ): [Questionnaire!]
+  questionnaires(where: QuestionnaireWhereInput! = {}, orderBy: [QuestionnaireOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireWhereUniqueInput): [Questionnaire!]
   questionnairesCount(where: QuestionnaireWhereInput! = {}): Int
-  questionnaireResponses(
-    where: QuestionnaireResponseWhereInput! = {}
-    orderBy: [QuestionnaireResponseOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionnaireResponseWhereUniqueInput
-  ): [QuestionnaireResponse!]
+  questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
 }
 
@@ -525,29 +499,11 @@ type Checklist {
   completionScore: Float
   createdAt: DateTime
   updatedAt: DateTime
-  resources(
-    where: ResourceWhereInput! = {}
-    orderBy: [ResourceOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ResourceWhereUniqueInput
-  ): [Resource!]
+  resources(where: ResourceWhereInput! = {}, orderBy: [ResourceOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ResourceWhereUniqueInput): [Resource!]
   resourcesCount(where: ResourceWhereInput! = {}): Int
-  questionnaires(
-    where: QuestionnaireWhereInput! = {}
-    orderBy: [QuestionnaireOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionnaireWhereUniqueInput
-  ): [Questionnaire!]
+  questionnaires(where: QuestionnaireWhereInput! = {}, orderBy: [QuestionnaireOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireWhereUniqueInput): [Questionnaire!]
   questionnairesCount(where: QuestionnaireWhereInput! = {}): Int
-  questionnaireResponses(
-    where: QuestionnaireResponseWhereInput! = {}
-    orderBy: [QuestionnaireResponseOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionnaireResponseWhereUniqueInput
-  ): [QuestionnaireResponse!]
+  questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
 }
 
@@ -682,24 +638,12 @@ input ForumPostCreateInput {
 type GroupChat {
   id: ID!
   groupName: String
-  messages(
-    where: ChatMessageWhereInput! = {}
-    orderBy: [ChatMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ChatMessageWhereUniqueInput
-  ): [ChatMessage!]
+  messages(where: ChatMessageWhereInput! = {}, orderBy: [ChatMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChatMessageWhereUniqueInput): [ChatMessage!]
   messagesCount(where: ChatMessageWhereInput! = {}): Int
   createdAt: DateTime
   updatedAt: DateTime
   owner: User
-  members(
-    where: UserWhereInput! = {}
-    orderBy: [UserOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: UserWhereUniqueInput
-  ): [User!]
+  members(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   membersCount(where: UserWhereInput! = {}): Int
 }
 
@@ -870,13 +814,7 @@ type Question {
   minValue: Int
   maxValue: Int
   questionnaire: Questionnaire
-  responses(
-    where: QuestionResponseWhereInput! = {}
-    orderBy: [QuestionResponseOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionResponseWhereUniqueInput
-  ): [QuestionResponse!]
+  responses(where: QuestionResponseWhereInput! = {}, orderBy: [QuestionResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionResponseWhereUniqueInput): [QuestionResponse!]
   responsesCount(where: QuestionResponseWhereInput! = {}): Int
 }
 
@@ -1083,37 +1021,13 @@ type Questionnaire {
   isActive: Boolean
   createdAt: DateTime
   updatedAt: DateTime
-  questions(
-    where: QuestionWhereInput! = {}
-    orderBy: [QuestionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionWhereUniqueInput
-  ): [Question!]
+  questions(where: QuestionWhereInput! = {}, orderBy: [QuestionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionWhereUniqueInput): [Question!]
   questionsCount(where: QuestionWhereInput! = {}): Int
-  responses(
-    where: QuestionnaireResponseWhereInput! = {}
-    orderBy: [QuestionnaireResponseOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionnaireResponseWhereUniqueInput
-  ): [QuestionnaireResponse!]
+  responses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
   responsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
-  carePlans(
-    where: CarePlanWhereInput! = {}
-    orderBy: [CarePlanOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: CarePlanWhereUniqueInput
-  ): [CarePlan!]
+  carePlans(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
   carePlansCount(where: CarePlanWhereInput! = {}): Int
-  checklists(
-    where: ChecklistWhereInput! = {}
-    orderBy: [ChecklistOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ChecklistWhereUniqueInput
-  ): [Checklist!]
+  checklists(where: ChecklistWhereInput! = {}, orderBy: [ChecklistOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChecklistWhereUniqueInput): [Checklist!]
   checklistsCount(where: ChecklistWhereInput! = {}): Int
 }
 
@@ -1263,13 +1177,7 @@ type QuestionnaireResponse {
   questionnaire: Questionnaire
   carePlan: CarePlan
   checklist: Checklist
-  questionResponses(
-    where: QuestionResponseWhereInput! = {}
-    orderBy: [QuestionResponseOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionResponseWhereUniqueInput
-  ): [QuestionResponse!]
+  questionResponses(where: QuestionResponseWhereInput! = {}, orderBy: [QuestionResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionResponseWhereUniqueInput): [QuestionResponse!]
   questionResponsesCount(where: QuestionResponseWhereInput! = {}): Int
 }
 
@@ -1426,73 +1334,25 @@ type User {
   age: Int
   gender: String
   privacyToggle: Boolean
-  messages(
-    where: ChatMessageWhereInput! = {}
-    orderBy: [ChatMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ChatMessageWhereUniqueInput
-  ): [ChatMessage!]
+  messages(where: ChatMessageWhereInput! = {}, orderBy: [ChatMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChatMessageWhereUniqueInput): [ChatMessage!]
   messagesCount(where: ChatMessageWhereInput! = {}): Int
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlan(
-    where: CarePlanWhereInput! = {}
-    orderBy: [CarePlanOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: CarePlanWhereUniqueInput
-  ): [CarePlan!]
+  carePlan(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
   carePlanCount(where: CarePlanWhereInput! = {}): Int
-  aiChatSessions(
-    where: AiChatSessionWhereInput! = {}
-    orderBy: [AiChatSessionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiChatSessionWhereUniqueInput
-  ): [AiChatSession!]
+  aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
-  parents(
-    where: ParentWhereInput! = {}
-    orderBy: [ParentOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ParentWhereUniqueInput
-  ): [Parent!]
+  parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
   parentsCount(where: ParentWhereInput! = {}): Int
-  ownedChats(
-    where: GroupChatWhereInput! = {}
-    orderBy: [GroupChatOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: GroupChatWhereUniqueInput
-  ): [GroupChat!]
+  ownedChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
   ownedChatsCount(where: GroupChatWhereInput! = {}): Int
-  memberChats(
-    where: GroupChatWhereInput! = {}
-    orderBy: [GroupChatOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: GroupChatWhereUniqueInput
-  ): [GroupChat!]
+  memberChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
   memberChatsCount(where: GroupChatWhereInput! = {}): Int
-  forumPost(
-    where: ForumPostWhereInput! = {}
-    orderBy: [ForumPostOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ForumPostWhereUniqueInput
-  ): [ForumPost!]
+  forumPost(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
   forumPostCount(where: ForumPostWhereInput! = {}): Int
-  questionnaireResponses(
-    where: QuestionnaireResponseWhereInput! = {}
-    orderBy: [QuestionnaireResponseOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionnaireResponseWhereUniqueInput
-  ): [QuestionnaireResponse!]
+  questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
 }
 
@@ -1679,18 +1539,13 @@ input ForumPostRelateToManyForCreateInput {
   connect: [ForumPostWhereUniqueInput!]
 }
 
-"""
-JSON custom scalar type
-"""
+"""JSON custom scalar type"""
 scalar JSON
 
 type Mutation {
   createAiChatSession(data: AiChatSessionCreateInput!): AiChatSession
   createAiChatSessions(data: [AiChatSessionCreateInput!]!): [AiChatSession]
-  updateAiChatSession(
-    where: AiChatSessionWhereUniqueInput!
-    data: AiChatSessionUpdateInput!
-  ): AiChatSession
+  updateAiChatSession(where: AiChatSessionWhereUniqueInput!, data: AiChatSessionUpdateInput!): AiChatSession
   updateAiChatSessions(data: [AiChatSessionUpdateArgs!]!): [AiChatSession]
   deleteAiChatSession(where: AiChatSessionWhereUniqueInput!): AiChatSession
   deleteAiChatSessions(where: [AiChatSessionWhereUniqueInput!]!): [AiChatSession]
@@ -1744,33 +1599,22 @@ type Mutation {
   deleteQuestions(where: [QuestionWhereUniqueInput!]!): [Question]
   createQuestionResponse(data: QuestionResponseCreateInput!): QuestionResponse
   createQuestionResponses(data: [QuestionResponseCreateInput!]!): [QuestionResponse]
-  updateQuestionResponse(
-    where: QuestionResponseWhereUniqueInput!
-    data: QuestionResponseUpdateInput!
-  ): QuestionResponse
+  updateQuestionResponse(where: QuestionResponseWhereUniqueInput!, data: QuestionResponseUpdateInput!): QuestionResponse
   updateQuestionResponses(data: [QuestionResponseUpdateArgs!]!): [QuestionResponse]
   deleteQuestionResponse(where: QuestionResponseWhereUniqueInput!): QuestionResponse
   deleteQuestionResponses(where: [QuestionResponseWhereUniqueInput!]!): [QuestionResponse]
   createQuestionnaire(data: QuestionnaireCreateInput!): Questionnaire
   createQuestionnaires(data: [QuestionnaireCreateInput!]!): [Questionnaire]
-  updateQuestionnaire(
-    where: QuestionnaireWhereUniqueInput!
-    data: QuestionnaireUpdateInput!
-  ): Questionnaire
+  updateQuestionnaire(where: QuestionnaireWhereUniqueInput!, data: QuestionnaireUpdateInput!): Questionnaire
   updateQuestionnaires(data: [QuestionnaireUpdateArgs!]!): [Questionnaire]
   deleteQuestionnaire(where: QuestionnaireWhereUniqueInput!): Questionnaire
   deleteQuestionnaires(where: [QuestionnaireWhereUniqueInput!]!): [Questionnaire]
   createQuestionnaireResponse(data: QuestionnaireResponseCreateInput!): QuestionnaireResponse
   createQuestionnaireResponses(data: [QuestionnaireResponseCreateInput!]!): [QuestionnaireResponse]
-  updateQuestionnaireResponse(
-    where: QuestionnaireResponseWhereUniqueInput!
-    data: QuestionnaireResponseUpdateInput!
-  ): QuestionnaireResponse
+  updateQuestionnaireResponse(where: QuestionnaireResponseWhereUniqueInput!, data: QuestionnaireResponseUpdateInput!): QuestionnaireResponse
   updateQuestionnaireResponses(data: [QuestionnaireResponseUpdateArgs!]!): [QuestionnaireResponse]
   deleteQuestionnaireResponse(where: QuestionnaireResponseWhereUniqueInput!): QuestionnaireResponse
-  deleteQuestionnaireResponses(
-    where: [QuestionnaireResponseWhereUniqueInput!]!
-  ): [QuestionnaireResponse]
+  deleteQuestionnaireResponses(where: [QuestionnaireResponseWhereUniqueInput!]!): [QuestionnaireResponse]
   createResource(data: ResourceCreateInput!): Resource
   createResources(data: [ResourceCreateInput!]!): [Resource]
   updateResource(where: ResourceWhereUniqueInput!, data: ResourceUpdateInput!): Resource
@@ -1784,10 +1628,7 @@ type Mutation {
   deleteUser(where: UserWhereUniqueInput!): User
   deleteUsers(where: [UserWhereUniqueInput!]!): [User]
   endSession: Boolean!
-  authenticateUserWithPassword(
-    email: String!
-    password: String!
-  ): UserAuthenticationWithPasswordResult
+  authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
   signup(input: SignupInput!): SignupResult!
   login(input: LoginInput!): LoginResult!
@@ -1795,15 +1636,11 @@ type Mutation {
   customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
   customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
   sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
-  saveQuestionnaireResponse(
-    input: SaveQuestionnaireResponseInput!
-  ): SaveQuestionnaireResponseResult!
+  saveQuestionnaireResponse(input: SaveQuestionnaireResponseInput!): SaveQuestionnaireResponseResult!
   submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
 }
 
-union UserAuthenticationWithPasswordResult =
-  | UserAuthenticationWithPasswordSuccess
-  | UserAuthenticationWithPasswordFailure
+union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
 
 type UserAuthenticationWithPasswordSuccess {
   sessionToken: String!
@@ -1822,130 +1659,46 @@ input CreateInitialUserInput {
 
 type Query {
   aiChatSession(where: AiChatSessionWhereUniqueInput!): AiChatSession
-  aiChatSessions(
-    where: AiChatSessionWhereInput! = {}
-    orderBy: [AiChatSessionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiChatSessionWhereUniqueInput
-  ): [AiChatSession!]
+  aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
   aiMessage(where: AiMessageWhereUniqueInput!): AiMessage
-  aiMessages(
-    where: AiMessageWhereInput! = {}
-    orderBy: [AiMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: AiMessageWhereUniqueInput
-  ): [AiMessage!]
+  aiMessages(where: AiMessageWhereInput! = {}, orderBy: [AiMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiMessageWhereUniqueInput): [AiMessage!]
   aiMessagesCount(where: AiMessageWhereInput! = {}): Int
   carePlan(where: CarePlanWhereUniqueInput!): CarePlan
-  carePlans(
-    where: CarePlanWhereInput! = {}
-    orderBy: [CarePlanOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: CarePlanWhereUniqueInput
-  ): [CarePlan!]
+  carePlans(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
   carePlansCount(where: CarePlanWhereInput! = {}): Int
   chatMessage(where: ChatMessageWhereUniqueInput!): ChatMessage
-  chatMessages(
-    where: ChatMessageWhereInput! = {}
-    orderBy: [ChatMessageOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ChatMessageWhereUniqueInput
-  ): [ChatMessage!]
+  chatMessages(where: ChatMessageWhereInput! = {}, orderBy: [ChatMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChatMessageWhereUniqueInput): [ChatMessage!]
   chatMessagesCount(where: ChatMessageWhereInput! = {}): Int
   checklist(where: ChecklistWhereUniqueInput!): Checklist
-  checklists(
-    where: ChecklistWhereInput! = {}
-    orderBy: [ChecklistOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ChecklistWhereUniqueInput
-  ): [Checklist!]
+  checklists(where: ChecklistWhereInput! = {}, orderBy: [ChecklistOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChecklistWhereUniqueInput): [Checklist!]
   checklistsCount(where: ChecklistWhereInput! = {}): Int
   forumPost(where: ForumPostWhereUniqueInput!): ForumPost
-  forumPosts(
-    where: ForumPostWhereInput! = {}
-    orderBy: [ForumPostOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ForumPostWhereUniqueInput
-  ): [ForumPost!]
+  forumPosts(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
   forumPostsCount(where: ForumPostWhereInput! = {}): Int
   groupChat(where: GroupChatWhereUniqueInput!): GroupChat
-  groupChats(
-    where: GroupChatWhereInput! = {}
-    orderBy: [GroupChatOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: GroupChatWhereUniqueInput
-  ): [GroupChat!]
+  groupChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
   groupChatsCount(where: GroupChatWhereInput! = {}): Int
   parent(where: ParentWhereUniqueInput!): Parent
-  parents(
-    where: ParentWhereInput! = {}
-    orderBy: [ParentOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ParentWhereUniqueInput
-  ): [Parent!]
+  parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
   parentsCount(where: ParentWhereInput! = {}): Int
   question(where: QuestionWhereUniqueInput!): Question
-  questions(
-    where: QuestionWhereInput! = {}
-    orderBy: [QuestionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionWhereUniqueInput
-  ): [Question!]
+  questions(where: QuestionWhereInput! = {}, orderBy: [QuestionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionWhereUniqueInput): [Question!]
   questionsCount(where: QuestionWhereInput! = {}): Int
   questionResponse(where: QuestionResponseWhereUniqueInput!): QuestionResponse
-  questionResponses(
-    where: QuestionResponseWhereInput! = {}
-    orderBy: [QuestionResponseOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionResponseWhereUniqueInput
-  ): [QuestionResponse!]
+  questionResponses(where: QuestionResponseWhereInput! = {}, orderBy: [QuestionResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionResponseWhereUniqueInput): [QuestionResponse!]
   questionResponsesCount(where: QuestionResponseWhereInput! = {}): Int
   questionnaire(where: QuestionnaireWhereUniqueInput!): Questionnaire
-  questionnaires(
-    where: QuestionnaireWhereInput! = {}
-    orderBy: [QuestionnaireOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionnaireWhereUniqueInput
-  ): [Questionnaire!]
+  questionnaires(where: QuestionnaireWhereInput! = {}, orderBy: [QuestionnaireOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireWhereUniqueInput): [Questionnaire!]
   questionnairesCount(where: QuestionnaireWhereInput! = {}): Int
   questionnaireResponse(where: QuestionnaireResponseWhereUniqueInput!): QuestionnaireResponse
-  questionnaireResponses(
-    where: QuestionnaireResponseWhereInput! = {}
-    orderBy: [QuestionnaireResponseOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: QuestionnaireResponseWhereUniqueInput
-  ): [QuestionnaireResponse!]
+  questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
   resource(where: ResourceWhereUniqueInput!): Resource
-  resources(
-    where: ResourceWhereInput! = {}
-    orderBy: [ResourceOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: ResourceWhereUniqueInput
-  ): [Resource!]
+  resources(where: ResourceWhereInput! = {}, orderBy: [ResourceOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ResourceWhereUniqueInput): [Resource!]
   resourcesCount(where: ResourceWhereInput! = {}): Int
   user(where: UserWhereUniqueInput!): User
-  users(
-    where: UserWhereInput! = {}
-    orderBy: [UserOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-    cursor: UserWhereUniqueInput
-  ): [User!]
+  users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   usersCount(where: UserWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
