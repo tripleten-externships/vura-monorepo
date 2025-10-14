@@ -5,12 +5,11 @@ dotenv.config();
 
 import { withAuth, session } from './auth';
 import * as Models from './models';
-import { typeDefs } from './api/schema/typeDefs';
-import { Mutation } from './api/resolvers/Mutation';
 import { Query } from './api/resolvers/Query';
 import { DateTime, JSON } from './api/resolvers/scalars';
-import { mergeSchemas } from '@graphql-tools/schema';
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { typeDefs } from './api/schema/typeDefs';
+import { Mutation } from './api/resolvers/Mutation';
+import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -49,6 +48,7 @@ export default withAuth(
         introspection: true,
       },
       extendGraphqlSchema: (schema) => {
+        // Merge Keystone's generated schema with custom executable schema.
         const customSchema = makeExecutableSchema({
           typeDefs,
           resolvers: {
@@ -63,7 +63,6 @@ export default withAuth(
         });
       },
     },
-
     storage: {
       s3_file_storage: {
         kind: 's3',

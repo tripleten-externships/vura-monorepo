@@ -1638,6 +1638,7 @@ type Mutation {
   sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
   saveQuestionnaireResponse(input: SaveQuestionnaireResponseInput!): SaveQuestionnaireResponseResult!
   submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
+  updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1706,6 +1707,7 @@ type Query {
   getResources(input: GetResourcesInput): ResourceConnection!
   getForumPost(id: ID!): ForumPostDetails
   getForumPosts(input: GetForumPostsInput): ForumPostConnection!
+  updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
 }
 
 union AuthenticatedItem = User
@@ -2038,4 +2040,20 @@ type ForumPostDetails {
   createdAt: DateTime!
   updatedAt: DateTime
   author: UserProfile
+}
+
+input UpdateProfileInput {
+  name: String
+  email: String
+  age: Int
+  gender: String
+  avatarUrl: String
+  currentPassword: String
+}
+
+type UpdateProfileResponse {
+  success: Boolean!
+  message: String
+  error: String
+  userId: ID
 }

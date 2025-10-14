@@ -6,6 +6,7 @@ import { deleteForumPost } from '../schema/mutations/deleteForumPost';
 import { createGroupChat } from '../schema/mutations/createGroupChat';
 import { sendChatMessage } from '../schema/mutations/sendChatMessage';
 import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutations/questionnaire';
+import { updateProfile } from '../schema/mutations/updateProfile';
 
 export const Mutation = {
   signup,
@@ -16,4 +17,5 @@ export const Mutation = {
   sendChatMessage,
   saveQuestionnaireResponse,
   submitQuestionnaire,
+  updateProfile,
 };
