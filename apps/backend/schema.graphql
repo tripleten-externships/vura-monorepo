@@ -495,11 +495,14 @@ input GroupChatRelateToOneForCreateInput {
 
 type Checklist {
   id: ID!
-  name: String
-  completionScore: Float
-  createdAt: DateTime
-  updatedAt: DateTime
-  resources(where: ResourceWhereInput! = {}, orderBy: [ResourceOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ResourceWhereUniqueInput): [Resource!]
+  name: String!
+  resources(
+    where: ResourceWhereInput! = {}
+    orderBy: [ResourceOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+    cursor: ResourceWhereUniqueInput
+  ): [Resource!]
   resourcesCount(where: ResourceWhereInput! = {}): Int
   questionnaires(where: QuestionnaireWhereInput! = {}, orderBy: [QuestionnaireOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireWhereUniqueInput): [Questionnaire!]
   questionnairesCount(where: QuestionnaireWhereInput! = {}): Int
@@ -1283,8 +1286,8 @@ input ChecklistRelateToOneForCreateInput {
 
 type Resource {
   id: ID!
-  link: String
-  content: String
+  link: String!
+  content: String!
   checklist: Checklist
 }
 
@@ -1630,9 +1633,12 @@ type Mutation {
   endSession: Boolean!
   authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
-  _empty: String
-  saveQuestionnaireResponse(input: SaveQuestionnaireResponseInput!): SaveQuestionnaireResponseResult!
-  submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
+  signup(input: SignupInput!): SignupResult!
+  login(input: LoginInput!): LoginResult!
+  customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
+  customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
+  customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
+  sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1697,7 +1703,10 @@ type Query {
   usersCount(where: UserWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
-  _empty: String
+  userProfile: UserProfile
+  getResources(input: GetResourcesInput): ResourceConnection!
+  getForumPost(id: ID!): ForumPostDetails
+  getForumPosts(input: GetForumPostsInput): ForumPostConnection!
 }
 
 union AuthenticatedItem = User
@@ -1838,38 +1847,160 @@ enum KeystoneAdminUISortDirection {
   DESC
 }
 
-input SaveQuestionnaireResponseInput {
-  questionnaireId: ID!
-  carePlanId: ID
+input SignupInput {
+  name: String!
+  email: String!
+  password: String!
+  age: Int
+  gender: String
+  avatarUrl: String
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type SignupResult {
+  user: UserProfile!
+  token: String!
+}
+
+type LoginResult {
+  user: UserProfile!
+  token: String!
+}
+
+type UserProfile {
+  id: ID!
+  name: String
+  email: String
+  avatarUrl: String
+  age: Int
+  gender: String
+  privacyToggle: Boolean
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
+}
+
+input GetResourcesInput {
+  first: Int
+  after: String
   checklistId: ID
-  responses: [QuestionResponseInput!]!
-  isDraft: Boolean
+  searchTerm: String
+  orderBy: ResourceOrderBy
 }
 
-input QuestionResponseInput {
-  questionId: ID!
-  answer: JSON!
-  confidence: Int
-  notes: String
+enum ResourceOrderBy {
+  ID_ASC
+  ID_DESC
+  CONTENT_ASC
+  CONTENT_DESC
 }
 
-input SubmitQuestionnaireInput {
-  questionnaireResponseId: ID!
-  updateCarePlanProgress: Boolean
+type ResourceConnection {
+  edges: [ResourceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
-type SaveQuestionnaireResponseResult {
-  questionnaireResponseId: ID!
+type ResourceEdge {
+  node: Resource!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input CustomCreateForumPostInput {
+  title: String!
+  topic: String!
+  content: String!
+}
+
+type CustomCreateForumPostResult {
+  forumPost: ForumPostDetails!
   message: String!
-  completionPercentage: Float!
-  carePlanUpdated: Boolean
-  checklistUpdated: Boolean
 }
 
-type SubmitQuestionnaireResult {
-  questionnaireResponseId: ID!
+type CustomDeleteForumPostResult {
+  success: Boolean!
   message: String!
-  completedAt: DateTime!
-  carePlanProgressScore: Float
-  checklistCompletionScore: Float
+  deletedPostId: ID!
+}
+
+input GetForumPostsInput {
+  first: Int
+  after: String
+  topic: String
+  authorId: ID
+  searchTerm: String
+  dateFrom: DateTime
+  dateTo: DateTime
+  orderBy: ForumPostOrderBy
+}
+
+enum ForumPostOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  TITLE_ASC
+  TITLE_DESC
+}
+
+type ForumPostConnection {
+  edges: [ForumPostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ForumPostEdge {
+  node: ForumPostDetails!
+  cursor: String!
+}
+
+input CreateGroupChatInput {
+  groupName: String!
+  memberIds: [ID!]!
+}
+
+type CustomCreateGroupChatResult {
+  groupId: ID!
+  groupName: String!
+  message: String!
+}
+
+input SendChatMessageInput {
+  groupId: String!
+  message: String!
+}
+
+type SendChatMessageResult {
+  chatMessage: ChatMessageType!
+  message: String!
+}
+
+type ChatMessageType {
+  id: ID!
+  message: String!
+  createdAt: DateTime!
+  sender: UserProfile
+  group: ID!
+}
+
+type ForumPostDetails {
+  id: ID!
+  title: String!
+  topic: String!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  author: UserProfile
 }

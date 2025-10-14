@@ -71,7 +71,9 @@ export const User = list({
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    lastLoginDate: timestamp(), // manually updated lastLoginDate
+    lastLoginDate: timestamp({
+      defaultValue: { kind: 'now' },
+    }), // manually updated lastLoginDate
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
     }),

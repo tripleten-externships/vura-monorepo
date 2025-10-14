@@ -58,12 +58,12 @@ export default withAuth(
             Query,
           },
         });
-
         return mergeSchemas({
           schemas: [schema, customSchema],
         });
       },
     },
+
     storage: {
       s3_file_storage: {
         kind: 's3',
@@ -86,6 +86,7 @@ export default withAuth(
         forcePathStyle: true,
       },
     },
+
     lists: Models,
     session,
   })
