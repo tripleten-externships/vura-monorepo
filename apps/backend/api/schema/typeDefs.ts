@@ -2,7 +2,6 @@ import { gql } from 'graphql-tag';
 import { createGroupChat } from '../schema/mutations/createGroupChat';
 
 // SDL for custom types/inputs/enums
-
 export const typeDefs = gql`
   scalar DateTime
 
@@ -137,12 +136,32 @@ export const typeDefs = gql`
     message: String!
   }
 
+  input SendChatMessageInput {
+    groupId: String!
+    message: String!
+  }
+
+  type SendChatMessageResult {
+    chatMessage: ChatMessageType!
+    message: String!
+  }
+
+  # Using a custom ChatMessageType to avoid conflicts with the system-generated ChatMessage type
+  type ChatMessageType {
+    id: ID!
+    message: String!
+    createdAt: DateTime!
+    sender: UserProfile
+    group: ID!
+  }
+
   type Mutation {
     signup(input: SignupInput!): SignupResult!
     login(input: LoginInput!): LoginResult!
     customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
     customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
     customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
+    sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
   }
 
   type Query {

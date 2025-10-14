@@ -1154,6 +1154,7 @@ type Mutation {
   customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
   customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
   customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
+  sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
 }
 
 union UserAuthenticationWithPasswordResult =
@@ -1540,6 +1541,24 @@ type CustomCreateGroupChatResult {
   groupId: ID!
   groupName: String!
   message: String!
+}
+
+input SendChatMessageInput {
+  groupId: String!
+  message: String!
+}
+
+type SendChatMessageResult {
+  chatMessage: ChatMessageType!
+  message: String!
+}
+
+type ChatMessageType {
+  id: ID!
+  message: String!
+  createdAt: DateTime!
+  sender: UserProfile
+  group: ID!
 }
 
 type ForumPostDetails {
