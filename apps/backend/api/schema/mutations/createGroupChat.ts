@@ -67,7 +67,8 @@ export const createGroupChat = async (
     console.log(`GroupChat created by ${session.itemId}: ${groupChat.id}`);
 
     return {
-      groupChat,
+      groupId: groupChat.id,
+      groupName: groupChat.groupName,
       message: 'Group chat created successfully',
     };
   } catch (error) {
