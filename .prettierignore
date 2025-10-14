@@ -7,6 +7,8 @@ coverage
 .env*
 .DS_Store
 .keystone
+schema.graphql
+schema.prisma
 **/__generated__/**
 test-results
 storybook-static 

@@ -6,11 +6,10 @@ dotenv.config();
 import { withAuth, session } from './auth';
 import * as Models from './models';
 import { Query } from './api/resolvers/Query';
-import { DateTime } from './api/resolvers/scalars';
-import { addResolversToSchema } from '@graphql-tools/schema';
+import { DateTime, JSON } from './api/resolvers/scalars';
 import { typeDefs as customTypeDefs } from './api/schema/typeDefs';
 import { Mutation as customMutations } from './api/resolvers/Mutation';
-import { extendSchema } from 'graphql';
+import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -48,30 +47,27 @@ export default withAuth(
       apolloConfig: {
         introspection: true,
       },
-      extendGraphqlSchema: (baseSchema) => {
-        // Extend Keystone's generated base schema with our SDL extensions. Using
-        // extendSchema avoids redeclaring core types (Mutation/Query/User) which
-        // causes SDL validation errors when merged as a standalone schema.
-        const extended = extendSchema(baseSchema, customTypeDefs as any);
-
-        // Attach resolvers that need Keystone context (db access). The UpdateProfileResult.user
-        // resolver uses the userId field returned by the mutation to fetch the User.
-        const attachedResolvers = {
-          DateTime,
-          Mutation: customMutations,
-          Query,
-          UpdateProfileResult: {
-            user: async (parent: any, _args: any, context: any) => {
-              const id = parent?.userId;
-              if (!id) return null;
-              return context.db.User.findOne({ where: { id } });
+      extendGraphqlSchema: (schema) => {
+        // Merge Keystone's generated schema with custom executable schema.
+        const customSchema = makeExecutableSchema({
+          typeDefs: customTypeDefs,
+          resolvers: {
+            DateTime,
+            JSON,
+            Mutation: customMutations,
+            Query,
+            UpdateProfileResult: {
+              user: async (parent: any, _args: any, context: any) => {
+                const id = parent?.userId;
+                if (!id) return null;
+                return context.db.User.findOne({ where: { id } });
+              },
             },
           },
-        };
-
-        addResolversToSchema({ schema: extended, resolvers: attachedResolvers as any });
-
-        return extended;
+        });
+        return mergeSchemas({
+          schemas: [schema, customSchema],
+        });
       },
     },
     storage: {
@@ -86,6 +82,7 @@ export default withAuth(
         forcePathStyle: true,
       },
     },
+
     lists: Models,
     session,
   })
