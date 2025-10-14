@@ -1905,6 +1905,7 @@ type LoginResult {
   user: UserProfile!
   token: String!
 }
+
 type UserProfile {
   id: ID!
   name: String
@@ -2038,4 +2039,3 @@ type ForumPostDetails {
   updatedAt: DateTime
   author: UserProfile
 }
-
