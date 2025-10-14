@@ -1,21 +1,23 @@
 // stitches mutation resolvers together
 import { signup } from '../schema/mutations/signup';
 import { login } from '../schema/mutations/login';
-import { createForumPost } from '../schema/mutations/createForumPost';
-import { deleteForumPost } from '../schema/mutations/deleteForumPost';
-import { createGroupChat } from '../schema/mutations/createGroupChat';
+import { customCreateForumPost } from '../schema/mutations/createForumPost';
+import { customDeleteForumPost } from '../schema/mutations/deleteForumPost';
+import { customCreateGroupChat } from '../schema/mutations/createGroupChat';
 import { sendChatMessage } from '../schema/mutations/sendChatMessage';
 import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutations/questionnaire';
 import { updateProfile } from '../schema/mutations/updateProfile';
+import { aiChat } from '../schema/mutations/aiChat';
 
 export const Mutation = {
   signup,
   login,
-  customCreateForumPost: createForumPost,
-  customDeleteForumPost: deleteForumPost,
-  customCreateGroupChat: createGroupChat,
+  customCreateForumPost,
+  customDeleteForumPost,
+  customCreateGroupChat,
   sendChatMessage,
   saveQuestionnaireResponse,
   submitQuestionnaire,
   updateProfile,
+  aiChat,
 };

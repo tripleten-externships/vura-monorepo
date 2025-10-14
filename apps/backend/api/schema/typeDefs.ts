@@ -1,8 +1,8 @@
 import { gql } from 'graphql-tag';
-import { createGroupChat } from '../schema/mutations/createGroupChat';
 
 // SDL for custom types/inputs/enums
 export const typeDefs = gql`
+  # Custom scalars
   scalar DateTime
   scalar JSON
 
@@ -44,6 +44,7 @@ export const typeDefs = gql`
     checklistCompletionScore: Float
   }
 
+  # Authentication Types
   input SignupInput {
     name: String!
     email: String!
@@ -68,6 +69,7 @@ export const typeDefs = gql`
     token: String!
   }
 
+  # User Profile
   type UserProfile {
     id: ID!
     name: String
@@ -82,6 +84,7 @@ export const typeDefs = gql`
     lastUpdateDate: DateTime
   }
 
+  # Resources Types
   input GetResourcesInput {
     first: Int
     after: String
@@ -108,6 +111,19 @@ export const typeDefs = gql`
     cursor: String!
   }
 
+  type Resource {
+    id: ID!
+    link: String!
+    content: String!
+    checklist: Checklist
+  }
+
+  type Checklist {
+    id: ID!
+    name: String!
+  }
+
+  # Common Pagination Type
   type PageInfo {
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
@@ -115,6 +131,7 @@ export const typeDefs = gql`
     endCursor: String
   }
 
+  # Forum Post Types
   input CustomCreateForumPostInput {
     title: String!
     topic: String!
@@ -163,12 +180,22 @@ export const typeDefs = gql`
     cursor: String!
   }
 
+  type ForumPostDetails {
+    id: ID!
+    title: String!
+    topic: String!
+    content: String!
+    createdAt: DateTime!
+    updatedAt: DateTime
+    author: UserProfile
+  }
+
+  # Group Chat Types
   input CreateGroupChatInput {
     groupName: String!
     memberIds: [ID!]!
   }
 
-  # Modified to not reference GroupChat directly
   type CustomCreateGroupChatResult {
     groupId: ID!
     groupName: String!
@@ -194,69 +221,26 @@ export const typeDefs = gql`
     group: ID!
   }
 
-  type Mutation {
-    signup(input: SignupInput!): SignupResult!
-    login(input: LoginInput!): LoginResult!
-    customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
-    customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
-    customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
-    sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
-    saveQuestionnaireResponse(
-      input: SaveQuestionnaireResponseInput!
-    ): SaveQuestionnaireResponseResult!
-    submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
-    updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
-  }
-
-  type Query {
-    userProfile: UserProfile
-    getResources(input: GetResourcesInput): ResourceConnection!
-    getForumPost(id: ID!): ForumPostDetails
-    getForumPosts(input: GetForumPostsInput): ForumPostConnection!
-    updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
-  }
-
-  type Resource {
-    id: ID!
-    link: String!
+  # AI Chat Types
+  input AiChatMessageInput {
+    role: String!
     content: String!
-    checklist: Checklist
   }
 
-  type Checklist {
-    id: ID!
-    name: String!
+  input AiChatInput {
+    messages: [AiChatMessageInput!]!
+    systemPrompt: String
+    temperature: Float
+    provider: String
   }
 
-  # Define ForumPostDetails type
-  type ForumPostDetails {
-    id: ID!
-    title: String!
-    topic: String!
+  type AiChatResponse {
     content: String!
-    createdAt: DateTime!
-    updatedAt: DateTime
-    author: UserProfile
+    usage: JSON
+    metadata: JSON
   }
 
-  type UserProfile {
-    id: ID!
-    name: String
-    email: String
-    avatarUrl: String
-    age: Int
-    gender: String
-    privacyToggle: Boolean
-    isAdmin: Boolean
-    createdAt: DateTime
-    lastLoginDate: DateTime
-    lastUpdateDate: DateTime
-  }
-
-  extend type Query {
-    userProfile: UserProfile
-  }
-
+  # Profile Management
   input UpdateProfileInput {
     name: String
     email: String
@@ -271,5 +255,28 @@ export const typeDefs = gql`
     message: String
     error: String
     userId: ID
+  }
+
+  # Root Types
+  type Mutation {
+    signup(input: SignupInput!): SignupResult!
+    login(input: LoginInput!): LoginResult!
+    customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
+    customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
+    customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
+    sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
+    saveQuestionnaireResponse(
+      input: SaveQuestionnaireResponseInput!
+    ): SaveQuestionnaireResponseResult!
+    submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
+    updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
+    aiChat(input: AiChatInput!): AiChatResponse!
+  }
+
+  type Query {
+    userProfile: UserProfile
+    getResources(input: GetResourcesInput): ResourceConnection!
+    getForumPost(id: ID!): ForumPostDetails
+    getForumPosts(input: GetForumPostsInput): ForumPostConnection!
   }
 `;

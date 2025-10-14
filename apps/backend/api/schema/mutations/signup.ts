@@ -11,15 +11,20 @@ export interface SignupInput {
   avatarUrl?: string;
 }
 
-export const signup = async (root: any, { input }: { input: SignupInput }, context: Context) => {
+export const signup = async (_: any, { input }: { input: SignupInput }, context: Context) => {
   const { name, email, password, age, gender, avatarUrl } = input;
 
+  // input validation
   if (!name || !email || !password) {
-    throw new GraphQLError('Name, email, and password are required');
+    throw new GraphQLError('Name, email, and password are required', {
+      extensions: { code: 'BAD_USER_INPUT' },
+    });
   }
 
   if (password.length < 10) {
-    throw new GraphQLError('Password must be at least 10 characters long');
+    throw new GraphQLError('Password must be at least 10 characters long', {
+      extensions: { code: 'BAD_USER_INPUT' },
+    });
   }
 
   // check if user already exists
@@ -28,7 +33,9 @@ export const signup = async (root: any, { input }: { input: SignupInput }, conte
   });
 
   if (existingUsers.length > 0) {
-    throw new GraphQLError('User with this email already exists');
+    throw new GraphQLError('User with this email already exists', {
+      extensions: { code: 'BAD_USER_INPUT' },
+    });
   }
 
   try {
@@ -69,8 +76,10 @@ export const signup = async (root: any, { input }: { input: SignupInput }, conte
       },
       token: sessionData || 'session-created',
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Signup error:', error);
-    throw new GraphQLError('Failed to create user');
+    throw new GraphQLError('Failed to create user', {
+      extensions: { code: 'INTERNAL_SERVER_ERROR' },
+    });
   }
 };
