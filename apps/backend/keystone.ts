@@ -1,10 +1,15 @@
 import dotenv from 'dotenv';
-import { config } from '@keystone-6/core';
-
 dotenv.config();
 
+import { config } from '@keystone-6/core';
+import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
 import { withAuth, session } from './auth';
 import * as Models from './models';
+import { Query } from './api/resolvers/Query';
+import { Mutation } from './api/resolvers/Mutation';
+import { DateTime, JSON } from './api/resolvers/scalars';
+import { typeDefs } from './api/schema/typeDefs';
+import { chatRoutes } from './routes/chat';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -24,6 +29,9 @@ export default withAuth(
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
       },
+      extendExpressApp: (app) => {
+        chatRoutes(app);
+      },
     },
     ui: {
       isAccessAllowed: (context) => context.session !== undefined,
@@ -41,6 +49,21 @@ export default withAuth(
       playground: true,
       apolloConfig: {
         introspection: true,
+      },
+      extendGraphqlSchema: (schema) => {
+        // Merge Keystone's generated schema with custom executable schema.
+        const customSchema = makeExecutableSchema({
+          typeDefs,
+          resolvers: {
+            DateTime,
+            JSON,
+            Mutation,
+            Query,
+          },
+        });
+        return mergeSchemas({
+          schemas: [schema, customSchema],
+        });
       },
     },
     storage: {
@@ -65,6 +88,7 @@ export default withAuth(
         forcePathStyle: true,
       },
     },
+
     lists: Models,
     session,
   })

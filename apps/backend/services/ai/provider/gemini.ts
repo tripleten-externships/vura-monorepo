@@ -4,7 +4,7 @@ import { AIProvider, ChatMessage, ChatResponse, ChatOptions } from '../types';
 export class GeminiProvider implements AIProvider {
   public name = 'gemini';
   private client: GoogleGenerativeAI;
-  private defaultModel = 'gemini-1.5-flash';
+  private defaultModel = 'gemini-2.0-flash';
 
   constructor(apiKey: string) {
     this.client = new GoogleGenerativeAI(apiKey);
@@ -31,10 +31,9 @@ export class GeminiProvider implements AIProvider {
 
       const chat = model.startChat({ history });
       const result = await chat.sendMessage(lastMessage.content);
-      const response = result.response;
 
       return {
-        content: response.text(),
+        content: result.response.text(),
         usage: {
           inputTokens: result.response.usageMetadata?.promptTokenCount || 0,
           outputTokens: result.response.usageMetadata?.candidatesTokenCount || 0,
@@ -47,7 +46,7 @@ export class GeminiProvider implements AIProvider {
       };
     } catch (error) {
       console.error('Gemini API Error:', error);
-      throw new Error(`Gemini API call failed: ${error.message}`);
+      throw new Error(`Gemini API call failed: ${error}`);
     }
   }
 

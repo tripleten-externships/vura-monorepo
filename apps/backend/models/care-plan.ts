@@ -1,10 +1,22 @@
 import { list } from '@keystone-6/core';
+// import type { Lists } from '.keystone/types';
 import { text, relationship, float, timestamp } from '@keystone-6/core/fields';
 
-export const Checklist = list({
+export const CarePlan = list({
+  access: {
+    operation: {
+      query: () => true,
+      create: () => true,
+      update: ({ session }) => !!session,
+      delete: ({ session }) => !!session,
+    },
+  },
   fields: {
     name: text({ validation: { isRequired: true } }),
-    completionScore: float({
+    progressScore: float({
+      validation: { isRequired: false },
+    }),
+    lastAssessmentAt: timestamp({
       validation: { isRequired: false },
     }),
     createdAt: timestamp({
@@ -16,22 +28,14 @@ export const Checklist = list({
     }),
 
     // Relationships
-    resources: relationship({ ref: 'Resource.checklist', many: true }),
+    user: relationship({ ref: 'User.carePlan' }),
     questionnaires: relationship({
-      ref: 'Questionnaire.checklists',
+      ref: 'Questionnaire.carePlans',
       many: true,
     }),
     questionnaireResponses: relationship({
-      ref: 'QuestionnaireResponse.checklist',
+      ref: 'QuestionnaireResponse.carePlan',
       many: true,
     }),
-  },
-  access: {
-    operation: {
-      query: () => true,
-      create: ({ session }) => !!session,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
-    },
   },
 });
