@@ -92,5 +92,11 @@ export const User = list({
     memberChats: relationship({ ref: 'GroupChat.members', many: true }),
     // relationship to forumPost
     forumPost: relationship({ ref: 'ForumPost.author', many: true }),
+
+    // relationship to questionnaire responses
+    questionnaireResponses: relationship({
+      ref: 'QuestionnaireResponse.user',
+      many: true,
+    }),
   },
 });

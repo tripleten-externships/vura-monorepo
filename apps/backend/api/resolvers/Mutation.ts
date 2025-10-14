@@ -5,6 +5,7 @@ import { createForumPost } from '../schema/mutations/createForumPost';
 import { deleteForumPost } from '../schema/mutations/deleteForumPost';
 import { createGroupChat } from '../schema/mutations/createGroupChat';
 import { sendChatMessage } from '../schema/mutations/sendChatMessage';
+import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutations/questionnaire';
 
 export const Mutation = {
   signup,
@@ -13,4 +14,6 @@ export const Mutation = {
   customDeleteForumPost: deleteForumPost,
   customCreateGroupChat: createGroupChat,
   sendChatMessage,
+  saveQuestionnaireResponse,
+  submitQuestionnaire,
 };
