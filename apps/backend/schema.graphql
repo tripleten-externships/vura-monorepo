@@ -1153,6 +1153,7 @@ type Mutation {
   login(input: LoginInput!): LoginResult!
   customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
   customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
+  customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
 }
 
 union UserAuthenticationWithPasswordResult =
@@ -1528,6 +1529,17 @@ type ForumPostConnection {
 type ForumPostEdge {
   node: ForumPostDetails!
   cursor: String!
+}
+
+input CreateGroupChatInput {
+  groupName: String!
+  memberIds: [ID!]!
+}
+
+type CustomCreateGroupChatResult {
+  groupId: ID!
+  groupName: String!
+  message: String!
 }
 
 type ForumPostDetails {

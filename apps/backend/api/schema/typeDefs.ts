@@ -1,4 +1,5 @@
 import { gql } from 'graphql-tag';
+import { createGroupChat } from '../schema/mutations/createGroupChat';
 
 // SDL for custom types/inputs/enums
 
@@ -124,11 +125,24 @@ export const typeDefs = gql`
     cursor: String!
   }
 
+  input CreateGroupChatInput {
+    groupName: String!
+    memberIds: [ID!]!
+  }
+
+  # Modified to not reference GroupChat directly
+  type CustomCreateGroupChatResult {
+    groupId: ID!
+    groupName: String!
+    message: String!
+  }
+
   type Mutation {
     signup(input: SignupInput!): SignupResult!
     login(input: LoginInput!): LoginResult!
     customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
     customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
+    customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
   }
 
   type Query {
