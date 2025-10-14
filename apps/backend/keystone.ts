@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
-import { config, graphql } from '@keystone-6/core';
-import { createGroupChat } from './api/schema/mutations/createGroupChat';
+import { config } from '@keystone-6/core';
 
 dotenv.config();
 
@@ -58,7 +57,6 @@ export default withAuth(
             Query,
           },
         });
-
         return mergeSchemas({
           schemas: [schema, customSchema],
         });
@@ -92,38 +90,3 @@ export default withAuth(
     session,
   })
 );
-
-//Defines input for creating a group chat
-const CreateGroupChatInput = graphql.inputObject({
-  //graphql needs to know what fields the mutation expects
-  name: 'CreateGroupChatInput',
-  fields: {
-    //required group name and memberIds is required, non null
-    groupName: graphql.arg({ type: graphql.nonNull(graphql.String) }),
-    memberIds: graphql.arg({ type: graphql.nonNull(graphql.list(graphql.nonNull(graphql.ID))) }),
-  },
-});
-
-//output, what the mutation will return
-const CreateGroupChatResult = graphql.object<{ message: string }>()({
-  name: 'CreateGroupChatResult',
-  fields: {
-    message: graphql.field({
-      type: graphql.nonNull(graphql.String), //required return message
-      resolve(item) {
-        //specifes how to get the message value
-        return item.message;
-      },
-    }),
-  },
-});
-
-//users will call to create a group chat
-export const createGroupChatField = graphql.field({
-  type: CreateGroupChatResult, //mutation returns a CreateGroupChatResult object
-  args: { input: graphql.arg({ type: graphql.nonNull(CreateGroupChatInput) }) },
-  resolve: async (root, { input }, context) => {
-    await createGroupChat(root, { input }, context); //fuction that creates the group chat in database
-    return { message: 'Group chat created successfully' }; //confirms the chat was created
-  },
-});

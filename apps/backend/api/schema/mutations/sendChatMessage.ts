@@ -64,8 +64,24 @@ export const sendChatMessage = async (
 
     console.log(`Message sent by ${session.itemId} in group ${groupId}: ${trimmedMessage}`);
 
+    // fetch the created message with relationships populated
+    const populatedMessage = await context.query.ChatMessage.findOne({
+      where: { id: chatMessage.id },
+      query: 'id message createdAt sender { id name email } group { id }',
+    });
+
+    if (!populatedMessage) {
+      throw new GraphQLError('Failed to retrieve created message');
+    }
+
     return {
-      chatMessage,
+      chatMessage: {
+        id: populatedMessage.id,
+        message: populatedMessage.message,
+        createdAt: populatedMessage.createdAt,
+        sender: populatedMessage.sender,
+        group: populatedMessage.group?.id || groupId,
+      },
       message: 'Message sent successfully',
     };
   } catch (error) {
