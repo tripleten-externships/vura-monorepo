@@ -6,6 +6,12 @@ dotenv.config();
 
 import { withAuth, session } from './auth';
 import * as Models from './models';
+import { typeDefs } from './api/schema/typeDefs';
+import { Mutation } from './api/resolvers/Mutation';
+import { Query } from './api/resolvers/Query';
+import { DateTime } from './api/resolvers/scalars';
+import { mergeSchemas } from '@graphql-tools/schema';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -42,6 +48,20 @@ export default withAuth(
       playground: true,
       apolloConfig: {
         introspection: true,
+      },
+      extendGraphqlSchema: (schema) => {
+        const customSchema = makeExecutableSchema({
+          typeDefs,
+          resolvers: {
+            DateTime,
+            Mutation,
+            Query,
+          },
+        });
+
+        return mergeSchemas({
+          schemas: [schema, customSchema],
+        });
       },
     },
 
