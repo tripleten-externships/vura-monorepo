@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import type { Context } from '../../../types/context';
 
 // Input Types
-interface SaveQuestionnaireResponseInput {
+export interface SaveQuestionnaireResponseInput {
   questionnaireId: string;
   carePlanId?: string;
   checklistId?: string;
@@ -10,20 +10,20 @@ interface SaveQuestionnaireResponseInput {
   isDraft?: boolean;
 }
 
-interface QuestionResponseInput {
+export interface QuestionResponseInput {
   questionId: string;
   answer: any;
   confidence?: number;
   notes?: string;
 }
 
-interface SubmitQuestionnaireInput {
+export interface SubmitQuestionnaireInput {
   questionnaireResponseId: string;
   updateCarePlanProgress?: boolean;
 }
 
 // Output Types
-interface SaveQuestionnaireResponseResult {
+export interface SaveQuestionnaireResponseResult {
   questionnaireResponseId: string;
   message: string;
   completionPercentage: number;
@@ -31,7 +31,7 @@ interface SaveQuestionnaireResponseResult {
   checklistUpdated: boolean;
 }
 
-interface SubmitQuestionnaireResult {
+export interface SubmitQuestionnaireResult {
   questionnaireResponseId: string;
   message: string;
   completedAt: Date;
