@@ -17,11 +17,13 @@ const maxNumberLogin = 5;
 // Created a function to check for maximum login attempts
 function checkLoginAttempts(email: string) {
   if (loginAttempts[email] >= maxNumberLogin) {
-    throw new GraphQLError('Too many login attempts. Please try again later');
+    throw new GraphQLError('Too many login attempts. Please try again later', {
+      extensions: { code: 'TOO_MANY_REQUESTS' },
+    });
   }
 }
 
-export const login = async (root: any, { input }: { input: LoginInput }, context: Context) => {
+export const login = async (_: any, { input }: { input: LoginInput }, context: Context) => {
   const { email, password } = input;
 
   // If there is no login record, create one.
@@ -31,7 +33,9 @@ export const login = async (root: any, { input }: { input: LoginInput }, context
   if (!email || !password) {
     loginAttempts[email]++;
     checkLoginAttempts(email);
-    throw new GraphQLError('Email and password are required');
+    throw new GraphQLError('Email and password are required', {
+      extensions: { code: 'BAD_USER_INPUT' },
+    });
   }
 
   // Check if user doesn't exist
@@ -41,7 +45,9 @@ export const login = async (root: any, { input }: { input: LoginInput }, context
   if (!user) {
     loginAttempts[email]++;
     checkLoginAttempts(email);
-    throw new GraphQLError('Account not found');
+    throw new GraphQLError('Account not found', {
+      extensions: { code: 'UNAUTHENTICATED' },
+    });
   }
 
   // Check for incorrect credentials
@@ -49,7 +55,9 @@ export const login = async (root: any, { input }: { input: LoginInput }, context
   if (!isMatch) {
     loginAttempts[email]++;
     checkLoginAttempts(email);
-    throw new GraphQLError('invalid password');
+    throw new GraphQLError('Invalid password', {
+      extensions: { code: 'UNAUTHENTICATED' },
+    });
   }
 
   // When login is successful or after reaching max attempts, reset count to 0.
@@ -57,8 +65,14 @@ export const login = async (root: any, { input }: { input: LoginInput }, context
 
   try {
     const sessionData = await context.sessionStrategy?.start({
-      data: { email: user.email },
+      data: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin },
       context,
+    });
+
+    // update last login date
+    await context.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginDate: new Date() },
     });
 
     return {
@@ -77,8 +91,10 @@ export const login = async (root: any, { input }: { input: LoginInput }, context
       },
       token: sessionData,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
-    throw new GraphQLError('Login Failed');
+    throw new GraphQLError('Login failed', {
+      extensions: { code: 'INTERNAL_SERVER_ERROR' },
+    });
   }
 };

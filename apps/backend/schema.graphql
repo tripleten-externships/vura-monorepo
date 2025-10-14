@@ -1639,6 +1639,7 @@ type Mutation {
   saveQuestionnaireResponse(input: SaveQuestionnaireResponseInput!): SaveQuestionnaireResponseResult!
   submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
   updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
+  aiChat(input: AiChatInput!): AiChatResponse!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1707,7 +1708,6 @@ type Query {
   getResources(input: GetResourcesInput): ResourceConnection!
   getForumPost(id: ID!): ForumPostDetails
   getForumPosts(input: GetForumPostsInput): ForumPostConnection!
-  updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
 }
 
 union AuthenticatedItem = User
@@ -2003,6 +2003,16 @@ type ForumPostEdge {
   cursor: String!
 }
 
+type ForumPostDetails {
+  id: ID!
+  title: String!
+  topic: String!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  author: UserProfile
+}
+
 input CreateGroupChatInput {
   groupName: String!
   memberIds: [ID!]!
@@ -2032,14 +2042,22 @@ type ChatMessageType {
   group: ID!
 }
 
-type ForumPostDetails {
-  id: ID!
-  title: String!
-  topic: String!
+input AiChatMessageInput {
+  role: String!
   content: String!
-  createdAt: DateTime!
-  updatedAt: DateTime
-  author: UserProfile
+}
+
+input AiChatInput {
+  messages: [AiChatMessageInput!]!
+  systemPrompt: String
+  temperature: Float
+  provider: String
+}
+
+type AiChatResponse {
+  content: String!
+  usage: JSON
+  metadata: JSON
 }
 
 input UpdateProfileInput {

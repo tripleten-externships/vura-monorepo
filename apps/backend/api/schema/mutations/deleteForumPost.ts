@@ -1,50 +1,23 @@
-import { graphql } from '@keystone-6/core';
+import { GraphQLError } from 'graphql';
+import { Context } from '../../../types/context';
+import { logAuditEvent } from '../../../utils/logger';
 
-async function logAuditEvent(
-  context: any,
-  eventType: 'POST_DELETED',
-  userId: string,
-  postId: string,
-  details?: any
-) {
+export const customDeleteForumPost = async (_: any, { id }: { id: string }, context: Context) => {
   try {
-    // this is what will return in the server terminal for now
-    console.log('[AUDIT LOG]', {
-      timestamp: new Date().toISOString(),
-      eventType,
-      userId,
-      postId,
-      details,
-    });
-    // to use when in production and we can connect to DB
-    // await context.sudo().db.AuditLog.deleteOne({
-    // // using sudo to always log this to the audit even if user doesn't have permission
-    //     data:{
-    //         eventType,
-    //         user: {connect: {id: userId}},
-    //         postId,
-    //         timestamp: new Date(),
-    //         details: details ? JSON.stringify(details) : null,
-    //     },
-    // });
-  } catch (error) {
-    console.log('[AUDIT LOG ERROR]', error);
-  }
-  // not using throw error, so post will still go through even if there is an audit logging error
-}
-
-export const deleteForumPost = async (_: any, { id }: { id: string }, context: any) => {
-  try {
-    if (!context.session?.itemId) {
-      throw new Error('User must be authenticated to delete forum posts');
+    if (!context.session?.data?.id) {
+      throw new GraphQLError('User must be authenticated to delete forum posts', {
+        extensions: { code: 'UNAUTHENTICATED' },
+      });
     }
 
     const postId = id;
-    const currentUserId = context.session.itemId;
+    const currentUserId = context.session.data.id;
 
     // Validation Section
     if (!postId) {
-      throw new Error('Post ID is required');
+      throw new GraphQLError('Post ID is required', {
+        extensions: { code: 'BAD_USER_INPUT' },
+      });
     }
 
     // Find the post first
@@ -55,16 +28,22 @@ export const deleteForumPost = async (_: any, { id }: { id: string }, context: a
       });
     } catch (error) {
       console.error('Database error:', error);
-      throw new Error('Failed to find forum post. Please try again later');
+      throw new GraphQLError('Failed to find forum post. Please try again later', {
+        extensions: { code: 'INTERNAL_SERVER_ERROR' },
+      });
     }
 
     if (!post) {
-      throw new Error('Forum post not found');
+      throw new GraphQLError('Forum post not found', {
+        extensions: { code: 'NOT_FOUND' },
+      });
     }
 
     // Check if the current user is the author
     if (post.authorId !== currentUserId) {
-      throw new Error('You can only delete your own forum posts');
+      throw new GraphQLError('You can only delete your own forum posts', {
+        extensions: { code: 'FORBIDDEN' },
+      });
     }
 
     // Delete the post
@@ -74,7 +53,9 @@ export const deleteForumPost = async (_: any, { id }: { id: string }, context: a
       });
     } catch (error) {
       console.error('Database error:', error);
-      throw new Error('Failed to delete forum post. Please try again later');
+      throw new GraphQLError('Failed to delete forum post. Please try again later', {
+        extensions: { code: 'INTERNAL_SERVER_ERROR' },
+      });
     }
 
     await logAuditEvent(context, 'POST_DELETED', currentUserId, postId, {
@@ -86,8 +67,13 @@ export const deleteForumPost = async (_: any, { id }: { id: string }, context: a
       message: 'Post deleted successfully',
       deletedPostId: postId,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Delete post error:', error);
-    throw error;
+    if (error instanceof GraphQLError) {
+      throw error;
+    }
+    throw new GraphQLError('Failed to delete forum post', {
+      extensions: { code: 'INTERNAL_SERVER_ERROR' },
+    });
   }
 };
