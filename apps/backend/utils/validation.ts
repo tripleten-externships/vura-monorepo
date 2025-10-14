@@ -11,7 +11,7 @@ export function isEmailValid(email: string): boolean {
 
 export async function isEmailUnique(
   email: string,
-  context: any,
+  context: Context,
   excludeUserId?: string
 ): Promise<boolean> {
   if (!email) return false;

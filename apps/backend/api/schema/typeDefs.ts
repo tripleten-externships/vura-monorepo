@@ -205,6 +205,7 @@ export const typeDefs = gql`
       input: SaveQuestionnaireResponseInput!
     ): SaveQuestionnaireResponseResult!
     submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
+    updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
   }
 
   type Query {
@@ -212,7 +213,7 @@ export const typeDefs = gql`
     getResources(input: GetResourcesInput): ResourceConnection!
     getForumPost(id: ID!): ForumPostDetails
     getForumPosts(input: GetForumPostsInput): ForumPostConnection!
-    updateProfile(input: UpdateProfileInput!): UpdateProfileResult
+    updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
   }
 
   type Resource {
@@ -255,9 +256,6 @@ export const typeDefs = gql`
   extend type Query {
     userProfile: UserProfile
   }
-  extend type Query {
-    me: User
-  }
 
   input UpdateProfileInput {
     name: String
@@ -268,10 +266,10 @@ export const typeDefs = gql`
     currentPassword: String
   }
 
-  type UpdateProfileResult {
-    userId: ID
-    user: User
+  type UpdateProfileResponse {
+    success: Boolean!
     message: String
     error: String
+    userId: ID
   }
 `;

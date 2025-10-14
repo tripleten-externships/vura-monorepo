@@ -7,8 +7,8 @@ import { withAuth, session } from './auth';
 import * as Models from './models';
 import { Query } from './api/resolvers/Query';
 import { DateTime, JSON } from './api/resolvers/scalars';
-import { typeDefs as customTypeDefs } from './api/schema/typeDefs';
-import { Mutation as customMutations } from './api/resolvers/Mutation';
+import { typeDefs } from './api/schema/typeDefs';
+import { Mutation } from './api/resolvers/Mutation';
 import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
 
 const dbUrl =
@@ -50,19 +50,12 @@ export default withAuth(
       extendGraphqlSchema: (schema) => {
         // Merge Keystone's generated schema with custom executable schema.
         const customSchema = makeExecutableSchema({
-          typeDefs: customTypeDefs,
+          typeDefs,
           resolvers: {
             DateTime,
             JSON,
-            Mutation: customMutations,
+            Mutation,
             Query,
-            UpdateProfileResult: {
-              user: async (parent: any, _args: any, context: any) => {
-                const id = parent?.userId;
-                if (!id) return null;
-                return context.db.User.findOne({ where: { id } });
-              },
-            },
           },
         });
         return mergeSchemas({
@@ -74,6 +67,16 @@ export default withAuth(
       s3_file_storage: {
         kind: 's3',
         type: 'file',
+        bucketName: process.env.S3_BUCKET_NAME || 'vura-keystonejs',
+        region: process.env.S3_REGION || 'us-east-1',
+        accessKeyId: process.env.S3_ACCESS_KEY_ID || 'keystone',
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || 'keystone',
+        signed: { expiry: 5000 },
+        forcePathStyle: true,
+      },
+      s3_image_storage: {
+        kind: 's3',
+        type: 'image',
         bucketName: process.env.S3_BUCKET_NAME || 'vura-keystonejs',
         region: process.env.S3_REGION || 'us-east-1',
         accessKeyId: process.env.S3_ACCESS_KEY_ID || 'keystone',

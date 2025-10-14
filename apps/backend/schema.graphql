@@ -21,7 +21,8 @@ enum AiChatSessionStatusType {
   archived
 }
 
-scalar DateTime @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
+"""Date custom scalar type"""
+scalar DateTime
 
 input AiChatSessionWhereUniqueInput {
   id: ID
@@ -1629,7 +1630,6 @@ type Mutation {
   endSession: Boolean!
   authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
-  updateProfile(input: UpdateProfileInput!): UpdateProfileResult
   signup(input: SignupInput!): SignupResult!
   login(input: LoginInput!): LoginResult!
   customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
@@ -1638,6 +1638,7 @@ type Mutation {
   sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
   saveQuestionnaireResponse(input: SaveQuestionnaireResponseInput!): SaveQuestionnaireResponseResult!
   submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
+  updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1702,11 +1703,11 @@ type Query {
   usersCount(where: UserWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
-  me: User
   userProfile: UserProfile
   getResources(input: GetResourcesInput): ResourceConnection!
   getForumPost(id: ID!): ForumPostDetails
   getForumPosts(input: GetForumPostsInput): ForumPostConnection!
+  updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
 }
 
 union AuthenticatedItem = User
@@ -1845,22 +1846,6 @@ type KeystoneAdminUISort {
 enum KeystoneAdminUISortDirection {
   ASC
   DESC
-}
-
-input UpdateProfileInput {
-  name: String
-  email: String
-  age: Int
-  gender: String
-  avatarUrl: String
-  currentPassword: String
-}
-
-type UpdateProfileResult {
-  userId: ID
-  user: User
-  message: String
-  error: String
 }
 
 input SaveQuestionnaireResponseInput {
@@ -2056,4 +2041,19 @@ type ForumPostDetails {
   updatedAt: DateTime
   author: UserProfile
 }
+
+input UpdateProfileInput {
+  name: String
+  email: String
+  age: Int
+  gender: String
+  avatarUrl: String
+  currentPassword: String
+}
+
+type UpdateProfileResponse {
+  success: Boolean!
+  message: String
+  error: String
+  userId: ID
 }

@@ -6,13 +6,22 @@ export const updateProfile = async (
   _: unknown,
   { input }: { input: any },
   context: Context
-): Promise<any> => {
+): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+  userId?: string | null;
+}> => {
   const session = context.session;
 
   console.log('updateProfile called. session=', !!session, session?.data?.id);
 
   if (!session?.data?.id) {
-    return { error: 'User must be authenticated' };
+    return {
+      success: false,
+      error: 'User must be authenticated',
+      userId: null,
+    };
   }
 
   // Quick debug bypass: when DEBUG_UPDATEPROFILE=1 is set in env, return a
@@ -20,23 +29,20 @@ export const updateProfile = async (
   if (process.env.DEBUG_UPDATEPROFILE === '1') {
     console.log('updateProfile debug-bypass active');
     return {
-      userId: session?.data?.id ?? null,
-      user: {
-        id: session?.data?.id ?? null,
-        name: 'Debug User',
-        email: 'debug@example.com',
-        age: 42,
-        gender: 'other',
-        avatarUrl: 'https://example.com/debug.png',
-      },
+      success: true,
       message: 'Debug response',
+      userId: session?.data?.id ?? null,
     };
   }
 
   const { name, email, age, gender, avatarUrl, currentPassword } = input;
 
   if (!name && !email && !age && !gender && !avatarUrl) {
-    return { error: 'At least one field must be provided for update' };
+    return {
+      success: false,
+      error: 'At least one field must be provided for update',
+      userId: String(session.data.id),
+    };
   }
 
   const updates: Record<string, any> = {};
@@ -50,27 +56,43 @@ export const updateProfile = async (
     // When verifying password we must fetch the hashed password explicitly using
     // Keystone's query API so we can request the 'password' field.
     const dbUser = await context.query.User.findOne({
-      where: { id: session.data.id },
+      where: { id: String(session.data.id) },
       query: 'id name email password',
     });
     console.log('Fetched user for updateProfile:', !!dbUser, dbUser?.id);
 
     if (!dbUser) {
-      return { error: 'Authenticated user not found' };
+      return {
+        success: false,
+        error: 'Authenticated user not found',
+        userId: String(session.data.id),
+      };
     }
 
     if (email) {
       if (!isEmailValid(email)) {
-        return { error: 'Invalid email format' };
+        return {
+          success: false,
+          error: 'Invalid email format',
+          userId: String(session.data.id),
+        };
       }
 
-      const isUnique = await isEmailUnique(email, context, session.data.id);
+      const isUnique = await isEmailUnique(email, context, String(session.data.id));
       if (!isUnique) {
-        return { error: 'Email already exists' };
+        return {
+          success: false,
+          error: 'Email already exists',
+          userId: String(session.data.id),
+        };
       }
 
       if (!currentPassword) {
-        return { error: 'Current password required for email changes' };
+        return {
+          success: false,
+          error: 'Current password required for email changes',
+          userId: String(session.data.id),
+        };
       }
 
       const isValid = await verifyPassword(
@@ -86,14 +108,18 @@ export const updateProfile = async (
         isValid
       );
       if (!isValid) {
-        return { error: 'Invalid current password' };
+        return {
+          success: false,
+          error: 'Invalid current password',
+          userId: String(session.data.id),
+        };
       }
 
       updates.email = email;
     }
 
     const updatedUser = await context.db.User.updateOne({
-      where: { id: session.data.id },
+      where: { id: String(session.data.id) },
       data: updates,
     });
 
@@ -102,7 +128,7 @@ export const updateProfile = async (
       await context.db.AuditLog.createOne({
         data: {
           action: 'UPDATE_PROFILE',
-          user: { connect: { id: session.data.id } },
+          user: { connect: { id: String(session.data.id) } },
           details: JSON.stringify(updates),
         },
       });
@@ -115,7 +141,7 @@ export const updateProfile = async (
     let fullUser = null;
     try {
       fullUser = await context.query.User.findOne({
-        where: { id: String(updatedUser?.id ?? session.data.id) },
+        where: { id: String(updatedUser?.id || session.data.id) },
         query: 'id name email age gender avatarUrl',
       });
       console.log('updateProfile fetched fullUser:', !!fullUser, fullUser?.id);
@@ -127,12 +153,16 @@ export const updateProfile = async (
     }
 
     return {
-      userId: updatedUser?.id ?? session.data.id,
-      user: fullUser,
+      success: true,
       message: 'Profile updated successfully',
+      userId: String(updatedUser?.id ?? session.data.id),
     };
   } catch (error: any) {
     console.error('updateProfile error:', error?.message || error);
-    return { error: 'Failed to update profile' };
+    return {
+      success: false,
+      error: 'Failed to update profile',
+      userId: String(session.data.id),
+    };
   }
 };
