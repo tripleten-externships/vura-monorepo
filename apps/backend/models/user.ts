@@ -1,5 +1,4 @@
 import { list } from '@keystone-6/core';
-import type { Lists } from '.keystone/types';
 import {
   checkbox,
   text,
@@ -77,6 +76,7 @@ export const User = list({
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
     }),
+    // link to careplan
     carePlan: relationship({ ref: 'CarePlan.user', many: true }),
     aiChatSessions: relationship({
       ref: 'AiChatSession.user',

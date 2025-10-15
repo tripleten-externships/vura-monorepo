@@ -6,9 +6,13 @@ export const CarePlan = list({
   access: {
     operation: {
       query: () => true,
-      create: () => true,
+      create: ({ session }) => !!session,
       update: ({ session }) => !!session,
       delete: ({ session }) => !!session,
+    },
+    filter: {
+      update: ({ session }) => ({ user: { id: { equals: session?.itemId } } }),
+      delete: ({ session }) => ({ user: { id: { equals: session?.itemId } } }),
     },
   },
   fields: {
@@ -28,7 +32,17 @@ export const CarePlan = list({
     }),
 
     // Relationships
-    user: relationship({ ref: 'User.carePlan' }),
+    user: relationship({
+      ref: 'User.carePlan',
+      hooks: {
+        resolveInput: ({ operation, resolvedData, context }) => {
+          if (operation === 'create' && !resolvedData.user && context.session) {
+            return { connect: { id: context.session.itemId } };
+          }
+          return resolvedData.user;
+        },
+      },
+    }),
     questionnaires: relationship({
       ref: 'Questionnaire.carePlans',
       many: true,
