@@ -345,7 +345,6 @@ type CarePlan {
 
 input CarePlanWhereUniqueInput {
   id: ID
-  title: String
 }
 
 input CarePlanWhereInput {
@@ -1341,8 +1340,8 @@ type User {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlans(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
-  carePlansCount(where: CarePlanWhereInput! = {}): Int
+  carePlan(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
+  carePlanCount(where: CarePlanWhereInput! = {}): Int
   aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
   aiChatSessionsCount(where: AiChatSessionWhereInput! = {}): Int
   parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
@@ -1382,7 +1381,7 @@ input UserWhereInput {
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
   lastUpdateDate: DateTimeNullableFilter
-  carePlans: CarePlanManyRelationFilter
+  carePlan: CarePlanManyRelationFilter
   aiChatSessions: AiChatSessionManyRelationFilter
   parents: ParentManyRelationFilter
   ownedChats: GroupChatManyRelationFilter
@@ -1456,7 +1455,7 @@ input UserUpdateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlans: CarePlanRelateToManyForUpdateInput
+  carePlan: CarePlanRelateToManyForUpdateInput
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
   parents: ParentRelateToManyForUpdateInput
   ownedChats: GroupChatRelateToManyForUpdateInput
@@ -1511,7 +1510,7 @@ input UserCreateInput {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
-  carePlans: CarePlanRelateToManyForCreateInput
+  carePlan: CarePlanRelateToManyForCreateInput
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
   parents: ParentRelateToManyForCreateInput
   ownedChats: GroupChatRelateToManyForCreateInput
