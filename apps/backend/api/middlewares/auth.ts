@@ -43,3 +43,6 @@ export const requireRole = (session, role: string) => {
   }
   return session;
 };
+
+// add expiry function -- check to see if token packages set already
+// cache and validation logic for manual instance
