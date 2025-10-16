@@ -50,7 +50,5 @@ export const GroupChat = list({
       db: { foreignKey: { map: 'ownerId' } },
     }),
     members: relationship({ ref: 'User.memberChats', many: true }),
-
-    //messages: relationship({ ref: 'ChatMessage.group', many: true }), // needs to reference the ChatMessage model
   },
 });
