@@ -2,6 +2,7 @@
 import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
 import bcrypt from 'bcryptjs';
+import { generateToken } from '../../../utils/jwt';
 
 export interface LoginInput {
   email: string;
@@ -55,10 +56,20 @@ export const login = async (root: any, { input }: { input: LoginInput }, context
   // When login is successful or after reaching max attempts, reset count to 0.
   loginAttempts[email] = 0;
 
+  // try {
+  //   const sessionData = await context.sessionStrategy?.start({
+  //     data: { email: user.email },
+  //     context,
+  //   });
+
   try {
-    const sessionData = await context.sessionStrategy?.start({
-      data: { email: user.email },
-      context,
+    // Generate JWT token here
+    const token = generateToken(user);
+
+    // Optionally update last login date
+    await context.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginDate: new Date() },
     });
 
     return {
@@ -75,7 +86,7 @@ export const login = async (root: any, { input }: { input: LoginInput }, context
         lastLoginDate: user.lastLoginDate,
         lastUpdateDate: user.lastUpdateDate,
       },
-      token: sessionData,
+      token,
     };
   } catch (error) {
     console.error('Login error:', error);

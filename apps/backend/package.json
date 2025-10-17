@@ -32,7 +32,9 @@
   "devDependencies": {
     "@types/babel__generator": "^7.6.8",
     "@types/babel__template": "^7.4.4",
+    "@types/bcryptjs": "2.4.6",
     "@types/hammerjs": "^2.0.45",
+    "@types/jsonwebtoken": "9.0.10",
     "axios": "^1.11.0",
     "googleapis": "^154.1.0",
     "jest": "^30.0.5",
