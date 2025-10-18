@@ -1,7 +1,12 @@
 // guard helpers (requireAuth, requireRole)
 // middlewares/auth.ts
+// authentication imports
 import { createAuth } from '@keystone-6/auth';
 import { statelessSessions } from '@keystone-6/core/session';
+
+// user's access field imports
+import { list } from '@keystone-6/core';
+import { text } from '@keystone-6/core/fields';
 
 // dDefine a secret for JWT/session signing
 const sessionSecret = process.env.SESSION_SECRET || 'a-super-secret-string';
@@ -46,3 +51,20 @@ export const requireRole = (session, role: string) => {
 
 // add expiry function -- check to see if token packages set already
 // cache and validation logic for manual instance
+
+// publicly viewable resources
+export const publicResources = list({
+  access: {
+    operation: {
+      query: () => true, // anyone can see public Resources
+      create: ({ session }) => session?.id?.isAdmin, // only sistem admins can create
+      update: ({ session }) => session?.id?.isAdmin, // only sistem admins can update
+      delete: ({ session }) => session?.id?.isAdmin, // only sistem admins can delete
+    },
+  },
+  fields: {
+    title: text({ validation: { isRequired: true } }),
+    content: text({ ui: { displayMode: 'textarea' } }),
+    // other public fields...
+  },
+});
