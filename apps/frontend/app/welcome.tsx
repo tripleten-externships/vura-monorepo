@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 // import { router } from 'expo-router';
+import { Bell } from '../src/components/Notification_bell/NotificationBell';
 import { Emoji } from '../src/components/Emoji/Emoji';
 import { PostInput } from '../src/components/PostInput/PostInput';
 import { InputField } from '../src/components/InputField/InputField';
-// import { Bell } from '../src/components/Notification_bell/NotificationBell';
 
 export default function WelcomePage() {
   const handleLogin = () => {
@@ -77,8 +77,8 @@ export default function WelcomePage() {
       />
       {/* test emoji component */}
       <Emoji emojiIcon={{ uri: '../../assets/smile.svg' }} />
-      {/* test bell component 
-      <Bell bellIcon={{ uri: '../../assets/notification_bell.png' }} /> */}
+      {/* test bell component  */}
+      <Bell bellIcon={{ uri: '../../assets/notification_bell.png' }} />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
