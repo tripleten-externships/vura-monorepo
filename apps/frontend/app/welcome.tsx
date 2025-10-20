@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 // import { router } from 'expo-router';
+import { PostInput } from '../src/components/PostInput/PostInput';
 import { InputField } from '../src/components/InputField/InputField';
-// import { PostInput } from '../src/components/PostInput/PostInput';
 // import { Emoji } from '../src/components/Emoji/Emoji';
 // import { Bell } from '../src/components/Notification_bell/NotificationBell';
 
@@ -69,12 +69,12 @@ export default function WelcomePage() {
         }}
         iconStyle={{ width: 24, height: 24 }}
       />
-      {/* I added a post input field to test the component.
+      {/* I added a post input field to test the component. */}
       <PostInput
         placeholderTextColor="rgba(54,54,54,0.5)"
         titlePlaceholder="Post title"
         bodyPlaceholder="Post text"
-      /> */}
+      />
       {/* test emoji component
        <Emoji emojiIcon={{ uri: '../../assets/smile.svg' }} /> */}
       {/* test bell component 
