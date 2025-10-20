@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 // import { router } from 'expo-router';
-// import { InputField } from '../src/components/InputField/InputField';
-// import { PostInput } from '../src/components/PostInput/PostInput';
-// import { Emoji } from '../src/components/Emoji/Emoji';
 import { Bell } from '../src/components/Notification_bell/NotificationBell';
+import { Emoji } from '../src/components/Emoji/Emoji';
+import { PostInput } from '../src/components/PostInput/PostInput';
+import { InputField } from '../src/components/InputField/InputField';
 
 export default function WelcomePage() {
   const handleLogin = () => {
@@ -17,7 +17,7 @@ export default function WelcomePage() {
       <Text style={styles.title}>Welcome to Vura by Betterhunt</Text>
       <Text style={styles.subtitle}>Please log in to continue</Text>
 
-      {/*  I added a temporary input field to test the component.
+      {/* I added a temporary input field to test the component.*/}
       <InputField
         placeholder="Email"
         placeholderTextColor="rgba(54,54,54,0.5)"
@@ -29,7 +29,6 @@ export default function WelcomePage() {
           backgroundColor: '#f6f4fa',
         }}
       />
-
       <InputField
         placeholder="Password"
         placeholderTextColor="rgba(54,54,54,0.5)"
@@ -42,7 +41,6 @@ export default function WelcomePage() {
           backgroundColor: '#f6f4fa',
         }}
       />
-
       <InputField
         placeholderTextColor="rgba(54,54,54,0.5)"
         placeholder="Ask AI helper, any question"
@@ -57,7 +55,6 @@ export default function WelcomePage() {
         }}
         iconStyle={{ width: 32, height: 32, marginTop: -4 }}
       />
-
       <InputField
         placeholderTextColor="rgba(54,54,54,0.5)"
         placeholder="Type your answer"
@@ -71,21 +68,17 @@ export default function WelcomePage() {
           backgroundColor: '#ffffff',
         }}
         iconStyle={{ width: 24, height: 24 }}
-      />*/}
-
-      {/* I added a post input field to test the component.
+      />
+      {/* I added a post input field to test the component. */}
       <PostInput
         placeholderTextColor="rgba(54,54,54,0.5)"
         titlePlaceholder="Post title"
         bodyPlaceholder="Post text"
-      /> */}
-
-      {/* test emoji component
-       <Emoji emojiIcon={{ uri: '../../assets/smile.svg' }} /> */}
-
-      {/* test bell component */}
-      <Bell bellIcon={{ uri: '../../assets/notification_bell.png' }} />
-
+      />
+      {/* test emoji component */}
+      <Emoji emojiIcon={{ uri: '../../assets/smile.svg' }} />
+      {/* test bell component 
+      <Bell bellIcon={{ uri: '../../assets/notification_bell.png' }} /> */}
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
