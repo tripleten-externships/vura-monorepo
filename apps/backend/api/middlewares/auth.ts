@@ -79,9 +79,9 @@ export const carePlans = list({
     // Anyone (even unauthenticated) can read public / temporary care plans
     operation: {
       query: () => true, // anyone can see
-      create: () => true, // only admins can create
-      update: isAdminOrPerson, // only admins can update
-      delete: isAdminOrPerson, // only admins can delete
+      create: () => true, // anyone can create
+      update: isAdminOrPerson, // admins and the carePlan's owner can update
+      delete: isAdminOrPerson, // admins and the carePlan's owner can delete
     },
     filter: {
       query: filterCarePlans,
