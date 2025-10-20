@@ -77,8 +77,8 @@ export default function WelcomePage() {
       />
       {/* test emoji component */}
       <Emoji emojiIcon={{ uri: '../../assets/smile.svg' }} />
-      {/* test bell component 
-      <Bell bellIcon={{ uri: '../../assets/notification_bell.png' }} /> */}
+      {/* test bell component  */}
+      <Bell bellIcon={{ uri: '../../assets/notification_bell.png' }} />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>

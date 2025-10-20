@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Image, Pressable } from 'react-native';
 
-export const Bell = () => {
+export const Bell = ({ bellIcon }: { bellIcon: { uri: string } }) => {
   // use usestate to track whether the notification bell is active or not
   const [isActive, setIsActive] = useState(true);
 
