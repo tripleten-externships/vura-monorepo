@@ -10,6 +10,14 @@ import { text, relationship, timestamp, checkbox } from '@keystone-6/core/fields
 
 const isAdmin = ({ session }: { session?: Session }) => Boolean(session?.data.isAdmin);
 
+// Validate the current user is themself
+const isOwner = ({ session, item }: { session?: Session; item: ownerData }) =>
+  session?.data.id === item.id;
+
+// Validate the current user is an Admin, or updating themselves
+const isAdminOrPerson = ({ session, item }: { session?: Session; item: ownerData }) =>
+  isAdmin({ session }) || isOwner({ session, item });
+
 // dDefine a secret for JWT/session signing
 const sessionSecret = process.env.SESSION_SECRET || 'a-super-secret-string';
 
@@ -60,21 +68,23 @@ function filterCarePlans({ session }: { session?: Session }) {
 }
 // publicly viewable resources
 export const carePlans = list({
-  access: {
-    operation: {
-      query: () => true, // anyone can see
-      create: isAdmin, // only admins can create
-      update: isAdmin, // only admins can update
-      delete: isAdmin, // only admins can delete
-    },
-    filter: {
-      query: filterCarePlans,
-    },
-  },
   fields: {
     title: text(),
     isPublished: checkbox(),
     publishDate: timestamp(),
+    isTemporary: checkbox({ defaultValue: false }), // for if temporary users don't have permanent data
     author: relationship({ ref: 'Person' }),
+  },
+  access: {
+    // Anyone (even unauthenticated) can read public / temporary care plans
+    operation: {
+      query: () => true, // anyone can see
+      create: () => true, // only admins can create
+      update: isAdminOrPerson, // only admins can update
+      delete: isAdminOrPerson, // only admins can delete
+    },
+    filter: {
+      query: filterCarePlans,
+    },
   },
 });
