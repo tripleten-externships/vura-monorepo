@@ -1,39 +1,75 @@
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 interface ButtonProps {
   buttonText: string;
   size: 'sm' | 'md' | 'lg';
   variant?: 'primary' | 'secondary';
+  onPress?: () => void;
 }
 
-const MainButton: React.FC<ButtonProps> = ({ buttonText, size, variant = 'primary' }) => {
-  // set default when prop is optional
-
-  const sizeClasses = {
-    sm: 'w-[67px] h-[43px]', // post button (bg and text class: primary)
-    md: 'w-[245px] h-[56px]', // gray-ish buttons under new post (bg and text class: secondary)
-    lg: 'w-[345px] h-[62px]', // main dark button (bg and text class: primary)
+const MainButton: React.FC<ButtonProps> = ({ buttonText, size, variant = 'primary', onPress }) => {
+  // size dimensions
+  const sizeStyles = {
+    sm: { width: 67, height: 43 },
+    md: { width: 245, height: 56 },
+    lg: { width: 345, height: 62 },
   };
 
-  const bgClasses = {
-    primary: 'bg-[#363636]',
-    secondary: 'bg-[#F6F4FA] border border-[#E7E7E7]',
+  // background and border styles based on variant
+  const variantStyles = {
+    primary: {
+      backgroundColor: '#363636',
+      borderColor: '#363636',
+    },
+    secondary: {
+      backgroundColor: '#F6F4FA',
+      borderColor: '#E7E7E7',
+    },
   };
 
-  const textClasses = {
-    primary: 'text-white',
-    secondary: 'text-black',
+  // text styles based on variant
+  const textVariantStyles = {
+    primary: { color: '#FFFFFF' },
+    secondary: { color: '#000000' },
   };
+
+  // dynamic styles based on props
+  const containerStyle = StyleSheet.create({
+    dynamic: {
+      ...styles.container,
+      ...sizeStyles[size],
+      ...variantStyles[variant],
+    },
+  });
+
+  const textStyle = StyleSheet.create({
+    dynamic: {
+      ...styles.text,
+      ...textVariantStyles[variant],
+    },
+  });
 
   return (
-    // TouchableOpacity is built into React Native and has a built in opacity animation when tapped
-    <TouchableOpacity
-      className={`justify-center items-center rounded-[20px] ${sizeClasses[size]} ${bgClasses[variant]}`}
-    >
-      <Text className={`${textClasses[variant]} font-semibold`}>{buttonText}</Text>
+    <TouchableOpacity style={containerStyle.dynamic} onPress={onPress}>
+      <Text style={textStyle.dynamic}>{buttonText}</Text>
     </TouchableOpacity>
   );
 };
+
+// base styles that will be extended by dynamic styles
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 10,
+  },
+  text: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+});
 
 export default MainButton;
