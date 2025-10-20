@@ -19,7 +19,7 @@ export interface InputProps {
   containerStyle?: ViewStyle;
   inputStyle?: TextStyle;
   iconStyle?: ImageStyle;
-  placeholderTextColor;
+  placeholderTextColor: string;
 }
 
 export const InputField = ({
