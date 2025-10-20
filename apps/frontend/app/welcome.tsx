@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 // import { router } from 'expo-router';
-import { Bell } from '../src/components/Notification_bell/NotificationBell';
+import { Bell } from '../src/components/NotificationBell/NotificationBell';
 import { Emoji } from '../src/components/Emoji/Emoji';
 import { PostInput } from '../src/components/PostInput/PostInput';
 import { InputField } from '../src/components/InputField/InputField';
