@@ -6,7 +6,9 @@ import { statelessSessions } from '@keystone-6/core/session';
 
 // user's access field imports
 import { list } from '@keystone-6/core';
-import { text } from '@keystone-6/core/fields';
+import { text, relationship, timestamp, checkbox } from '@keystone-6/core/fields';
+
+const isAdmin = ({ session }: { session?: Session }) => Boolean(session?.data.isAdmin);
 
 // dDefine a secret for JWT/session signing
 const sessionSecret = process.env.SESSION_SECRET || 'a-super-secret-string';
@@ -52,19 +54,27 @@ export const requireRole = (session, role: string) => {
 // add expiry function -- check to see if token packages set already
 // cache and validation logic for manual instance
 
+function filterCarePlans({ session }: { session?: Session }) {
+  if (session?.data.isAdmin) return true; // If session data = admin return true
+  return { isPublished: { equals: true } }; // otherwise filter for published posts
+}
 // publicly viewable resources
-export const publicResources = list({
+export const carePlans = list({
   access: {
     operation: {
-      query: () => true, // anyone can see public Resources
-      create: ({ session }) => session?.id?.isAdmin, // only sistem admins can create
-      update: ({ session }) => session?.id?.isAdmin, // only sistem admins can update
-      delete: ({ session }) => session?.id?.isAdmin, // only sistem admins can delete
+      query: () => true, // anyone can see
+      create: isAdmin, // only admins can create
+      update: isAdmin, // only admins can update
+      delete: isAdmin, // only admins can delete
+    },
+    filter: {
+      query: filterCarePlans,
     },
   },
   fields: {
-    title: text({ validation: { isRequired: true } }),
-    content: text({ ui: { displayMode: 'textarea' } }),
-    // other public fields...
+    title: text(),
+    isPublished: checkbox(),
+    publishDate: timestamp(),
+    author: relationship({ ref: 'Person' }),
   },
 });
