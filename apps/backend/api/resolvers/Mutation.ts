@@ -8,6 +8,7 @@ import { sendChatMessage } from '../schema/mutations/sendChatMessage';
 import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutations/questionnaire';
 import { updateProfile } from '../schema/mutations/updateProfile';
 import { aiChat } from '../schema/mutations/aiChat';
+import { createAiChatMessage } from '../schema/mutations/createAiChatMessage';
 
 export const Mutation = {
   signup,
@@ -20,4 +21,5 @@ export const Mutation = {
   submitQuestionnaire,
   updateProfile,
   aiChat,
+  createAiChatMessage,
 };
