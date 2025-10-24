@@ -5,7 +5,6 @@ import { Bell } from '../src/components/NotificationBell/NotificationBell';
 import { Emoji } from '../src/components/Emoji/Emoji';
 import { PostInput } from '../src/components/PostInput/PostInput';
 import { InputField } from '../src/components/InputField/InputField';
-import { WebSocketTest } from '../src/components/WebSocketTest';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AUTH_TOKEN } from '../src/store/apolloClient';
 
@@ -188,7 +187,7 @@ export default function WelcomePage() {
         <View style={styles.loggedInContainer}>
           <Text style={styles.successText}>You're logged in! WebSocket test below:</Text>
           <View style={styles.websocketContainer}>
-            <WebSocketTest />
+            <Text>[Jonah - 20251020] WebSocket test disabled for now</Text>
           </View>
         </View>
       )}
