@@ -20,6 +20,8 @@ export interface ChatOptions {
   maxTokens?: number;
   systemPrompt?: string;
   model?: string;
+  userId?: string;
+  sessionId?: string;
 }
 
 export interface AIProvider {

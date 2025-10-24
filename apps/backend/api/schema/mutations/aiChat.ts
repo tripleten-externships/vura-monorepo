@@ -2,17 +2,19 @@ import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
 import { aiService, ProviderType } from '../../../services/ai';
 import { ChatMessage } from '../../../services/ai/types';
+import { getWebSocketService } from '../../../services/websocket';
 
 export interface AiChatInput {
   messages: Array<{ role: string; content: string }>;
   systemPrompt?: string;
   temperature?: number;
   provider?: string;
+  sessionId?: string;
 }
 
 export const aiChat = async (_: any, { input }: { input: AiChatInput }, context: Context) => {
   try {
-    const { messages, systemPrompt, temperature, provider } = input;
+    const { messages, systemPrompt, temperature, provider, sessionId } = input;
 
     if (!messages || !Array.isArray(messages)) {
       throw new GraphQLError('Messages array is required', {
@@ -67,10 +69,17 @@ export const aiChat = async (_: any, { input }: { input: AiChatInput }, context:
       content: msg.content,
     }));
 
+    const userId = context.session?.data?.id;
+
+    // check if we should use WebSockets (requires sessionId and authenticated user)
+    const useWebSockets = sessionId && userId;
+
     const response = await aiService.chat(typedMessages, {
       systemPrompt,
       temperature,
       provider: validatedProvider,
+      userId: useWebSockets ? userId : undefined,
+      sessionId: useWebSockets ? sessionId : undefined,
     });
 
     return {
