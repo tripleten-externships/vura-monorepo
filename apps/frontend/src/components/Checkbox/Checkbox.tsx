@@ -1,6 +1,6 @@
 import React from 'react';
 import { ImageBackground, View, TouchableOpacity, StyleSheet, Text } from 'react-native';
-import checkMark from '../../assets/checkMark.png';
+import checkMark from '../../../assets/checkMark.png';
 
 interface CheckboxProps {
   label?: string; //Label for checkbox
