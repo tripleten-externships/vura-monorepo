@@ -1,9 +1,12 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), 'apps/backend/.env') });
 
 import { config } from '@keystone-6/core';
 import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
-import { withAuth, session } from './auth';
+import { withAuth, session } from './api/middlewares/auth';
+
 import * as Models from './models';
 import { Query } from './api/resolvers/Query';
 import { Mutation } from './api/resolvers/Mutation';

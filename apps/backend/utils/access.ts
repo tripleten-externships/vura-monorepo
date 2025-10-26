@@ -1,23 +1,32 @@
-// imports
-// keystone.ts (or index.ts)
 import type { Session } from '../types/context';
 
-// This file contains helper functions for authentication and authorization
+// Framework safe access control utilities for Keystone lists.
+// These helpers can be imported into any list definition ( User, CarePlan, etc.)
 
-// !! ensures the result is a boolean and checks if the session exists
-export const isAuthenticated = ({ session }: { session: Session }) => !!session?.data;
-
-// Checks if the current user is an admin
-export const isAdmin = ({ session }: { session: Session }) => session?.data?.role === 'admin';
-
-// Checks if the current user can access a specific item
-export const canAccessOwnData = ({ session, item }: { session: Session; item: { id: string } }) => {
-  if (!session?.data) return false; // user must be logged in
-  return item.id === session.data.id || isAdmin({ session }); // allow access if user owns the item or is an admin
+//  Check if the current request has a valid session
+export const isAuthenticated = ({ session }: { session?: Session }): boolean => {
+  return !!session?.data;
 };
 
-// Type guard to check if object has item property
-export function isItemAccess(args: any): args is { item: any } {
-  return 'item' in args;
-}
-//Next step look in to hooking up to auth service
+//  Check if the logged-in user is an admin
+export const isAdmin = ({ session }: { session?: Session }): boolean => {
+  return session?.data?.role === 'admin';
+};
+
+//  Allow users to access their own records, or admins to access any
+export const canAccessOwnData = ({
+  session,
+  item,
+}: {
+  session?: Session;
+  item?: { id?: string };
+}): boolean => {
+  if (!session?.data) return false; // Must be logged in
+  if (session.data.role === 'admin') return true; // Admins override
+  return item?.id === session.data.id; // User can access only their own record
+};
+
+// Narrow type guard for Keystone's { item } argument
+export const isItemAccess = (args: unknown): args is { item: any } => {
+  return typeof args === 'object' && args !== null && 'item' in args;
+};

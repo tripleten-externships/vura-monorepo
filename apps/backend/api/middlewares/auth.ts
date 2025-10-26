@@ -8,24 +8,29 @@ if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
   throw new Error('SESSION_SECRET must be set in production');
 }
 
-const sessionSecret = process.env.SESSION_SECRET || 'dev-only-secret';
+const sessionSecret =
+  process.env.SESSION_SECRET?.trim() || 'thisisatemporaryfallbackkeythatisdefinitely32charslong';
+console.log('Using session secret:', sessionSecret);
+console.log('Secret length:', sessionSecret.length);
+
 const sessionMaxAge = 60 * 60 * 24 * 30; // 30 days
 
-export const { withAuth } = createAuth({
+const { withAuth } = createAuth({
   listKey: 'User',
   identityField: 'email',
   secretField: 'password',
-  sessionData: 'id name role',
+  sessionData: 'id name email role',
   initFirstItem: {
     fields: ['name', 'email', 'password', 'role'],
-    // itemData: { role: 'admin' }, // uncomment if you want first user to be admin
   },
 });
 
-export const session = statelessSessions({
+const session = statelessSessions({
   maxAge: sessionMaxAge,
   secret: sessionSecret,
 });
+
+export { withAuth, session };
 
 // ---------- Guards ----------
 export const requireAuth = (session: Session) => {
@@ -39,13 +44,21 @@ export const requireRole = (session: Session, role: 'admin' | 'user') => {
   return session;
 };
 
-// Convenience booleans for Keystone access blocks
-export const isAuthenticated = ({ session }: { session?: Session }) => !!session?.data;
-export const isAdmin = ({ session }: { session?: Session }) => session?.data?.role === 'admin';
-export const isOwnerOrAdmin = ({ session, item }: { session?: Session; item?: { id?: string; authorId?: string } }) => {
+type AccessArgs = {
+  session?: Session;
+  item?: { id?: string; authorId?: string; userId?: string };
+};
+
+export const isAuthenticated = ({ session }: AccessArgs): boolean => !!session?.data;
+
+export const isAdmin = ({ session }: AccessArgs): boolean => session?.data?.role === 'admin';
+
+export const canAccessOwnData = ({ session, item }: AccessArgs): boolean => {
   if (!session?.data) return false;
   if (session.data.role === 'admin') return true;
-  // If your item uses `author` relationship, Keystone exposes `item.authorId`
-  // Otherwise fall back to item.id === user.id if it's a user-owned record
-  return item?.authorId === session.data.id || item?.id === session.data.id;
+  return (
+    item?.id === session.data.id ||
+    item?.authorId === session.data.id ||
+    item?.userId === session.data.id
+  );
 };
