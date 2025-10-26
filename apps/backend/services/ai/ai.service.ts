@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { AIProvider, ChatMessage, ChatResponse, ChatOptions } from './types';
 import { GeminiProvider } from './provider/gemini';
 
