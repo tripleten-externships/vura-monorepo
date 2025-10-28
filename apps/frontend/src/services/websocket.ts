@@ -62,6 +62,7 @@ class WebSocketService {
   private maxReconnectAttempts: number = 5;
   private listeners: EventListeners = new Map();
   private baseUrl: string = '';
+  private joinedRooms: Set<string> = new Set();
 
   constructor() {
     // Get API URL from environment or use default
@@ -98,6 +99,19 @@ class WebSocketService {
           console.log('WebSocket connected');
           this.connected = true;
           this.reconnectAttempts = 0;
+
+          // rebind event listeners after (re)connect
+          for (const [event, callbacks] of this.listeners.entries()) {
+            for (const cb of callbacks) {
+              this.socket!.on(event, cb);
+            }
+          }
+
+          // rejoin previously joined rooms
+          for (const groupId of this.joinedRooms.values()) {
+            this.socket!.emit(SocketEvents.JOIN_ROOM, groupId);
+          }
+
           resolve();
         });
 
@@ -169,7 +183,7 @@ class WebSocketService {
       console.error('Cannot join room: WebSocket not connected');
       return;
     }
-
+    this.joinedRooms.add(groupId);
     this.socket.emit(SocketEvents.JOIN_ROOM, groupId);
   }
 
@@ -181,7 +195,7 @@ class WebSocketService {
       console.error('Cannot leave room: WebSocket not connected');
       return;
     }
-
+    this.joinedRooms.delete(groupId);
     this.socket.emit(SocketEvents.LEAVE_ROOM, groupId);
   }
 

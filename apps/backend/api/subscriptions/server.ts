@@ -52,84 +52,49 @@ export function createSubscriptionServer(options: SubscriptionServerOptions) {
       // Second parameter is for context
       {
         context: async (ctx: any) => {
-          // Get the Keystone context
           const keystoneContext = await context();
+          const connectionParams = ctx.connectionParams || {};
+          const authToken = connectionParams.Authorization || connectionParams.authorization;
 
-          // Get auth token from connection parameters
-          const connectionParams = ctx.connectionParams;
-          const authToken = connectionParams?.Authorization || connectionParams?.authorization;
-
-          // If we have a token, try to get the session
-          let session = null;
-          if (authToken && keystoneContext.sessionStrategy) {
-            try {
-              // For WebSocket subscriptions, we need to parse the token to get user identity
-              // This assumes a JWT token format - adjust if using a different format
-              try {
-                // Extract token payload (assumes JWT format: header.payload.signature)
-                const parts = (authToken as string).split('.');
-                if (parts.length === 3) {
-                  // Decode the base64 payload
-                  const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-                  const jsonPayload = Buffer.from(base64, 'base64').toString();
-                  const payload = JSON.parse(jsonPayload);
-
-                  // Create a session with the user data from token
-                  session = {
-                    data: {
-                      id: payload.id || payload.sub || payload.userId,
-                      name: payload.name,
-                      email: payload.email,
-                      isAuthenticated: true,
-                    },
-                  };
-
-                  logger.info(`Created session for user ID: ${session.data.id}`);
-                } else {
-                  // Try to extract user ID from token string if not JWT
-                  // This is a fallback for custom token formats
-                  const tokenStr = authToken as string;
-                  const userIdMatch =
-                    tokenStr.match(/id[=:]([^;,&]+)/i) || tokenStr.match(/user[=:]([^;,&]+)/i);
-
-                  if (userIdMatch && userIdMatch[1]) {
-                    session = {
-                      data: {
-                        id: userIdMatch[1],
-                        isAuthenticated: true,
-                      },
-                    };
-                    logger.info(`Created session with extracted user ID: ${session.data.id}`);
-                  } else {
-                    logger.warn('Could not extract user ID from token, using generic ID');
-                    session = {
-                      data: {
-                        id: 'subscription-user',
-                        isAuthenticated: true,
-                      },
-                    };
-                  }
-                }
-              } catch (tokenError) {
-                logger.error('Failed to parse auth token:', tokenError);
-                // Fallback to a generic session
-                session = {
-                  data: {
-                    id: 'anonymous-user',
-                    isAuthenticated: false,
-                  },
-                };
-              }
-            } catch (error) {
-              logger.error('Subscription auth error:', error);
-            }
+          if (!authToken) {
+            socket.close(CloseCode.Unauthorized, 'Missing auth token');
+            throw new Error('Unauthorized');
           }
 
-          // Return the context with session if available
-          return {
-            ...keystoneContext,
-            session,
-          };
+          try {
+            if (!keystoneContext.sessionStrategy) {
+              socket.close(CloseCode.Unauthorized, 'Session strategy unavailable');
+              throw new Error('Unauthorized');
+            }
+
+            const req = {
+              headers: {
+                authorization: authToken,
+              },
+              cookies: {
+                'keystonejs-session': authToken,
+              },
+            } as any;
+
+            const session = await (keystoneContext.sessionStrategy as any).get({
+              req,
+              context: keystoneContext,
+            });
+
+            if (!session?.data?.id) {
+              socket.close(CloseCode.Unauthorized, 'Invalid session');
+              throw new Error('Unauthorized');
+            }
+
+            return {
+              ...keystoneContext,
+              session,
+            };
+          } catch (err) {
+            logger.error('Subscription authentication failed');
+            socket.close(CloseCode.Unauthorized, 'Authentication failed');
+            throw new Error('Unauthorized');
+          }
         },
       }
     );

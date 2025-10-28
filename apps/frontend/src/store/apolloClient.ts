@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const AUTH_TOKEN = '__drops_token';
 const apiBaseUrl = (process.env.VITE_API_URL as string | undefined) || 'http://localhost:3001';
+const wsPrefix = (process.env.VITE_API_URL as string | undefined) ? 'wss' : 'ws';
 
 export const httpLink = new HttpLink({ uri: `${apiBaseUrl.replace(/\/$/, '')}/api/graphql` });
 
@@ -26,7 +27,7 @@ const createWebSocketLink = async () => {
 
   return new GraphQLWsLink(
     createClient({
-      url: `ws://${apiBaseUrl.replace(/^https?:\/\/|\/$/g, '')}/graphql/subscriptions`,
+      url: `${wsPrefix}://${apiBaseUrl.replace(/^https?:\/\/|\/$/g, '')}/graphql/subscriptions`,
       connectionParams: {
         Authorization: token || '',
       },

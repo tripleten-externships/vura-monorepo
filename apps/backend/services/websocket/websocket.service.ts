@@ -57,83 +57,37 @@ export class WebSocketService {
         // Get context to access session
         const context = await this.contextProvider();
 
-        // Log for debugging
-        logger.info(`Authenticating socket connection with token: ${token.substring(0, 10)}...`);
-
         try {
-          // For debugging - log the token format
-          logger.info(
-            `Token format check: ${token.startsWith('Fe26.2') ? 'Valid KeystoneJS format' : 'Unknown format'}`
-          );
+          const req = {
+            headers: {
+              authorization: token,
+            },
+            cookies: {
+              'keystonejs-session': token,
+            },
+          } as any;
 
-          // Try different approaches to authenticate
+          const session = await context.sessionStrategy.get({ req, context });
 
-          // Approach 1: Direct session verification
-          try {
-            // Create a mock request with the authorization header
-            const req = {
-              headers: {
-                authorization: token,
-              },
-              cookies: {
-                'keystonejs-session': token,
-              },
-            };
+          if (session?.data?.id) {
+            socket.userId = session.data.id;
+            socket.username = session.data.name || session.data.email;
 
-            // Verify token using Keystone session
-            const session = await context.sessionStrategy.get({ req, context });
-
-            if (session?.data?.id) {
-              // Add user data to socket
-              socket.userId = session.data.id;
-              socket.username = session.data.name || session.data.email;
-
-              logger.info(`Socket authenticated for user: ${socket.userId}`);
-
-              // Emit success event
-              socket.emit('authentication:success', { userId: socket.userId });
-
-              return next();
-            }
-
-            logger.warn('Session verification returned no user ID');
-          } catch (sessionError) {
-            logger.warn('Direct session verification failed:', sessionError);
+            logger.info(`Socket authenticated for user: ${socket.userId}`);
+            socket.emit('authentication:success', { userId: socket.userId });
+            return next();
           }
 
-          // Approach 2: Try parsing the token if it's in the expected format
-          if (token.startsWith('Fe26.2')) {
-            try {
-              // This is a simplified approach - in production you would use proper session decoding
-              // For now, we'll just allow the connection for testing
-              logger.info(
-                'Token appears to be in KeystoneJS format, allowing connection for testing'
-              );
-
-              // Assign a temporary user ID for testing
-              socket.userId = 'test-user-id';
-              socket.username = 'Test User';
-
-              // Emit success event
-              socket.emit('authentication:success', { userId: socket.userId });
-
-              return next();
-            } catch (parseError) {
-              logger.warn('Token parsing failed:', parseError);
-            }
-          }
-
-          // If we get here, authentication failed
-          logger.error('All authentication approaches failed');
+          logger.warn('Session verification returned no user ID');
           socket.emit('authentication:error', 'Invalid authentication token');
           return next(new Error('Invalid authentication token'));
         } catch (sessionError) {
-          logger.error('Session verification failed:', sessionError);
+          logger.error('Session verification failed');
           socket.emit('authentication:error', 'Session verification failed');
           return next(new Error('Invalid authentication token'));
         }
       } catch (error: any) {
-        logger.error('Socket authentication error:', error);
+        logger.error('Socket authentication error');
         socket.emit('authentication:error', 'Authentication failed');
         next(new Error('Authentication failed'));
       }

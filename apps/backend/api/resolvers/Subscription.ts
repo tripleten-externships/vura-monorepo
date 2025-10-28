@@ -8,13 +8,25 @@ export const Subscription = {
   messageSent: {
     subscribe: withFilter(
       () => pubsub.asyncIterableIterator(SubscriptionTopics.NEW_CHAT_MESSAGE),
-      (payload, variables, context) => {
-        // Filter messages by group ID
-        return payload.groupId === variables.groupId;
+      async (payload, variables, context: any) => {
+        const userId = context.session?.data?.id;
+        if (!userId) return false;
+
+        if (payload.groupId !== variables.groupId) return false;
+
+        const group = await context.query.GroupChat.findOne({
+          where: { id: variables.groupId },
+          query: 'id owner { id } members { id }',
+        });
+        if (!group) return false;
+        const isOwner = group.owner?.id === userId;
+        const isMember =
+          Array.isArray(group.members) &&
+          group.members.some((m: { id: string }) => m.id === userId);
+        return isOwner || isMember;
       }
     ),
     resolve: (payload: any) => {
-      // Return the message data
       return {
         id: payload.id,
         message: payload.message,
@@ -29,9 +41,21 @@ export const Subscription = {
   typingIndicator: {
     subscribe: withFilter(
       () => pubsub.asyncIterableIterator(SubscriptionTopics.TYPING_INDICATOR),
-      (payload, variables) => {
-        // Filter typing indicators by group ID
-        return payload.groupId === variables.groupId;
+      async (payload, variables, context: any) => {
+        const userId = context.session?.data?.id;
+        if (!userId) return false;
+        if (payload.groupId !== variables.groupId) return false;
+
+        const group = await context.query.GroupChat.findOne({
+          where: { id: variables.groupId },
+          query: 'id owner { id } members { id }',
+        });
+        if (!group) return false;
+        const isOwner = group.owner?.id === userId;
+        const isMember =
+          Array.isArray(group.members) &&
+          group.members.some((m: { id: string }) => m.id === userId);
+        return isOwner || isMember;
       }
     ),
   },
@@ -40,12 +64,12 @@ export const Subscription = {
   userStatusChanged: {
     subscribe: withFilter(
       () => pubsub.asyncIterableIterator(SubscriptionTopics.USER_STATUS_CHANGED),
-      (payload, variables) => {
-        // If userId is provided, filter by that user ID
+      (payload, variables, context: any) => {
+        const userId = context.session?.data?.id;
+        if (!userId) return false;
         if (variables.userId) {
           return payload.userId === variables.userId;
         }
-        // Otherwise, return all user status changes
         return true;
       }
     ),
@@ -55,9 +79,21 @@ export const Subscription = {
   aiMessageReceived: {
     subscribe: withFilter(
       () => pubsub.asyncIterableIterator(SubscriptionTopics.NEW_AI_MESSAGE),
-      (payload, variables) => {
-        // Filter AI messages by session ID
-        return payload.sessionId === variables.sessionId;
+      async (payload, variables, context: any) => {
+        const userId = context.session?.data?.id;
+        if (!userId) return false;
+        if (payload.sessionId !== variables.sessionId) return false;
+
+        // verify the session belongs to the user
+        try {
+          const session = await context.query.AiChatSession.findOne({
+            where: { id: variables.sessionId },
+            query: 'id user { id }',
+          });
+          return session?.user?.id === userId;
+        } catch {
+          return false;
+        }
       }
     ),
   },
