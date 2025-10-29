@@ -240,6 +240,19 @@ export const typeDefs = gql`
     metadata: JSON
   }
 
+  # Single AI chat message create (persist & return session id)
+  input CreateAiChatMessageInput {
+    sessionId: ID
+    prompt: String!
+  }
+
+  type CreateAiChatMessageResult {
+    success: Boolean!
+    message: String
+    error: String
+    sessionId: ID
+  }
+
   # Profile Management
   input UpdateProfileInput {
     name: String
@@ -288,6 +301,7 @@ export const typeDefs = gql`
     submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
     updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
     aiChat(input: AiChatInput!): AiChatResponse!
+    createAiChatMessage(input: CreateAiChatMessageInput!): CreateAiChatMessageResult!
     typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
     updateUserStatus(input: UserStatusInput!): SuccessResponse!
   }
