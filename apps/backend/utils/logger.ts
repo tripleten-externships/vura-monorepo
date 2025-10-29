@@ -1,6 +1,26 @@
 import { Context } from '../types/context';
 
 /**
+ * Simple logger utility for consistent logging across the application
+ */
+export const logger = {
+  info: (message: string, ...args: any[]) => {
+    console.log(`[INFO] ${message}`, ...args);
+  },
+  warn: (message: string, ...args: any[]) => {
+    console.warn(`[WARN] ${message}`, ...args);
+  },
+  error: (message: string, ...args: any[]) => {
+    console.error(`[ERROR] ${message}`, ...args);
+  },
+  debug: (message: string, ...args: any[]) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug(`[DEBUG] ${message}`, ...args);
+    }
+  },
+};
+
+/**
  * Log an audit event for user actions
  * @param context - The Keystone context
  * @param eventType - Type of event being logged
