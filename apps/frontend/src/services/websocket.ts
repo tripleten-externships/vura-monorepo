@@ -66,7 +66,7 @@ class WebSocketService {
 
   constructor() {
     // Get API URL from environment or use default
-    this.baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    this.baseUrl = typeof VITE_API_URL !== 'undefined' ? VITE_API_URL : 'http://localhost:3001';
   }
 
   /**

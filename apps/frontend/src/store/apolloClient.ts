@@ -6,8 +6,8 @@ import { createClient } from 'graphql-ws';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const AUTH_TOKEN = '__drops_token';
-const apiBaseUrl = (process.env.VITE_API_URL as string | undefined) || 'http://localhost:3001';
-const wsPrefix = (process.env.VITE_API_URL as string | undefined) ? 'wss' : 'ws';
+const apiBaseUrl = typeof VITE_API_URL !== 'undefined' ? VITE_API_URL : 'http://localhost:3001';
+const wsPrefix = typeof VITE_API_URL !== 'undefined' && VITE_API_URL ? 'wss' : 'ws';
 
 export const httpLink = new HttpLink({ uri: `${apiBaseUrl.replace(/\/$/, '')}/api/graphql` });
 
