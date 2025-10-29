@@ -176,6 +176,24 @@ export const WebSocketTest = () => {
         <Button title="Force Reconnect" onPress={handleReconnect} color="#4CAF50" />
         <View style={{ height: 10 }} />
         <Button title="Check Token" onPress={showToken} color="#2196F3" />
+        <View style={{ height: 10 }} />
+        <Button
+          title="Enable Debug Logging"
+          onPress={() => {
+            websocketService.enableDebugLogging();
+            setMessages((prev) => [...prev, 'Debug logging enabled - check console']);
+          }}
+          color="#FF9800"
+        />
+        <View style={{ height: 10 }} />
+        <Button
+          title="Enable Socket.IO Debug"
+          onPress={() => {
+            websocketService.enableSocketIODebug();
+            setMessages((prev) => [...prev, 'Socket.IO debug enabled - reload page']);
+          }}
+          color="#9C27B0"
+        />
       </View>
 
       <View style={styles.messagesContainer}>
