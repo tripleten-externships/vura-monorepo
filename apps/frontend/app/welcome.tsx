@@ -7,90 +7,64 @@ import { PostInput } from '../src/components/PostInput/PostInput';
 import { InputField } from '../src/components/InputField/InputField';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AUTH_TOKEN } from '../src/store/apolloClient';
+import { WebSocketTest } from '../src/components/WebSocketTest';
+import { USER_LOGIN } from '../src/graphql/mutations';
+import { useMutation } from '@apollo/client/react';
 
 export default function WelcomePage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const [login, { loading }] = useMutation(USER_LOGIN);
+
   // debug effect to monitor isLoggedIn state
   useEffect(() => {
-    console.log('isLoggedIn state changed:', isLoggedIn);
+    console.log('isLoggedIn state changed: ', isLoggedIn);
   }, [isLoggedIn]);
 
   const handleLogin = async () => {
     try {
-      console.log('Attempting login with:', { email, password });
+      console.log('Attempting login with: ', { email, password });
 
-      // Simple login request
-      const response = await fetch('http://localhost:3001/api/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            mutation Login($email: String!, $password: String!) {
-              authenticateUserWithPassword(email: $email, password: $password) {
-                ... on UserAuthenticationWithPasswordSuccess {
-                  sessionToken
-                  item {
-                    id
-                    name
-                    email
-                  }
-                }
-                ... on UserAuthenticationWithPasswordFailure {
-                  message
-                }
-              }
-            }
-          `,
-          variables: { email, password },
-        }),
+      const { data } = await login({
+        variables: { email, password },
       });
 
-      const result = await response.json();
-      console.log('Login response:', result);
+      console.log('Login response: ', data);
 
-      if (result.errors) {
-        console.error('Login errors:', result.errors);
-        Alert.alert('Error', result.errors[0].message);
+      if (!data) {
+        console.error('No data returned');
+        Alert.alert('Error', 'Authentication failed');
         return;
       }
 
-      const auth = result.data?.authenticateUserWithPassword;
-      console.log('Auth data:', auth);
+      const auth = data.authenticateUserWithPassword;
+      console.log('Auth data: ', auth);
+
       if (!auth) {
         console.error('No auth data returned');
         Alert.alert('Error', 'Authentication failed');
         return;
       }
 
-      // Check if we have a sessionToken and item - this means authentication was successful
-      if (auth.sessionToken && auth.item) {
-        console.log('Login successful:', auth.item);
-        // Store the token
+      // check the __typename to determine success or failure
+      if (auth.__typename === 'UserAuthenticationWithPasswordSuccess') {
+        console.log('Login successful: ', auth.item);
+        // store the token
         await AsyncStorage.setItem(AUTH_TOKEN, auth.sessionToken);
-        console.log('Token stored in AsyncStorage:', auth.sessionToken);
+        console.log('Token stored in AsyncStorage: ', auth.sessionToken);
         setIsLoggedIn(true);
         Alert.alert('Success', `Logged in as ${auth.item.name || auth.item.email}`);
-      } else if (auth.__typename === 'UserAuthenticationWithPasswordSuccess') {
-        // Handle the case with __typename if it exists
-        console.log('Login successful (typed):', auth.item);
-        await AsyncStorage.setItem(AUTH_TOKEN, auth.sessionToken);
-        console.log('Token stored in AsyncStorage:', auth.sessionToken);
-        setIsLoggedIn(true);
-        Alert.alert('Success', `Logged in as ${auth.item.name || auth.item.email}`);
-      } else if (auth.__typename === 'UserAuthenticationWithPasswordFailure' || auth.message) {
-        console.error('Login failed:', auth.message);
+      } else if (auth.__typename === 'UserAuthenticationWithPasswordFailure') {
+        console.error('Login failed: ', auth.message);
         Alert.alert('Login Failed', auth.message);
       } else {
-        console.error('Unknown auth response format:', auth);
+        console.error('Unknown auth response format: ', auth);
         Alert.alert('Error', 'Unknown authentication response format');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error: ', error);
       Alert.alert('Error', 'Failed to login. Please try again.');
     }
   };
@@ -173,13 +147,16 @@ export default function WelcomePage() {
       <Bell bellIcon={{ uri: '../../assets/notification_bell.png' }} />
       {/* Always show login button */}
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, loading && styles.buttonDisabled]}
         onPress={() => {
           console.log('Login button pressed');
           handleLogin();
         }}
+        disabled={loading}
       >
-        <Text style={styles.buttonText}>{isLoggedIn ? 'Refresh Login' : 'Login'}</Text>
+        <Text style={styles.buttonText}>
+          {loading ? 'Logging in...' : isLoggedIn ? 'Refresh Login' : 'Login'}
+        </Text>
       </TouchableOpacity>
 
       {/* Separate section for WebSocketTest */}
@@ -187,7 +164,9 @@ export default function WelcomePage() {
         <View style={styles.loggedInContainer}>
           <Text style={styles.successText}>You're logged in! WebSocket test below:</Text>
           <View style={styles.websocketContainer}>
-            <Text>[Jonah - 20251020] WebSocket test disabled for now</Text>
+            {/* <WSTestScreen /> */}
+            <WebSocketTest />
+            {/* <Text>[Jonah - 20251020] WebSocket test disabled for now</Text> */}
           </View>
         </View>
       )}
@@ -221,6 +200,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 8,
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
+    opacity: 0.6,
   },
   buttonText: {
     color: 'white',

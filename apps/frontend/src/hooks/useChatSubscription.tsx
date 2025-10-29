@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSubscription, useMutation } from '@apollo/client';
+import { useSubscription, useMutation } from '@apollo/client/react';
 import {
   MESSAGE_SENT_SUBSCRIPTION,
   TYPING_INDICATOR_SUBSCRIPTION,
@@ -38,7 +38,7 @@ interface UserStatus {
 
 interface UseChatSubscriptionProps {
   groupId: string;
-  userId?: string; // Optional, for filtering user status updates
+  userId?: string;
 }
 
 export function useChatSubscription({ groupId, userId }: UseChatSubscriptionProps) {
@@ -46,25 +46,26 @@ export function useChatSubscription({ groupId, userId }: UseChatSubscriptionProp
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
   const [userStatuses, setUserStatuses] = useState<Map<string, string>>(new Map());
 
-  // Subscriptions
-  const { data: messageData } = useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
+  // subscriptions
+  // TODO: Jonah – 20251029:add correct type interfaces for subscription hook constants
+  const { data: messageData }: any = useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
     variables: { groupId },
   });
 
-  const { data: typingData } = useSubscription(TYPING_INDICATOR_SUBSCRIPTION, {
+  const { data: typingData }: any = useSubscription(TYPING_INDICATOR_SUBSCRIPTION, {
     variables: { groupId },
   });
 
-  const { data: statusData } = useSubscription(USER_STATUS_SUBSCRIPTION, {
+  const { data: statusData }: any = useSubscription(USER_STATUS_SUBSCRIPTION, {
     variables: { userId },
   });
 
-  // Mutations
+  // mutations
   const [sendMessage] = useMutation(SEND_CHAT_MESSAGE);
   const [sendTypingIndicator] = useMutation(TYPING_INDICATOR);
   const [updateUserStatus] = useMutation(UPDATE_USER_STATUS);
 
-  // Handle new messages
+  // handle new messages
   useEffect(() => {
     if (messageData?.messageSent) {
       const newMessage = messageData.messageSent;
@@ -72,7 +73,7 @@ export function useChatSubscription({ groupId, userId }: UseChatSubscriptionProp
     }
   }, [messageData]);
 
-  // Handle typing indicators
+  // handle typing indicators
   useEffect(() => {
     if (typingData?.typingIndicator) {
       const { userId, username, isTyping } = typingData.typingIndicator;
@@ -89,7 +90,7 @@ export function useChatSubscription({ groupId, userId }: UseChatSubscriptionProp
     }
   }, [typingData]);
 
-  // Handle user status changes
+  // handle user status changes
   useEffect(() => {
     if (statusData?.userStatusChanged) {
       const { userId, username, status } = statusData.userStatusChanged;
@@ -102,7 +103,7 @@ export function useChatSubscription({ groupId, userId }: UseChatSubscriptionProp
     }
   }, [statusData]);
 
-  // Helper function to send a message
+  // helper function to send a message
   const sendChatMessage = async (message: string) => {
     try {
       await sendMessage({
@@ -120,7 +121,7 @@ export function useChatSubscription({ groupId, userId }: UseChatSubscriptionProp
     }
   };
 
-  // Helper function to send typing indicator
+  // helper function to send typing indicator
   const setTyping = async (isTyping: boolean) => {
     try {
       await sendTypingIndicator({
@@ -138,7 +139,7 @@ export function useChatSubscription({ groupId, userId }: UseChatSubscriptionProp
     }
   };
 
-  // Helper function to update user status
+  // helper function to update user status
   const setUserStatus = async (status: 'online' | 'offline') => {
     try {
       await updateUserStatus({

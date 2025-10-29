@@ -22,7 +22,6 @@ export function createSubscriptionServer(options: SubscriptionServerOptions) {
     path: '/graphql/subscriptions',
   });
 
-  // implement
   wsServer.on('connection', (socket, request) => {
     // a new socket opened, let graphql-ws take over
     const closed = server.opened(
@@ -49,7 +48,7 @@ export function createSubscriptionServer(options: SubscriptionServerOptions) {
             }
           }),
       },
-      // Second parameter is for context
+      // second parameter is for context
       {
         context: async (ctx: any) => {
           const keystoneContext = await context();
@@ -69,29 +68,30 @@ export function createSubscriptionServer(options: SubscriptionServerOptions) {
 
             const req = {
               headers: {
-                authorization: authToken,
-              },
-              cookies: {
-                'keystonejs-session': authToken,
+                cookie: `keystonejs-session=${authToken}`,
               },
             } as any;
 
-            const session = await (keystoneContext.sessionStrategy as any).get({
-              req,
-              context: keystoneContext,
-            });
+            const res = {} as any;
 
-            if (!session?.data?.id) {
+            logger.info('GraphQL-WS: Attempting to create context with session');
+
+            // use Keystone's withRequest() to create a context with session populated
+            const contextWithSession = await (keystoneContext as any).withRequest(req, res);
+
+            logger.info(
+              'GraphQL-WS: Session:',
+              JSON.stringify(contextWithSession.session, null, 2)
+            );
+
+            if (!contextWithSession.session?.data?.id) {
               socket.close(CloseCode.Unauthorized, 'Invalid session');
               throw new Error('Unauthorized');
             }
 
-            return {
-              ...keystoneContext,
-              session,
-            };
+            return contextWithSession;
           } catch (err) {
-            logger.error('Subscription authentication failed');
+            logger.error('Subscription authentication failed:', err);
             socket.close(CloseCode.Unauthorized, 'Authentication failed');
             throw new Error('Unauthorized');
           }

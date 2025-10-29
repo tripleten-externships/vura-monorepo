@@ -35,10 +35,10 @@ export class WebSocketService {
   }
 
   private setupMiddleware() {
-    // Authentication middleware
+    // authentication middleware
     this.io.use(async (socket: AuthenticatedSocket, next) => {
       try {
-        // Try to get the token from various places
+        // try to get the token
         const authToken = socket.handshake.auth.token;
         const authHeaderToken = socket.handshake.headers.authorization as string;
         const token = authToken || authHeaderToken;
@@ -54,35 +54,50 @@ export class WebSocketService {
           return next(new Error('Authentication token is missing'));
         }
 
-        // Get context to access session
-        const context = await this.contextProvider();
+        // get base context
+        const baseContext = await this.contextProvider();
 
         try {
+          // create a proper Express-like request object for Keystone's session strategy
+          // Keystone's stateless session reads from req.headers.cookie
           const req = {
             headers: {
-              authorization: token,
-            },
-            cookies: {
-              'keystonejs-session': token,
+              cookie: `keystonejs-session=${token}`,
             },
           } as any;
 
-          const session = await context.sessionStrategy.get({ req, context });
+          const res = {} as any;
 
-          if (session?.data?.id) {
-            socket.userId = session.data.id;
-            socket.username = session.data.name || session.data.email;
+          logger.info('Attempting to get session with token:', token.substring(0, 20) + '...');
+          logger.info('Has sessionStrategy:', !!baseContext.sessionStrategy);
+
+          // create a context with session populated, the way Keystone does for HTTP requests
+          // this uses the context.withRequest() method if available, or manually creates the session
+          const contextWithSession = await (baseContext as any).withRequest(req, res);
+
+          logger.info('Context with session created');
+          logger.info('Session:', JSON.stringify(contextWithSession.session, null, 2));
+
+          if (contextWithSession.session?.data?.id) {
+            socket.userId = contextWithSession.session.data.id;
+            socket.username =
+              contextWithSession.session.data.name || contextWithSession.session.data.email;
 
             logger.info(`Socket authenticated for user: ${socket.userId}`);
             socket.emit('authentication:success', { userId: socket.userId });
             return next();
           }
 
-          logger.warn('Session verification returned no user ID');
+          logger.warn('Session verification returned no user ID', {
+            session: contextWithSession.session,
+          });
           socket.emit('authentication:error', 'Invalid authentication token');
           return next(new Error('Invalid authentication token'));
-        } catch (sessionError) {
-          logger.error('Session verification failed');
+        } catch (sessionError: any) {
+          logger.error('Session verification failed:', {
+            error: sessionError.message,
+            stack: sessionError.stack,
+          });
           socket.emit('authentication:error', 'Session verification failed');
           return next(new Error('Invalid authentication token'));
         }
@@ -105,23 +120,23 @@ export class WebSocketService {
 
       logger.info(`User connected: ${userId}`);
 
-      // Track user's socket connections
+      // track user's socket connections
       this.trackUserConnection(userId, socket.id);
 
-      // Notify user's connections
+      // notify user's connections
       this.broadcastUserStatus(userId, true);
 
-      // Handle join room (for group chats)
+      // handle join room (for group chats)
       socket.on(SocketEvents.JOIN_ROOM, (groupId: string) => {
         this.joinRoom(socket, groupId, userId);
       });
 
-      // Handle leave room
+      // handle leave room
       socket.on(SocketEvents.LEAVE_ROOM, (groupId: string) => {
         this.leaveRoom(socket, groupId, userId);
       });
 
-      // Handle typing indicators
+      // handle typing indicators
       socket.on(SocketEvents.TYPING_START, (groupId: string) => {
         socket.to(`group:${groupId}`).emit(SocketEvents.TYPING_START, { userId, groupId });
       });
@@ -130,7 +145,7 @@ export class WebSocketService {
         socket.to(`group:${groupId}`).emit(SocketEvents.TYPING_STOP, { userId, groupId });
       });
 
-      // Handle disconnection
+      // handle disconnection
       socket.on('disconnect', () => {
         this.handleDisconnect(socket, userId);
       });
@@ -148,7 +163,7 @@ export class WebSocketService {
     const roomId = `group:${groupId}`;
     socket.join(roomId);
 
-    // Track users in group
+    // track users in group
     if (!this.groupUsers.has(groupId)) {
       this.groupUsers.set(groupId, new Set());
     }
@@ -161,7 +176,7 @@ export class WebSocketService {
     const roomId = `group:${groupId}`;
     socket.leave(roomId);
 
-    // Remove user from group tracking
+    // remove user from group tracking
     if (this.groupUsers.has(groupId)) {
       this.groupUsers.get(groupId)!.delete(userId);
       if (this.groupUsers.get(groupId)!.size === 0) {
@@ -177,12 +192,12 @@ export class WebSocketService {
 
     logger.info(`User disconnected: ${userId}`);
 
-    // Remove socket from tracking
+    // remove socket from tracking
     if (this.userSockets.has(userId)) {
       this.userSockets.get(userId)!.delete(socket.id);
       if (this.userSockets.get(userId)!.size === 0) {
         this.userSockets.delete(userId);
-        // Broadcast offline status only when all user's sockets are disconnected
+        // broadcast offline status only when all user's sockets are disconnected
         this.broadcastUserStatus(userId, false);
       }
     }
@@ -193,10 +208,10 @@ export class WebSocketService {
     this.io.emit(event, { userId });
   }
 
-  // Public methods for sending messages
+  // public methods for sending messages
 
   /**
-   * Emit a new chat message to all users in a group
+   * emit a new chat message to all users in a group
    */
   public emitNewChatMessage(message: ChatMessagePayload) {
     const roomId = `group:${message.groupId}`;
@@ -205,7 +220,7 @@ export class WebSocketService {
   }
 
   /**
-   * Emit AI message chunks for streaming responses
+   * emit AI message chunks for streaming responses
    */
   public emitAiMessageChunk(userId: string, chunk: string, sessionId: string) {
     this.emitToUser(userId, SocketEvents.AI_MESSAGE_CHUNK, {
@@ -215,14 +230,14 @@ export class WebSocketService {
   }
 
   /**
-   * Emit AI message completion
+   * emit AI message completion
    */
   public emitAiMessageComplete(userId: string, message: AiChatMessagePayload) {
     this.emitToUser(userId, SocketEvents.AI_MESSAGE_COMPLETE, message);
   }
 
   /**
-   * Emit to a specific user (across all their devices/connections)
+   * emit to a specific user (across all their devices/connections)
    */
   public emitToUser(userId: string, event: string, data: any) {
     if (!this.userSockets.has(userId)) return;
@@ -234,7 +249,7 @@ export class WebSocketService {
   }
 
   /**
-   * Get the Socket.IO server instance
+   * get the socket.io server instance
    */
   public getIO(): SocketIOServer {
     return this.io;
