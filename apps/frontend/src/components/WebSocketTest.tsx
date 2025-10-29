@@ -81,7 +81,9 @@ export const WebSocketTest = () => {
       setMessages((prev) => [...prev, 'Attempting manual reconnect...']);
 
       // create a direct socket connection for testing
-      const socket = io('http://localhost:3001', {
+      const apiBaseUrl =
+        typeof VITE_API_URL !== 'undefined' ? VITE_API_URL : 'http://localhost:3001';
+      const socket = io(apiBaseUrl, {
         path: '/socket.io',
         auth: { token: storedToken },
         extraHeaders: {
