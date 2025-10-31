@@ -1,7 +1,7 @@
 import { User } from './user';
 
 import { list } from '@keystone-6/core';
-import { text, integer, relationship, json, timestamp, select } from '@keystone-6/core/fields';
+import { text, integer, relationship, json, timestamp } from '@keystone-6/core/fields';
 
 export const Parent = list({
   //only logged in users can create, update, and delete
@@ -29,20 +29,20 @@ export const Parent = list({
     name: text({
       validation: { isRequired: true },
     }),
+
     age: integer({
-      validation: { isRequired: true },
+      validation: { isRequired: true, min: 0 },
     }),
 
     relationship: text({
       validation: { isRequired: true },
     }),
+    health_conditions: json(),
 
-    healthConditions: json(),
-
-    createdAt: timestamp({
+    created_at: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    updatedAt: timestamp({
+    updated_at: timestamp({
       db: { updatedAt: true },
     }),
     user: relationship({
