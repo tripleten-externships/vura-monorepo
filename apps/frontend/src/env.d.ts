@@ -1,4 +1,4 @@
-declare const VITE_API_URL: string;
+declare const VITE_API_URL: string | undefined;
 declare const DEPLOYMENT_ENV: string;
 
 declare interface Window {

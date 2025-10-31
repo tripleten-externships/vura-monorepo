@@ -1,5 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
+import { getWebSocketService } from '../../../services/websocket';
+import { pubsub, SubscriptionTopics } from '../../subscriptions/pubsub';
 
 export interface SendChatMessageInput {
   groupId: string;
@@ -104,6 +106,44 @@ export const sendChatMessage = async (
       throw new GraphQLError('Failed to retrieve created message', {
         extensions: { code: 'INTERNAL_SERVER_ERROR' },
       });
+    }
+
+    const messagePayload = {
+      id: populatedMessage.id,
+      message: populatedMessage.message,
+      createdAt: populatedMessage.createdAt,
+      sender: {
+        id: populatedMessage.sender.id,
+        name: populatedMessage.sender.name || populatedMessage.sender.email,
+      },
+      groupId: populatedMessage.group?.id || groupId,
+    };
+
+    // Emit the message via WebSockets (legacy approach)
+    try {
+      const websocketService = getWebSocketService();
+      websocketService.emitNewChatMessage(messagePayload);
+    } catch (wsError) {
+      console.error('Failed to emit WebSocket event:', wsError);
+      // don't throw error here, just log it - the message was saved successfully
+    }
+
+    // Publish the message to GraphQL subscriptions
+    try {
+      // Create a message object that matches the expected format in the subscription resolver
+      const subscriptionPayload = {
+        id: populatedMessage.id,
+        message: populatedMessage.message,
+        createdAt: populatedMessage.createdAt,
+        sender: populatedMessage.sender,
+        groupId: populatedMessage.group?.id || groupId,
+      };
+
+      // Publish to the NEW_CHAT_MESSAGE topic
+      pubsub.publish(SubscriptionTopics.NEW_CHAT_MESSAGE, subscriptionPayload);
+    } catch (subError) {
+      console.error('Failed to publish subscription event:', subError);
+      // Don't throw error, the message was saved successfully
     }
 
     return {

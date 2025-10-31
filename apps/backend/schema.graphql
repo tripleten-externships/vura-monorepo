@@ -1640,6 +1640,8 @@ type Mutation {
   submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
   updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
   aiChat(input: AiChatInput!): AiChatResponse!
+  typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
+  updateUserStatus(input: UserStatusInput!): SuccessResponse!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -2074,4 +2076,38 @@ type UpdateProfileResponse {
   message: String
   error: String
   userId: ID
+}
+
+type SuccessResponse {
+  success: Boolean!
+  message: String
+}
+
+input TypingIndicatorInput {
+  groupId: ID!
+  isTyping: Boolean!
+}
+
+input UserStatusInput {
+  status: String!
+}
+
+type TypingIndicatorPayload {
+  userId: ID!
+  username: String
+  groupId: ID!
+  isTyping: Boolean!
+}
+
+type UserStatusPayload {
+  userId: ID!
+  username: String
+  status: String!
+}
+
+type Subscription {
+  messageSent(groupId: ID!): ChatMessageType!
+  typingIndicator(groupId: ID!): TypingIndicatorPayload!
+  userStatusChanged(userId: ID): UserStatusPayload!
+  aiMessageReceived(sessionId: ID!): AiChatResponse!
 }
