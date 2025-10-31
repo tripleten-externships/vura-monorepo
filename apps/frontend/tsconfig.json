@@ -7,5 +7,6 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true
   },
+  "include": ["src", "app", "declarations.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
