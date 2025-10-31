@@ -257,6 +257,23 @@ export const typeDefs = gql`
     userId: ID
   }
 
+  # Generic success response
+  type SuccessResponse {
+    success: Boolean!
+    message: String
+  }
+
+  # Typing indicator input
+  input TypingIndicatorInput {
+    groupId: ID!
+    isTyping: Boolean!
+  }
+
+  # User status input
+  input UserStatusInput {
+    status: String!
+  }
+
   # Root Types
   type Mutation {
     signup(input: SignupInput!): SignupResult!
@@ -271,6 +288,8 @@ export const typeDefs = gql`
     submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
     updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
     aiChat(input: AiChatInput!): AiChatResponse!
+    typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
+    updateUserStatus(input: UserStatusInput!): SuccessResponse!
   }
 
   type Query {
@@ -278,5 +297,35 @@ export const typeDefs = gql`
     getResources(input: GetResourcesInput): ResourceConnection!
     getForumPost(id: ID!): ForumPostDetails
     getForumPosts(input: GetForumPostsInput): ForumPostConnection!
+  }
+
+  # Typing indicator payload
+  type TypingIndicatorPayload {
+    userId: ID!
+    username: String
+    groupId: ID!
+    isTyping: Boolean!
+  }
+
+  # User status payload
+  type UserStatusPayload {
+    userId: ID!
+    username: String
+    status: String! # "online" or "offline"
+  }
+
+  # Subscription type for real-time events
+  type Subscription {
+    # Subscribe to new chat messages in a specific group
+    messageSent(groupId: ID!): ChatMessageType!
+
+    # Subscribe to typing indicators in a specific group
+    typingIndicator(groupId: ID!): TypingIndicatorPayload!
+
+    # Subscribe to user status changes
+    userStatusChanged(userId: ID): UserStatusPayload!
+
+    # Subscribe to AI chat messages for a specific session
+    aiMessageReceived(sessionId: ID!): AiChatResponse!
   }
 `;
