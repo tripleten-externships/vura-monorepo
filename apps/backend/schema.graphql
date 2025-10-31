@@ -1640,6 +1640,7 @@ type Mutation {
   submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
   updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
   aiChat(input: AiChatInput!): AiChatResponse!
+  createAiChatMessage(input: CreateAiChatMessageInput!): CreateAiChatMessageResult!
   typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
   updateUserStatus(input: UserStatusInput!): SuccessResponse!
 }
@@ -2060,6 +2061,18 @@ type AiChatResponse {
   content: String!
   usage: JSON
   metadata: JSON
+}
+
+input CreateAiChatMessageInput {
+  sessionId: ID
+  prompt: String!
+}
+
+type CreateAiChatMessageResult {
+  success: Boolean!
+  message: String
+  error: String
+  sessionId: ID
 }
 
 input UpdateProfileInput {
