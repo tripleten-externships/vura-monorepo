@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import { config } from '@keystone-6/core';
+import initGoogleStrategy from './google-strategy';
 
 dotenv.config();
 
@@ -11,6 +12,8 @@ import { Query } from './api/resolvers/Query';
 import { DateTime } from './api/resolvers/scalars';
 import { mergeSchemas } from '@graphql-tools/schema';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+
+initGoogleStrategy();
 
 const dbUrl =
   process.env.DATABASE_URL ||
