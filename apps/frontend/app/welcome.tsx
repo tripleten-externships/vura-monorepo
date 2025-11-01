@@ -1,15 +1,72 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 // import { router } from 'expo-router';
 import { Bell } from '../src/components/NotificationBell/NotificationBell';
 import { Emoji } from '../src/components/Emoji/Emoji';
 import { PostInput } from '../src/components/PostInput/PostInput';
 import { InputField } from '../src/components/InputField/InputField';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AUTH_TOKEN } from '../src/store/apolloClient';
+import { WebSocketTest } from '../src/components/WebSocketTest';
+import { USER_LOGIN } from '../src/graphql/mutations';
+import { useMutation } from '@apollo/client/react';
 
 export default function WelcomePage() {
-  const handleLogin = () => {
-    // navigate to login page or show login modal
-    console.log('Login pressed');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const [login, { loading }] = useMutation(USER_LOGIN);
+
+  // debug effect to monitor isLoggedIn state
+  useEffect(() => {
+    console.log('isLoggedIn state changed: ', isLoggedIn);
+  }, [isLoggedIn]);
+
+  const handleLogin = async () => {
+    try {
+      console.log('Attempting login with: ', { email, password });
+
+      const { data } = await login({
+        variables: { email, password },
+      });
+
+      console.log('Login response: ', data);
+
+      if (!data) {
+        console.error('No data returned');
+        Alert.alert('Error', 'Authentication failed');
+        return;
+      }
+
+      const auth = data.authenticateUserWithPassword;
+      console.log('Auth data: ', auth);
+
+      if (!auth) {
+        console.error('No auth data returned');
+        Alert.alert('Error', 'Authentication failed');
+        return;
+      }
+
+      // check the __typename to determine success or failure
+      if (auth.__typename === 'UserAuthenticationWithPasswordSuccess') {
+        console.log('Login successful: ', auth.item);
+        // store the token
+        await AsyncStorage.setItem(AUTH_TOKEN, auth.sessionToken);
+        console.log('Token stored in AsyncStorage: ', auth.sessionToken);
+        setIsLoggedIn(true);
+        Alert.alert('Success', `Logged in as ${auth.item.name || auth.item.email}`);
+      } else if (auth.__typename === 'UserAuthenticationWithPasswordFailure') {
+        console.error('Login failed: ', auth.message);
+        Alert.alert('Login Failed', auth.message);
+      } else {
+        console.error('Unknown auth response format: ', auth);
+        Alert.alert('Error', 'Unknown authentication response format');
+      }
+    } catch (error) {
+      console.error('Login error: ', error);
+      Alert.alert('Error', 'Failed to login. Please try again.');
+    }
   };
 
   return (
@@ -17,10 +74,17 @@ export default function WelcomePage() {
       <Text style={styles.title}>Welcome to Vura by Betterhunt</Text>
       <Text style={styles.subtitle}>Please log in to continue</Text>
 
-      {/* I added a temporary input field to test the component.*/}
+      {/* Debug info */}
+      <Text style={{ color: isLoggedIn ? 'green' : 'red', fontWeight: 'bold', marginBottom: 10 }}>
+        Login Status: {isLoggedIn ? 'Logged In' : 'Not Logged In'}
+      </Text>
+
+      {/* Login form */}
       <InputField
         placeholder="Email"
         placeholderTextColor="rgba(54,54,54,0.5)"
+        value={email}
+        onChange={setEmail}
         containerStyle={{
           borderColor: '#e7e7e7',
           paddingHorizontal: 20,
@@ -32,6 +96,8 @@ export default function WelcomePage() {
       <InputField
         placeholder="Password"
         placeholderTextColor="rgba(54,54,54,0.5)"
+        value={password}
+        onChange={setPassword}
         secureTextEntry
         containerStyle={{
           borderColor: '#e7e7e7',
@@ -79,9 +145,31 @@ export default function WelcomePage() {
       <Emoji emojiIcon={{ uri: '../../assets/smile.svg' }} />
       {/* test bell component  */}
       <Bell bellIcon={{ uri: '../../assets/notification_bell.png' }} />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      {/* Always show login button */}
+      <TouchableOpacity
+        style={[styles.button, loading && styles.buttonDisabled]}
+        onPress={() => {
+          console.log('Login button pressed');
+          handleLogin();
+        }}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? 'Logging in...' : isLoggedIn ? 'Refresh Login' : 'Login'}
+        </Text>
       </TouchableOpacity>
+
+      {/* Separate section for WebSocketTest */}
+      {isLoggedIn && (
+        <View style={styles.loggedInContainer}>
+          <Text style={styles.successText}>You're logged in! WebSocket test below:</Text>
+          <View style={styles.websocketContainer}>
+            {/* <WSTestScreen /> */}
+            <WebSocketTest />
+            {/* <Text>[Jonah - 20251020] WebSocket test disabled for now</Text> */}
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -113,9 +201,36 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 8,
   },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
+    opacity: 0.6,
+  },
   buttonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loggedInContainer: {
+    marginTop: 20,
+    padding: 20,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  websocketContainer: {
+    width: '100%',
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 10,
+    backgroundColor: '#ffffff',
+  },
+  successText: {
+    fontSize: 18,
+    color: '#4CAF50',
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
 });

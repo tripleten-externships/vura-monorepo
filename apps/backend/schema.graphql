@@ -735,9 +735,9 @@ type Parent {
   name: String
   age: Int
   relationship: String
-  healthConditions: JSON
-  createdAt: DateTime
-  updatedAt: DateTime
+  health_conditions: JSON
+  created_at: DateTime
+  updated_at: DateTime
   user: User
 }
 
@@ -753,8 +753,8 @@ input ParentWhereInput {
   name: StringFilter
   age: IntFilter
   relationship: StringFilter
-  createdAt: DateTimeNullableFilter
-  updatedAt: DateTimeNullableFilter
+  created_at: DateTimeNullableFilter
+  updated_at: DateTimeNullableFilter
   user: UserWhereInput
 }
 
@@ -774,17 +774,17 @@ input ParentOrderByInput {
   name: OrderDirection
   age: OrderDirection
   relationship: OrderDirection
-  createdAt: OrderDirection
-  updatedAt: OrderDirection
+  created_at: OrderDirection
+  updated_at: OrderDirection
 }
 
 input ParentUpdateInput {
   name: String
   age: Int
   relationship: String
-  healthConditions: JSON
-  createdAt: DateTime
-  updatedAt: DateTime
+  health_conditions: JSON
+  created_at: DateTime
+  updated_at: DateTime
   user: UserRelateToOneForUpdateInput
 }
 
@@ -797,9 +797,9 @@ input ParentCreateInput {
   name: String
   age: Int
   relationship: String
-  healthConditions: JSON
-  createdAt: DateTime
-  updatedAt: DateTime
+  health_conditions: JSON
+  created_at: DateTime
+  updated_at: DateTime
   user: UserRelateToOneForCreateInput
 }
 
@@ -1640,6 +1640,8 @@ type Mutation {
   submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
   updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
   aiChat(input: AiChatInput!): AiChatResponse!
+  typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
+  updateUserStatus(input: UserStatusInput!): SuccessResponse!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -2075,4 +2077,38 @@ type UpdateProfileResponse {
   message: String
   error: String
   userId: ID
+}
+
+type SuccessResponse {
+  success: Boolean!
+  message: String
+}
+
+input TypingIndicatorInput {
+  groupId: ID!
+  isTyping: Boolean!
+}
+
+input UserStatusInput {
+  status: String!
+}
+
+type TypingIndicatorPayload {
+  userId: ID!
+  username: String
+  groupId: ID!
+  isTyping: Boolean!
+}
+
+type UserStatusPayload {
+  userId: ID!
+  username: String
+  status: String!
+}
+
+type Subscription {
+  messageSent(groupId: ID!): ChatMessageType!
+  typingIndicator(groupId: ID!): TypingIndicatorPayload!
+  userStatusChanged(userId: ID): UserStatusPayload!
+  aiMessageReceived(sessionId: ID!): AiChatResponse!
 }

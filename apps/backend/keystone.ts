@@ -10,9 +10,13 @@ import { withAuth, session } from './api/middlewares/auth';
 import * as Models from './models';
 import { Query } from './api/resolvers/Query';
 import { Mutation } from './api/resolvers/Mutation';
+import { Subscription } from './api/resolvers/Subscription';
 import { DateTime, JSON } from './api/resolvers/scalars';
 import { typeDefs } from './api/schema/typeDefs';
 import { chatRoutes } from './routes/chat';
+
+import { initWebSocketService } from './services/websocket';
+import { createSubscriptionServer } from './api/subscriptions/server';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -34,6 +38,19 @@ export default withAuth(
       },
       extendExpressApp: (app) => {
         chatRoutes(app);
+      },
+      extendHttpServer(server, context) {
+        // Initialize WebSocket service for chat
+        initWebSocketService({
+          httpServer: server,
+          context: () => Promise.resolve(context),
+        });
+
+        // Initialize GraphQL subscription server
+        createSubscriptionServer({
+          httpServer: server,
+          context: () => Promise.resolve(context),
+        });
       },
     },
     ui: {
@@ -63,6 +80,7 @@ export default withAuth(
             JSON,
             Mutation,
             Query,
+            Subscription,
           },
         });
         return mergeSchemas({

@@ -9,6 +9,8 @@ import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutati
 import { updateProfile } from '../schema/mutations/updateProfile';
 import { aiChat } from '../schema/mutations/aiChat';
 import { requireAuth } from '../middlewares/auth';
+import { typingIndicator } from '../schema/mutations/typingIndicator';
+import { updateUserStatus } from '../schema/mutations/userStatus';
 
 const withAuth = (resolver: Function) => (root: any, args: any, context: any, info: any) => {
   requireAuth(context.session);
@@ -21,6 +23,7 @@ export const Mutation = {
   signup,
   login,
   // Wrap protected mutations with custom resolvers (via withAuth)
+  // Protected mutations
   customCreateForumPost: withAuth(customCreateForumPost),
   customDeleteForumPost: withAuth(customDeleteForumPost),
   customCreateGroupChat: withAuth(customCreateGroupChat),
@@ -29,4 +32,6 @@ export const Mutation = {
   submitQuestionnaire: withAuth(submitQuestionnaire),
   updateProfile: withAuth(updateProfile),
   aiChat: withAuth(aiChat),
+  typingIndicator: withAuth(typingIndicator),
+  updateUserStatus: withAuth(updateUserStatus),
 };

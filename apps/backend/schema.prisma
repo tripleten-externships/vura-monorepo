@@ -117,15 +117,15 @@ model GroupChat {
 }
 
 model Parent {
-  id               Int       @id @default(autoincrement())
-  name             String    @default("")
-  age              Int
-  relationship     String    @default("")
-  healthConditions Json?
-  createdAt        DateTime? @default(now())
-  updatedAt        DateTime? @updatedAt
-  user             User?     @relation("Parent_user", fields: [userId], references: [id])
-  userId           String?   @map("user")
+  id                Int       @id @default(autoincrement())
+  name              String    @default("")
+  age               Int
+  relationship      String    @default("")
+  health_conditions Json?
+  created_at        DateTime? @default(now())
+  updated_at        DateTime? @updatedAt
+  user              User?     @relation("Parent_user", fields: [userId], references: [id])
+  userId            String?   @map("user")
 
   @@index([userId])
 }
