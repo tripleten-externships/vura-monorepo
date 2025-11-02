@@ -53,7 +53,8 @@
   "dependencies": {
     "jsonwebtoken": "9.0.2",
     "lodash": "^4.17.21",
-    "socket.io": "4.8.1"
+    "socket.io": "4.8.1",
+    "socket.io-client": "4.8.1"
   },
   "engines": {
     "node": ">=18.0.0",
