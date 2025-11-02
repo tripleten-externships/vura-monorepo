@@ -28,6 +28,9 @@ const { withAuth } = createAuth({
 const session = statelessSessions({
   maxAge: sessionMaxAge,
   secret: sessionSecret,
+  secure: false, // allow cookies over http://
+  sameSite: 'lax', // allows localhost cookie sharing
+  path: '/', // makes cookie available to all routes
 });
 
 export { withAuth, session };

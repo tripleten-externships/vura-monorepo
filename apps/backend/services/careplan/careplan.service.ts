@@ -16,7 +16,10 @@ class CarePlanEmitter extends EventEmitter<
 > {}
 
 export const carePlanEmitter = new CarePlanEmitter();
-export async function createCarePlan(data, context) {
+export async function createCarePlan(
+  data: any,
+  context: { db: { CarePlan: { createOne: (arg0: { data: any }) => any } } }
+) {
   const carePlan = await context.db.CarePlan.createOne({ data });
 
   // Emit event after creation
@@ -29,7 +32,11 @@ export async function createCarePlan(data, context) {
   return carePlan;
 }
 
-export async function updateCarePlan(id, data, context) {
+export async function updateCarePlan(
+  id: any,
+  data: any,
+  context: { db: { CarePlan: { updateOne: (arg0: { where: { id: any }; data: any }) => any } } }
+) {
   const updated = await context.db.CarePlan.updateOne({
     where: { id },
     data,
@@ -44,7 +51,10 @@ export async function updateCarePlan(id, data, context) {
   return updated;
 }
 
-export async function deleteCarePlan(id, context) {
+export async function deleteCarePlan(
+  id: any,
+  context: { db: { CarePlan: { deleteOne: (arg0: { where: { id: any } }) => any } } }
+) {
   const deleted = await context.db.CarePlan.deleteOne({ where: { id } });
 
   carePlanEmitter.emit('deleted', {

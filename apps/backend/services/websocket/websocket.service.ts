@@ -8,6 +8,9 @@ import {
   AiChatMessagePayload,
 } from './types';
 import { logger } from '../../utils/logger';
+import { carePlanEmitter } from '../careplan/careplan.service';
+import jwt from 'jsonwebtoken';
+import { verifyToken } from '../../utils/jwt';
 
 export class WebSocketService {
   private io: SocketIOServer;
@@ -30,79 +33,58 @@ export class WebSocketService {
 
     this.setupMiddleware();
     this.setupEventHandlers();
+    this.subscribeToCarePlanEvents();
 
     logger.info('WebSocket service initialized');
   }
 
+  private subscribeToCarePlanEvents() {
+    carePlanEmitter.on('created', (payload) => {
+      this.io.emit(SocketEvents.CAREPLAN_CREATED, payload);
+      logger.info('Broadcasted care plan created event:', payload);
+    });
+
+    carePlanEmitter.on('updated', (payload) => {
+      this.io.emit(SocketEvents.CAREPLAN_UPDATED, payload);
+      logger.info('Broadcasted care plan updated event:', payload);
+    });
+
+    carePlanEmitter.on('deleted', (payload) => {
+      this.io.emit(SocketEvents.CAREPLAN_DELETED, payload);
+      logger.info('Broadcasted care plan deleted event:', payload);
+    });
+
+    logger.info('Subscribed to care plan events');
+  }
+
   private setupMiddleware() {
-    // authentication middleware
     this.io.use(async (socket: AuthenticatedSocket, next) => {
       try {
-        // try to get the token
-        const authToken = socket.handshake.auth.token;
-        const authHeaderToken = socket.handshake.headers.authorization as string;
-        const token = authToken || authHeaderToken;
-
-        logger.info('Socket connection attempt', {
-          id: socket.id,
-          hasAuthToken: !!authToken,
-          hasAuthHeader: !!authHeaderToken,
-        });
+        // get token either from auth or header
+        const token =
+          socket.handshake.auth?.token ||
+          (socket.handshake.headers.authorization as string)?.replace('Bearer ', '');
 
         if (!token) {
-          logger.error('Authentication token is missing');
-          return next(new Error('Authentication token is missing'));
+          socket.emit('authentication:error', 'Missing token');
+          return next(new Error('Missing authentication token'));
         }
 
-        // get base context
-        const baseContext = await this.contextProvider();
-
-        try {
-          // create a proper Express-like request object for Keystone's session strategy
-          // Keystone's stateless session reads from req.headers.cookie
-          const req = {
-            headers: {
-              cookie: `keystonejs-session=${token}`,
-            },
-          } as any;
-
-          const res = {} as any;
-
-          logger.info('Attempting to get session with token:', token.substring(0, 20) + '...');
-          logger.info('Has sessionStrategy:', !!baseContext.sessionStrategy);
-
-          // create a context with session populated, the way Keystone does for HTTP requests
-          // this uses the context.withRequest() method if available, or manually creates the session
-          const contextWithSession = await (baseContext as any).withRequest(req, res);
-
-          logger.info('Context with session created');
-          logger.info('Session:', JSON.stringify(contextWithSession.session, null, 2));
-
-          if (contextWithSession.session?.data?.id) {
-            socket.userId = contextWithSession.session.data.id;
-            socket.username =
-              contextWithSession.session.data.name || contextWithSession.session.data.email;
-
-            logger.info(`Socket authenticated for user: ${socket.userId}`);
-            socket.emit('authentication:success', { userId: socket.userId });
-            return next();
-          }
-
-          logger.warn('Session verification returned no user ID', {
-            session: contextWithSession.session,
-          });
-          socket.emit('authentication:error', 'Invalid authentication token');
-          return next(new Error('Invalid authentication token'));
-        } catch (sessionError: any) {
-          logger.error('Session verification failed:', {
-            error: sessionError.message,
-            stack: sessionError.stack,
-          });
-          socket.emit('authentication:error', 'Session verification failed');
-          return next(new Error('Invalid authentication token'));
+        // verify token
+        const decoded = verifyToken(token);
+        if (!decoded || typeof decoded === 'string') {
+          socket.emit('authentication:error', 'Invalid or expired token');
+          return next(new Error('Invalid or expired token'));
         }
-      } catch (error: any) {
-        logger.error('Socket authentication error');
+
+        socket.userId = decoded.id;
+        socket.username = decoded.email;
+
+        logger.info(`Socket authenticated for user ${socket.userId}`);
+        socket.emit('authentication:success', { userId: socket.userId });
+        next();
+      } catch (err: any) {
+        logger.error('Socket authentication failed:', err.message);
         socket.emit('authentication:error', 'Authentication failed');
         next(new Error('Authentication failed'));
       }
