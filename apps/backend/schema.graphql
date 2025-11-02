@@ -735,9 +735,9 @@ type Parent {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: User
 }
 
@@ -753,8 +753,8 @@ input ParentWhereInput {
   name: StringFilter
   age: IntFilter
   relationship: StringFilter
-  created_at: DateTimeNullableFilter
-  updated_at: DateTimeNullableFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
   user: UserWhereInput
 }
 
@@ -774,17 +774,17 @@ input ParentOrderByInput {
   name: OrderDirection
   age: OrderDirection
   relationship: OrderDirection
-  created_at: OrderDirection
-  updated_at: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
 }
 
 input ParentUpdateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForUpdateInput
 }
 
@@ -797,9 +797,9 @@ input ParentCreateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForCreateInput
 }
 
