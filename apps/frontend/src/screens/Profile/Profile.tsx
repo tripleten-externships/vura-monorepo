@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import BottomNav from '../../components/BottomNav/BottomNav';
+import { BottomNavBar } from '../../components/BottomNavBar';
 
 export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile</Text>
-      <BottomNav />
+      <BottomNavBar />
     </View>
   );
 }
