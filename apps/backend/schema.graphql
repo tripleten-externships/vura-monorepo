@@ -1781,6 +1781,9 @@ type Mutation {
   aiChat(input: AiChatInput!): AiChatResponse!
   typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
   updateUserStatus(input: UserStatusInput!): SuccessResponse!
+  customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
+  customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
+  customMarkAllNotificationsAsRead: MarkAllAsReadResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1852,6 +1855,8 @@ type Query {
   getResources(input: GetResourcesInput): ResourceConnection!
   getForumPost(id: ID!): ForumPostDetails
   getForumPosts(input: GetForumPostsInput): ForumPostConnection!
+  customGetNotifications(input: GetNotificationsInput): NotificationsResult!
+  customGetUnreadCount(notificationType: NotificationType): UnreadCountResult!
 }
 
 union AuthenticatedItem = User

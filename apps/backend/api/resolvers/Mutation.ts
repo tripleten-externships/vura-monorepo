@@ -10,9 +10,9 @@ import { updateProfile } from '../schema/mutations/updateProfile';
 import { aiChat } from '../schema/mutations/aiChat';
 import { typingIndicator } from '../schema/mutations/typingIndicator';
 import { updateUserStatus } from '../schema/mutations/userStatus';
-import { createNotification } from '../schema/mutations/createNotification';
-import { markNotificationAsRead } from '../schema/mutations/markNotificationAsRead';
-import { markAllNotificationsAsRead } from '../schema/mutations/markAllNotificationsAsRead';
+import { customCreateNotification } from '../schema/mutations/createNotification';
+import { customMarkNotificationAsRead } from '../schema/mutations/markNotificationAsRead';
+import { customMarkAllNotificationsAsRead } from '../schema/mutations/markAllNotificationsAsRead';
 
 export const Mutation = {
   signup,
@@ -27,7 +27,7 @@ export const Mutation = {
   aiChat,
   typingIndicator,
   updateUserStatus,
-  createNotification,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
+  customCreateNotification,
+  customMarkNotificationAsRead,
+  customMarkAllNotificationsAsRead,
 };

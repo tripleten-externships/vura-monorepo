@@ -367,9 +367,9 @@ export const typeDefs = gql`
     aiChat(input: AiChatInput!): AiChatResponse!
     typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
     updateUserStatus(input: UserStatusInput!): SuccessResponse!
-    createNotification(input: CreateNotificationInput!): CreateNotificationResult!
-    markNotificationAsRead(notificationId: ID!): MarkAsReadResult!
-    markAllNotificationsAsRead: MarkAllAsReadResult!
+    customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
+    customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
+    customMarkAllNotificationsAsRead: MarkAllAsReadResult!
   }
 
   type Query {
@@ -377,8 +377,8 @@ export const typeDefs = gql`
     getResources(input: GetResourcesInput): ResourceConnection!
     getForumPost(id: ID!): ForumPostDetails
     getForumPosts(input: GetForumPostsInput): ForumPostConnection!
-    getNotifications(input: GetNotificationsInput): NotificationsResult!
-    getUnreadCount(notificationType: NotificationType): UnreadCountResult!
+    customGetNotifications(input: GetNotificationsInput): NotificationsResult!
+    customGetUnreadCount(notificationType: NotificationType): UnreadCountResult!
   }
 
   # Typing indicator payload

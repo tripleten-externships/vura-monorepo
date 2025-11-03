@@ -15,7 +15,7 @@ export interface CreateNotificationInputGQL {
   relatedForumPostId?: string;
 }
 
-export const createNotification = async (
+export const customCreateNotification = async (
   _: any,
   { input }: { input: CreateNotificationInputGQL },
   context: Context

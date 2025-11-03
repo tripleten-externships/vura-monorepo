@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
 import { notificationService } from '../../../services/notification';
 
-export const getUnreadCount = async (
+export const customGetUnreadCount = async (
   _: any,
   { notificationType }: { notificationType?: string },
   context: Context

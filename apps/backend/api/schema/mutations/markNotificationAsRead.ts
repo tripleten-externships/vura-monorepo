@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
 import { notificationService } from '../../../services/notification';
 
-export const markNotificationAsRead = async (
+export const customMarkNotificationAsRead = async (
   _: any,
   { notificationId }: { notificationId: string },
   context: Context

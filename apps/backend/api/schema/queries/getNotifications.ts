@@ -10,7 +10,7 @@ export interface GetNotificationsInput {
   skip?: number;
 }
 
-export const getNotifications = async (
+export const customGetNotifications = async (
   _: any,
   { input }: { input?: GetNotificationsInput },
   context: Context
