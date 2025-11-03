@@ -55,6 +55,10 @@ export enum SocketEvents {
   AI_MESSAGE_COMPLETE = 'ai:message:complete',
   AI_MESSAGE_ERROR = 'ai:message:error',
 
+  // Notification events
+  NOTIFICATION_NEW = 'notification:new',
+  NOTIFICATION_READ = 'notification:read',
+
   // Status events
   USER_ONLINE = 'user:online',
   USER_OFFLINE = 'user:offline',

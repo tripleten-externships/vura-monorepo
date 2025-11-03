@@ -2333,4 +2333,6 @@ type Subscription {
   typingIndicator(groupId: ID!): TypingIndicatorPayload!
   userStatusChanged(userId: ID): UserStatusPayload!
   aiMessageReceived(sessionId: ID!): AiChatResponse!
+  notificationReceived(userId: ID!): NotificationDetails!
+  unreadCountChanged(userId: ID!): UnreadCountResult!
 }

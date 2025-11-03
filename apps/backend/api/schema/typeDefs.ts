@@ -409,5 +409,11 @@ export const typeDefs = gql`
 
     # Subscribe to AI chat messages for a specific session
     aiMessageReceived(sessionId: ID!): AiChatResponse!
+
+    # Subscribe to new notifications for a specific user
+    notificationReceived(userId: ID!): NotificationDetails!
+
+    # Subscribe to unread count changes for a specific user
+    unreadCountChanged(userId: ID!): UnreadCountResult!
   }
 `;
