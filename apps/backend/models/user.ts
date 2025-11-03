@@ -98,5 +98,11 @@ export const User = list({
       ref: 'QuestionnaireResponse.user',
       many: true,
     }),
+
+    // relationship to notifications
+    notifications: relationship({
+      ref: 'Notification.user',
+      many: true,
+    }),
   },
 });
