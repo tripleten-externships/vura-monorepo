@@ -2234,6 +2234,82 @@ input UserStatusInput {
   status: String!
 }
 
+enum NotificationType {
+  CARE_PLAN
+  CHAT
+  FORUM
+  SYSTEM
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+input CreateNotificationInput {
+  userId: ID!
+  type: String!
+  notificationType: NotificationType!
+  priority: NotificationPriority
+  content: String!
+  actionUrl: String
+  metadata: JSON
+  relatedCarePlanId: ID
+  relatedChatId: ID
+  relatedForumPostId: ID
+}
+
+input GetNotificationsInput {
+  read: Boolean
+  notificationType: NotificationType
+  priority: NotificationPriority
+  take: Int
+  skip: Int
+}
+
+type NotificationDetails {
+  id: ID!
+  type: String!
+  notificationType: NotificationType!
+  priority: NotificationPriority!
+  content: String!
+  actionUrl: String
+  metadata: JSON
+  read: Boolean!
+  readAt: DateTime
+  createdAt: DateTime!
+}
+
+type CreateNotificationResult {
+  notification: NotificationDetails!
+  message: String!
+}
+
+type MarkAsReadResult {
+  notification: NotificationDetails!
+  message: String!
+}
+
+type MarkAllAsReadResult {
+  count: Int!
+  message: String!
+}
+
+type NotificationsResult {
+  notifications: [NotificationDetails!]!
+  total: Int!
+  hasMore: Boolean!
+  skip: Int!
+  take: Int!
+}
+
+type UnreadCountResult {
+  count: Int!
+  notificationType: NotificationType
+}
+
 type TypingIndicatorPayload {
   userId: ID!
   username: String

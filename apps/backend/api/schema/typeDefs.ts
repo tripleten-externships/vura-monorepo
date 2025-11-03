@@ -274,6 +274,83 @@ export const typeDefs = gql`
     status: String!
   }
 
+  # Notification Types
+  enum NotificationType {
+    CARE_PLAN
+    CHAT
+    FORUM
+    SYSTEM
+  }
+
+  enum NotificationPriority {
+    LOW
+    MEDIUM
+    HIGH
+    URGENT
+  }
+
+  input CreateNotificationInput {
+    userId: ID!
+    type: String!
+    notificationType: NotificationType!
+    priority: NotificationPriority
+    content: String!
+    actionUrl: String
+    metadata: JSON
+    relatedCarePlanId: ID
+    relatedChatId: ID
+    relatedForumPostId: ID
+  }
+
+  input GetNotificationsInput {
+    read: Boolean
+    notificationType: NotificationType
+    priority: NotificationPriority
+    take: Int
+    skip: Int
+  }
+
+  type NotificationDetails {
+    id: ID!
+    type: String!
+    notificationType: NotificationType!
+    priority: NotificationPriority!
+    content: String!
+    actionUrl: String
+    metadata: JSON
+    read: Boolean!
+    readAt: DateTime
+    createdAt: DateTime!
+  }
+
+  type CreateNotificationResult {
+    notification: NotificationDetails!
+    message: String!
+  }
+
+  type MarkAsReadResult {
+    notification: NotificationDetails!
+    message: String!
+  }
+
+  type MarkAllAsReadResult {
+    count: Int!
+    message: String!
+  }
+
+  type NotificationsResult {
+    notifications: [NotificationDetails!]!
+    total: Int!
+    hasMore: Boolean!
+    skip: Int!
+    take: Int!
+  }
+
+  type UnreadCountResult {
+    count: Int!
+    notificationType: NotificationType
+  }
+
   # Root Types
   type Mutation {
     signup(input: SignupInput!): SignupResult!
@@ -290,6 +367,9 @@ export const typeDefs = gql`
     aiChat(input: AiChatInput!): AiChatResponse!
     typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
     updateUserStatus(input: UserStatusInput!): SuccessResponse!
+    createNotification(input: CreateNotificationInput!): CreateNotificationResult!
+    markNotificationAsRead(notificationId: ID!): MarkAsReadResult!
+    markAllNotificationsAsRead: MarkAllAsReadResult!
   }
 
   type Query {
@@ -297,6 +377,8 @@ export const typeDefs = gql`
     getResources(input: GetResourcesInput): ResourceConnection!
     getForumPost(id: ID!): ForumPostDetails
     getForumPosts(input: GetForumPostsInput): ForumPostConnection!
+    getNotifications(input: GetNotificationsInput): NotificationsResult!
+    getUnreadCount(notificationType: NotificationType): UnreadCountResult!
   }
 
   # Typing indicator payload
