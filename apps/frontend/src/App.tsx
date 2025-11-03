@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Image } from 'react-native';
+import { Image, ImageSourcePropType } from 'react-native';
 
 import ChecklistScreen from './screens/Checklist/Checklist';
 import ResourcesScreen from './screens/Resources/Resources';
@@ -26,7 +26,7 @@ export default function App() {
         screenOptions={({ route }) => ({
           //define icons for each tab
           tabBarIcon: ({ focused, size }) => {
-            let iconSource;
+            let iconSource = checklistIcon; // default icon
 
             //chooses which icon is display based on rouute name
             if (route.name === 'Checklist') {
@@ -42,7 +42,7 @@ export default function App() {
             //return the icon image
             return (
               <Image
-                source={iconSource}
+                source={iconSource as ImageSourcePropType}
                 style={{
                   width: size,
                   height: size,
