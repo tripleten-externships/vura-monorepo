@@ -77,6 +77,20 @@ export const User = list({
 
     // Relationships
     messages: relationship({ ref: 'ChatMessage.sender', many: true }),
+    isAdmin: checkbox({ defaultValue: true }),
+    // Metadata
+    createdAt: timestamp({
+      defaultValue: { kind: 'now' },
+      ui: { description: 'When the account was created' },
+    }),
+    lastLoginDate: timestamp({
+      defaultValue: { kind: 'now' },
+      ui: { description: 'Manually updated on login' },
+    }),
+    lastUpdateDate: timestamp({
+      db: { updatedAt: true },
+      ui: { description: 'Automatically updates on record change' },
+    }),
     carePlan: relationship({ ref: 'CarePlan.user', many: true }),
     aiChatSessions: relationship({ ref: 'AiChatSession.user', many: true }),
     parents: relationship({ ref: 'Parent.user', many: true }),
@@ -90,20 +104,6 @@ export const User = list({
     notifications: relationship({
       ref: 'Notification.user',
       many: true,
-    }),
-
-    // Metadata
-    createdAt: timestamp({
-      defaultValue: { kind: 'now' },
-      ui: { description: 'When the account was created' },
-    }),
-    lastLoginDate: timestamp({
-      defaultValue: { kind: 'now' },
-      ui: { description: 'Manually updated on login' },
-    }),
-    lastUpdateDate: timestamp({
-      db: { updatedAt: true },
-      ui: { description: 'Automatically updates on record change' },
     }),
   },
 
