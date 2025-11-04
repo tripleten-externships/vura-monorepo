@@ -14,6 +14,7 @@ import { chatRoutes } from './routes/chat';
 
 import { initWebSocketService } from './services/websocket';
 import { createSubscriptionServer } from './api/subscriptions/server';
+import { initializeEventHandlers } from './api/subscriptions/handlers';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -48,6 +49,8 @@ export default withAuth(
           httpServer: server,
           context: () => Promise.resolve(context),
         });
+
+        initializeEventHandlers(context);
       },
     },
     ui: {
