@@ -8,6 +8,11 @@ import { sendChatMessage } from '../schema/mutations/sendChatMessage';
 import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutations/questionnaire';
 import { updateProfile } from '../schema/mutations/updateProfile';
 import { aiChat } from '../schema/mutations/aiChat';
+import { typingIndicator } from '../schema/mutations/typingIndicator';
+import { updateUserStatus } from '../schema/mutations/userStatus';
+import { customCreateNotification } from '../schema/mutations/createNotification';
+import { customMarkNotificationAsRead } from '../schema/mutations/markNotificationAsRead';
+import { customMarkAllNotificationsAsRead } from '../schema/mutations/markAllNotificationsAsRead';
 
 export const Mutation = {
   signup,
@@ -20,4 +25,9 @@ export const Mutation = {
   submitQuestionnaire,
   updateProfile,
   aiChat,
+  typingIndicator,
+  updateUserStatus,
+  customCreateNotification,
+  customMarkNotificationAsRead,
+  customMarkAllNotificationsAsRead,
 };
