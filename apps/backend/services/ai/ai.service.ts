@@ -3,6 +3,7 @@ dotenv.config();
 
 import { AIProvider, ChatMessage, ChatResponse, ChatOptions } from './types';
 import { GeminiProvider } from './provider/gemini';
+import { getWebSocketService } from '../websocket';
 
 export type ProviderType = 'gemini' | 'openai' | 'claude';
 
@@ -51,16 +52,56 @@ export class AIService {
    */
   async *streamChat(
     messages: ChatMessage[],
-    options: ChatOptions & { provider?: ProviderType } = {}
+    options: ChatOptions & {
+      provider?: ProviderType;
+      userId?: string;
+      sessionId?: string;
+    } = {}
   ): AsyncIterable<string> {
     const providerType = options.provider || this.defaultProvider;
     const provider = this.providers.get(providerType);
+    const { userId, sessionId } = options;
 
     if (!provider || !provider.streamChat) {
       throw new Error(`Streaming not available for provider ${providerType}`);
     }
 
-    yield* provider.streamChat(messages, options);
+    // if WebSocket is available and userId is provided, emit streaming events
+    let useWebSockets = false;
+    let websocketService;
+
+    if (userId && sessionId) {
+      try {
+        websocketService = getWebSocketService();
+        useWebSockets = true;
+      } catch (error) {
+        console.warn('WebSocket service not available for AI streaming');
+      }
+    }
+
+    // emit start event if using WebSockets
+    if (useWebSockets && websocketService && userId) {
+      websocketService.emitToUser(userId, 'ai:message:start', { sessionId });
+    }
+
+    // stream the content
+    for await (const chunk of provider.streamChat(messages, options)) {
+      // emit chunk via WebSocket if available
+      if (useWebSockets && websocketService && userId) {
+        websocketService.emitAiMessageChunk(userId, chunk, sessionId!);
+      }
+
+      // also yield the chunk for HTTP streaming
+      yield chunk;
+    }
+
+    // emit completion event if using WebSockets
+    if (useWebSockets && websocketService && userId && sessionId) {
+      websocketService.emitToUser(userId, 'ai:message:complete', {
+        sessionId,
+        completed: true,
+      });
+    }
   }
 
   /**

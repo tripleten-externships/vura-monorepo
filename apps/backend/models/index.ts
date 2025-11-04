@@ -8,4 +8,5 @@ export * from './ai-message';
 export * from './care-plan';
 export * from './group-chat';
 export * from './forum-post';
+export * from './notification';
 export * from './questionnaire-models';

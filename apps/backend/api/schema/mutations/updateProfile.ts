@@ -57,7 +57,7 @@ export const updateProfile = async (
     // Keystone's query API so we can request the 'password' field.
     const dbUser = await context.query.User.findOne({
       where: { id: String(session.data.id) },
-      query: 'id name email password',
+      query: 'id name email password { isSet }',
     });
     console.log('Fetched user for updateProfile:', !!dbUser, dbUser?.id);
 

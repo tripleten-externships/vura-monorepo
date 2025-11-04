@@ -87,6 +87,10 @@ export const User = list({
       ref: 'QuestionnaireResponse.user',
       many: true,
     }),
+    notifications: relationship({
+      ref: 'Notification.user',
+      many: true,
+    }),
 
     // Metadata
     createdAt: timestamp({

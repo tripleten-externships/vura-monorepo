@@ -52,16 +52,17 @@ model AiMessage {
 }
 
 model CarePlan {
-  id                     String                  @id @default(uuid())
-  name                   String                  @default("")
-  progressScore          Float?
-  lastAssessmentAt       DateTime?
-  createdAt              DateTime?               @default(now())
-  updatedAt              DateTime?               @default(now()) @updatedAt
-  user                   User?                   @relation("CarePlan_user", fields: [userId], references: [id])
-  userId                 String?                 @map("user")
-  questionnaires         Questionnaire[]         @relation("CarePlan_questionnaires")
-  questionnaireResponses QuestionnaireResponse[] @relation("QuestionnaireResponse_carePlan")
+  id                                String                  @id @default(uuid())
+  name                              String                  @default("")
+  progressScore                     Float?
+  lastAssessmentAt                  DateTime?
+  createdAt                         DateTime?               @default(now())
+  updatedAt                         DateTime?               @default(now()) @updatedAt
+  user                              User?                   @relation("CarePlan_user", fields: [userId], references: [id])
+  userId                            String?                 @map("user")
+  questionnaires                    Questionnaire[]         @relation("CarePlan_questionnaires")
+  questionnaireResponses            QuestionnaireResponse[] @relation("QuestionnaireResponse_carePlan")
+  from_Notification_relatedCarePlan Notification[]          @relation("Notification_relatedCarePlan")
 
   @@index([userId])
 }
@@ -91,41 +92,71 @@ model Checklist {
 }
 
 model ForumPost {
-  id        String    @id @default(uuid())
-  title     String    @default("")
-  topic     String    @default("")
-  content   String    @default("")
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @default(now())
-  author    User?     @relation("ForumPost_author", fields: [authorId], references: [id])
-  authorId  String?   @map("author")
+  id                                 String         @id @default(uuid())
+  title                              String         @default("")
+  topic                              String         @default("")
+  content                            String         @default("")
+  createdAt                          DateTime?      @default(now())
+  updatedAt                          DateTime?      @default(now())
+  author                             User?          @relation("ForumPost_author", fields: [authorId], references: [id])
+  authorId                           String?        @map("author")
+  from_Notification_relatedForumPost Notification[] @relation("Notification_relatedForumPost")
 
   @@index([authorId])
 }
 
 model GroupChat {
-  id        String        @id @default(uuid())
-  groupName String        @default("")
-  messages  ChatMessage[] @relation("ChatMessage_group")
-  owner     User?         @relation("GroupChat_owner", fields: [ownerId], references: [id])
-  ownerId   String?       @map("ownerId")
-  members   User[]        @relation("GroupChat_members")
-  createdAt DateTime?     @default(now()) @map("created_at")
-  updatedAt DateTime?     @updatedAt @map("updated_at")
+  id                            String         @id @default(uuid())
+  groupName                     String         @default("")
+  messages                      ChatMessage[]  @relation("ChatMessage_group")
+  createdAt                     DateTime?      @default(now()) @map("created_at")
+  updatedAt                     DateTime?      @updatedAt @map("updated_at")
+  owner                         User?          @relation("GroupChat_owner", fields: [ownerId], references: [id])
+  ownerId                       String?        @map("ownerId")
+  members                       User[]         @relation("GroupChat_members")
+  from_Notification_relatedChat Notification[] @relation("Notification_relatedChat")
 
   @@index([ownerId])
 }
 
+model Notification {
+  id                 String     @id @default(uuid())
+  type               String     @default("")
+  notificationType   String
+  priority           String     @default("MEDIUM")
+  content            String     @default("")
+  actionUrl          String     @default("")
+  metadata           Json?      @default("{}")
+  read               Boolean    @default(false)
+  readAt             DateTime?
+  expiresAt          DateTime?
+  scheduledFor       DateTime?
+  createdAt          DateTime?  @default(now())
+  user               User?      @relation("Notification_user", fields: [userId], references: [id])
+  userId             String?    @map("user")
+  relatedCarePlan    CarePlan?  @relation("Notification_relatedCarePlan", fields: [relatedCarePlanId], references: [id])
+  relatedCarePlanId  String?    @map("relatedCarePlan")
+  relatedChat        GroupChat? @relation("Notification_relatedChat", fields: [relatedChatId], references: [id])
+  relatedChatId      String?    @map("relatedChat")
+  relatedForumPost   ForumPost? @relation("Notification_relatedForumPost", fields: [relatedForumPostId], references: [id])
+  relatedForumPostId String?    @map("relatedForumPost")
+
+  @@index([userId])
+  @@index([relatedCarePlanId])
+  @@index([relatedChatId])
+  @@index([relatedForumPostId])
+}
+
 model Parent {
-  id               Int       @id @default(autoincrement())
-  name             String    @default("")
-  age              Int
-  relationship     String    @default("")
-  healthConditions Json?
-  createdAt        DateTime? @default(now())
-  updatedAt        DateTime? @updatedAt
-  user             User?     @relation("Parent_user", fields: [userId], references: [id])
-  userId           String?   @map("user")
+  id                Int       @id @default(autoincrement())
+  name              String    @default("")
+  age               Int
+  relationship      String    @default("")
+  health_conditions Json?
+  created_at        DateTime? @default(now())
+  updated_at        DateTime? @updatedAt
+  user              User?     @relation("Parent_user", fields: [userId], references: [id])
+  userId            String?   @map("user")
 
   @@index([userId])
 }
@@ -233,6 +264,7 @@ model User {
   createdAt              DateTime?               @default(now())
   lastLoginDate          DateTime?               @default(now())
   lastUpdateDate         DateTime?               @updatedAt
+  notifications          Notification[]          @relation("Notification_user")
 }
 
 enum AiChatSessionStatusType {
