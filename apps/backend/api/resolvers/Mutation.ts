@@ -9,6 +9,11 @@ import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutati
 import { updateProfile } from '../schema/mutations/updateProfile';
 import { aiChat } from '../schema/mutations/aiChat';
 import { createAiChatMessage } from '../schema/mutations/createAiChatMessage';
+import { typingIndicator } from '../schema/mutations/typingIndicator';
+import { updateUserStatus } from '../schema/mutations/userStatus';
+import { customCreateNotification } from '../schema/mutations/createNotification';
+import { customMarkNotificationAsRead } from '../schema/mutations/markNotificationAsRead';
+import { customMarkAllNotificationsAsRead } from '../schema/mutations/markAllNotificationsAsRead';
 
 export const Mutation = {
   signup,
@@ -22,4 +27,9 @@ export const Mutation = {
   updateProfile,
   aiChat,
   createAiChatMessage,
+  typingIndicator,
+  updateUserStatus,
+  customCreateNotification,
+  customMarkNotificationAsRead,
+  customMarkAllNotificationsAsRead,
 };

@@ -112,14 +112,14 @@ export abstract class BaseStore {
     });
 
     const subscription = observable.subscribe({
-      next: (result) => {
+      next: (result: { data: TData }) => {
         if (result.data && onUpdate) {
           runInAction(() => {
             onUpdate(result.data);
           });
         }
       },
-      error: (error) => {
+      error: (error: Error) => {
         if (onError) {
           runInAction(() => {
             onError(error);
