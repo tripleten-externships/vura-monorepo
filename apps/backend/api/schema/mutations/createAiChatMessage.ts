@@ -1,12 +1,19 @@
-import { GraphQLError } from 'graphql';
-// Keystone context type, giving access to session, db, query, etc.
 import { Context } from '../../../types/context';
+import { logger } from '../../../utils/logger';
+import { aiService } from '../../../services/ai';
 
+// Constants for validation
+const MAX_PROMPT_LENGTH = 4000;
+const DEFAULT_SESSION_TITLE = 'AI Chat Session';
+
+/**
+ * Creates an AI chat message, handles session management, and returns AI response
+ * @param _ - unused root value, input: contains prompt and optional sessionId
+ * @param input - Contains prompt and optional sessionId
+ * @param context - Keystone context with session and DB access
+ * @returns Structured payload with success, message, error, and sessionId
+ */
 export const createAiChatMessage = async (
-  // - _: unused root value, input: contains prompt and optional sessionId,
-  // context: Keystone context with session and DB access,
-  // Returns a structured payload with success, message, error, and sessionId.
-
   _: unknown,
   { input }: { input: { sessionId?: string; prompt: string } },
   context: Context
@@ -18,48 +25,101 @@ export const createAiChatMessage = async (
 }> => {
   const session = context.session;
 
-  // Ensures the user is logged in. If not, returns early with an error.
+  // Authentication check
   if (!session?.data?.id) {
+    logger.warn('Unauthenticated AI chat attempt');
     return {
       success: false,
       error: 'User must be authenticated',
     };
   }
 
-  // Extracts userId, sessionId, and prompt. Validates that prompt is non-empty.
   const userId = String(session.data.id);
   const { sessionId, prompt } = input;
 
+  // Input validation - empty prompt
   if (!prompt || prompt.trim().length === 0) {
+    logger.warn('Empty prompt provided', { userId });
     return {
       success: false,
       error: 'Prompt is required',
     };
   }
 
-  try {
-    // Fetch or create AiChatSession.
-    // Begins the main logic block — all DB and Gemini operations happen here.
-    // If no sessionId is provided, creates a new AiChatSession.
-    // Sets title, status, user, and timestamps. Stores the new session ID.
+  // Input validation - max length
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    logger.warn('Prompt exceeds maximum length', {
+      userId,
+      promptLength: prompt.length,
+      maxLength: MAX_PROMPT_LENGTH,
+    });
+    return {
+      success: false,
+      error: `Prompt exceeds maximum length of ${MAX_PROMPT_LENGTH} characters`,
+    };
+  }
 
+  try {
     let chatSessionId = sessionId;
 
-    if (!chatSessionId) {
+    // Validate existing session if provided
+    if (chatSessionId) {
       try {
-        console.log('Creating new AiChatSession...');
+        const existingSession = await context.db.AiChatSession.findOne({
+          where: { id: chatSessionId },
+        });
+
+        if (!existingSession) {
+          logger.warn('Invalid session ID provided', { userId, sessionId: chatSessionId });
+          return {
+            success: false,
+            error: 'Invalid session ID',
+          };
+        }
+
+        // Verify session ownership
+        if (existingSession.userId !== userId) {
+          logger.warn('Unauthorized session access attempt', {
+            userId,
+            sessionId: chatSessionId,
+            ownerId: existingSession.userId,
+          });
+          return {
+            success: false,
+            error: 'Unauthorized access to session',
+          };
+        }
+
+        logger.info('Using existing AI chat session', { userId, sessionId: chatSessionId });
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        logger.error('Session validation failed', {
+          userId,
+          sessionId: chatSessionId,
+          error: errorMessage,
+        });
+        return {
+          success: false,
+          error: 'Failed to validate session',
+        };
+      }
+    } else {
+      // Create new session
+      try {
+        logger.info('Creating new AI chat session', { userId });
         const newSession = await context.db.AiChatSession.createOne({
           data: {
-            title: `Chat with Gemini - ${new Date().toISOString()}`,
+            title: DEFAULT_SESSION_TITLE,
             status: 'active',
             user: { connect: { id: userId } },
             lastActiveAt: new Date().toISOString(),
           },
         });
         chatSessionId = String(newSession.id);
-        console.log('Session created:', chatSessionId);
-      } catch (err: any) {
-        console.error('Session creation failed:', err?.message || err);
+        logger.info('AI chat session created', { userId, sessionId: chatSessionId });
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        logger.error('Session creation failed', { userId, error: errorMessage });
         return {
           success: false,
           error: 'Failed to create chat session',
@@ -67,12 +127,10 @@ export const createAiChatMessage = async (
       }
     }
 
-    // Saves the user's prompt as an AiMessage. Links it to the session.
-    // Marks it as authored by user.
-
+    // Save user message
     let userMessage;
     try {
-      console.log('Saving user message...');
+      logger.debug('Saving user message', { userId, sessionId: chatSessionId });
       userMessage = await context.db.AiMessage.createOne({
         data: {
           content: prompt,
@@ -82,9 +140,18 @@ export const createAiChatMessage = async (
           session: { connect: { id: chatSessionId } },
         },
       });
-      console.log('User message saved:', userMessage?.id);
-    } catch (err: any) {
-      console.error('User message save failed:', err?.message || err);
+      logger.info('User message saved', {
+        userId,
+        sessionId: chatSessionId,
+        messageId: userMessage?.id,
+      });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      logger.error('User message save failed', {
+        userId,
+        sessionId: chatSessionId,
+        error: errorMessage,
+      });
       return {
         success: false,
         error: 'Failed to save user message',
@@ -92,50 +159,67 @@ export const createAiChatMessage = async (
       };
     }
 
-    // Call Gemini (mocked here)
-    let geminiResponse;
+    // Call Gemini AI
+    let aiResponse;
+    const startTime = Date.now();
     try {
-      console.log('Calling Gemini...');
-      geminiResponse = await callGemini(prompt);
-      console.log('Gemini response received:', geminiResponse?.content);
-    } catch (err: any) {
-      console.error('Gemini call failed:', err?.message || err);
+      logger.info('Calling Gemini AI', { userId, sessionId: chatSessionId });
+
+      // Use the AI service to get response
+      aiResponse = await aiService.chat([
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ]);
+
+      const latency = Date.now() - startTime;
+      logger.info('Gemini AI response received', {
+        userId,
+        sessionId: chatSessionId,
+        latencyMs: latency,
+        tokens: aiResponse.usage,
+      });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      logger.error('Gemini AI call failed', {
+        userId,
+        sessionId: chatSessionId,
+        error: errorMessage,
+      });
       return {
         success: false,
-        error: 'Failed to get response from Gemini',
+        error: 'Failed to get response from AI service',
         sessionId: chatSessionId,
       };
     }
-    // Save assistant response. Links it to session and parent user message.
-    // Records metadata like latency and token usage.
 
+    // Save assistant response
     try {
-      console.log('Saving assistant response...');
-      console.log('Saving user message with:', {
-        content: prompt,
-        author: 'user',
-        model: 'gemini',
-        createdAt: new Date().toISOString(),
-        session: { connect: { id: chatSessionId } },
-      });
+      logger.debug('Saving assistant response', { userId, sessionId: chatSessionId });
 
       await context.db.AiMessage.createOne({
         data: {
-          content: geminiResponse.content,
+          content: aiResponse.content,
           author: 'assistant',
           model: 'gemini',
           createdAt: new Date().toISOString(),
           session: { connect: { id: chatSessionId } },
           parentMessage: { connect: { id: userMessage.id } },
-          latencyMs: geminiResponse.latencyMs,
-          promptTokens: geminiResponse.promptTokens,
-          completionTokens: geminiResponse.completionTokens,
-          totalTokens: geminiResponse.totalTokens,
+          latencyMs: Date.now() - startTime,
+          promptTokens: aiResponse.usage?.inputTokens,
+          completionTokens: aiResponse.usage?.outputTokens,
+          totalTokens: aiResponse.usage?.totalTokens,
         },
       });
-      console.log('Assistant message saved.');
-    } catch (err: any) {
-      console.error('Assistant message save failed:', err?.message || err);
+      logger.info('Assistant message saved', { userId, sessionId: chatSessionId });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      logger.error('Assistant message save failed', {
+        userId,
+        sessionId: chatSessionId,
+        error: errorMessage,
+      });
       return {
         success: false,
         error: 'Failed to save assistant response',
@@ -143,20 +227,17 @@ export const createAiChatMessage = async (
       };
     }
 
-    // Update session lastActiveAt.
-    // Returns a success payload with the session ID.
-    // Logs any error and returns a failure response.
-
+    // Update session lastActiveAt
     try {
-      console.log('Updating session lastActiveAt...');
       await context.db.AiChatSession.updateOne({
         where: { id: chatSessionId },
         data: { lastActiveAt: new Date().toISOString() },
       });
-      console.log('Session updated.');
-    } catch (err: any) {
-      console.warn('Session update failed:', err?.message || err);
-      // Non-critical — don’t block success
+      logger.debug('Session lastActiveAt updated', { sessionId: chatSessionId });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      logger.warn('Session update failed', { sessionId: chatSessionId, error: errorMessage });
+      // Non-critical — don't block success
     }
 
     return {
@@ -164,30 +245,12 @@ export const createAiChatMessage = async (
       message: 'AI response saved',
       sessionId: chatSessionId,
     };
-  } catch (error: any) {
-    console.error('createAiChatMessage error:', error?.message || error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('createAiChatMessage error', { userId, error: errorMessage });
     return {
       success: false,
       error: 'Failed to process AI message',
     };
   }
 };
-
-// Replace this with actual Gemini API integration
-async function callGemini(prompt: string): Promise<{
-  content: string;
-  latencyMs: number;
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-}> {
-  const start = Date.now();
-  // Simulate Gemini response
-  return {
-    content: `Gemini response to: "${prompt}"`,
-    latencyMs: Date.now() - start,
-    promptTokens: 20,
-    completionTokens: 50,
-    totalTokens: 70,
-  };
-}
