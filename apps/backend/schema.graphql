@@ -640,11 +640,11 @@ type GroupChat {
   groupName: String
   messages(where: ChatMessageWhereInput! = {}, orderBy: [ChatMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChatMessageWhereUniqueInput): [ChatMessage!]
   messagesCount(where: ChatMessageWhereInput! = {}): Int
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: User
   members(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   membersCount(where: UserWhereInput! = {}): Int
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input GroupChatWhereUniqueInput {
@@ -658,10 +658,10 @@ input GroupChatWhereInput {
   id: IDFilter
   groupName: StringFilter
   messages: ChatMessageManyRelationFilter
-  createdAt: DateTimeNullableFilter
-  updatedAt: DateTimeNullableFilter
   owner: UserWhereInput
   members: UserManyRelationFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
 }
 
 input ChatMessageManyRelationFilter {
@@ -686,10 +686,10 @@ input GroupChatOrderByInput {
 input GroupChatUpdateInput {
   groupName: String
   messages: ChatMessageRelateToManyForUpdateInput
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: UserRelateToOneForUpdateInput
   members: UserRelateToManyForUpdateInput
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input ChatMessageRelateToManyForUpdateInput {
@@ -714,10 +714,10 @@ input GroupChatUpdateArgs {
 input GroupChatCreateInput {
   groupName: String
   messages: ChatMessageRelateToManyForCreateInput
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: UserRelateToOneForCreateInput
   members: UserRelateToManyForCreateInput
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input ChatMessageRelateToManyForCreateInput {
@@ -728,6 +728,132 @@ input ChatMessageRelateToManyForCreateInput {
 input UserRelateToManyForCreateInput {
   create: [UserCreateInput!]
   connect: [UserWhereUniqueInput!]
+}
+
+type Notification {
+  id: ID!
+  type: String
+  notificationType: String
+  priority: String
+  content: String
+  actionUrl: String
+  metadata: JSON
+  read: Boolean
+  readAt: DateTime
+  expiresAt: DateTime
+  scheduledFor: DateTime
+  createdAt: DateTime
+  user: User
+  relatedCarePlan: CarePlan
+  relatedChat: GroupChat
+  relatedForumPost: ForumPost
+}
+
+input NotificationWhereUniqueInput {
+  id: ID
+}
+
+input NotificationWhereInput {
+  AND: [NotificationWhereInput!]
+  OR: [NotificationWhereInput!]
+  NOT: [NotificationWhereInput!]
+  id: IDFilter
+  type: StringFilter
+  notificationType: StringFilter
+  priority: StringFilter
+  content: StringFilter
+  actionUrl: StringFilter
+  read: BooleanFilter
+  readAt: DateTimeNullableFilter
+  expiresAt: DateTimeNullableFilter
+  scheduledFor: DateTimeNullableFilter
+  createdAt: DateTimeNullableFilter
+  user: UserWhereInput
+  relatedCarePlan: CarePlanWhereInput
+  relatedChat: GroupChatWhereInput
+  relatedForumPost: ForumPostWhereInput
+}
+
+input BooleanFilter {
+  equals: Boolean
+  not: BooleanFilter
+}
+
+input NotificationOrderByInput {
+  id: OrderDirection
+  type: OrderDirection
+  notificationType: OrderDirection
+  priority: OrderDirection
+  content: OrderDirection
+  actionUrl: OrderDirection
+  read: OrderDirection
+  readAt: OrderDirection
+  expiresAt: OrderDirection
+  scheduledFor: OrderDirection
+  createdAt: OrderDirection
+}
+
+input NotificationUpdateInput {
+  type: String
+  notificationType: String
+  priority: String
+  content: String
+  actionUrl: String
+  metadata: JSON
+  read: Boolean
+  readAt: DateTime
+  expiresAt: DateTime
+  scheduledFor: DateTime
+  createdAt: DateTime
+  user: UserRelateToOneForUpdateInput
+  relatedCarePlan: CarePlanRelateToOneForUpdateInput
+  relatedChat: GroupChatRelateToOneForUpdateInput
+  relatedForumPost: ForumPostRelateToOneForUpdateInput
+}
+
+input CarePlanRelateToOneForUpdateInput {
+  create: CarePlanCreateInput
+  connect: CarePlanWhereUniqueInput
+  disconnect: Boolean
+}
+
+input ForumPostRelateToOneForUpdateInput {
+  create: ForumPostCreateInput
+  connect: ForumPostWhereUniqueInput
+  disconnect: Boolean
+}
+
+input NotificationUpdateArgs {
+  where: NotificationWhereUniqueInput!
+  data: NotificationUpdateInput!
+}
+
+input NotificationCreateInput {
+  type: String
+  notificationType: String
+  priority: String
+  content: String
+  actionUrl: String
+  metadata: JSON
+  read: Boolean
+  readAt: DateTime
+  expiresAt: DateTime
+  scheduledFor: DateTime
+  createdAt: DateTime
+  user: UserRelateToOneForCreateInput
+  relatedCarePlan: CarePlanRelateToOneForCreateInput
+  relatedChat: GroupChatRelateToOneForCreateInput
+  relatedForumPost: ForumPostRelateToOneForCreateInput
+}
+
+input CarePlanRelateToOneForCreateInput {
+  create: CarePlanCreateInput
+  connect: CarePlanWhereUniqueInput
+}
+
+input ForumPostRelateToOneForCreateInput {
+  create: ForumPostCreateInput
+  connect: ForumPostWhereUniqueInput
 }
 
 type Parent {
@@ -851,11 +977,6 @@ input QuestionQuestionTypeTypeNullableFilter {
   in: [QuestionQuestionTypeType!]
   notIn: [QuestionQuestionTypeType!]
   not: QuestionQuestionTypeTypeNullableFilter
-}
-
-input BooleanFilter {
-  equals: Boolean
-  not: BooleanFilter
 }
 
 input QuestionResponseManyRelationFilter {
@@ -1240,12 +1361,6 @@ input QuestionnaireResponseUpdateInput {
   questionResponses: QuestionResponseRelateToManyForUpdateInput
 }
 
-input CarePlanRelateToOneForUpdateInput {
-  create: CarePlanCreateInput
-  connect: CarePlanWhereUniqueInput
-  disconnect: Boolean
-}
-
 input ChecklistRelateToOneForUpdateInput {
   create: ChecklistCreateInput
   connect: ChecklistWhereUniqueInput
@@ -1269,11 +1384,6 @@ input QuestionnaireResponseCreateInput {
   carePlan: CarePlanRelateToOneForCreateInput
   checklist: ChecklistRelateToOneForCreateInput
   questionResponses: QuestionResponseRelateToManyForCreateInput
-}
-
-input CarePlanRelateToOneForCreateInput {
-  create: CarePlanCreateInput
-  connect: CarePlanWhereUniqueInput
 }
 
 input ChecklistRelateToOneForCreateInput {
@@ -1330,6 +1440,7 @@ type User {
   name: String
   email: String
   password: PasswordState
+  role: String
   avatarUrl: String
   age: Int
   gender: String
@@ -1354,6 +1465,8 @@ type User {
   forumPostCount(where: ForumPostWhereInput! = {}): Int
   questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
+  notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
+  notificationsCount(where: NotificationWhereInput! = {}): Int
 }
 
 type PasswordState {
@@ -1372,6 +1485,7 @@ input UserWhereInput {
   id: IDFilter
   name: StringFilter
   email: StringFilter
+  role: StringNullableFilter
   avatarUrl: StringFilter
   age: IntNullableFilter
   gender: StringNullableFilter
@@ -1388,6 +1502,7 @@ input UserWhereInput {
   memberChats: GroupChatManyRelationFilter
   forumPost: ForumPostManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
+  notifications: NotificationManyRelationFilter
 }
 
 input StringNullableFilter {
@@ -1428,10 +1543,17 @@ input ForumPostManyRelationFilter {
   none: ForumPostWhereInput
 }
 
+input NotificationManyRelationFilter {
+  every: NotificationWhereInput
+  some: NotificationWhereInput
+  none: NotificationWhereInput
+}
+
 input UserOrderByInput {
   id: OrderDirection
   name: OrderDirection
   email: OrderDirection
+  role: OrderDirection
   avatarUrl: OrderDirection
   age: OrderDirection
   gender: OrderDirection
@@ -1446,6 +1568,7 @@ input UserUpdateInput {
   name: String
   email: String
   password: String
+  role: String
   avatarUrl: String
   age: Int
   gender: String
@@ -1462,6 +1585,7 @@ input UserUpdateInput {
   memberChats: GroupChatRelateToManyForUpdateInput
   forumPost: ForumPostRelateToManyForUpdateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
+  notifications: NotificationRelateToManyForUpdateInput
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -1492,6 +1616,13 @@ input ForumPostRelateToManyForUpdateInput {
   connect: [ForumPostWhereUniqueInput!]
 }
 
+input NotificationRelateToManyForUpdateInput {
+  disconnect: [NotificationWhereUniqueInput!]
+  set: [NotificationWhereUniqueInput!]
+  create: [NotificationCreateInput!]
+  connect: [NotificationWhereUniqueInput!]
+}
+
 input UserUpdateArgs {
   where: UserWhereUniqueInput!
   data: UserUpdateInput!
@@ -1501,6 +1632,7 @@ input UserCreateInput {
   name: String
   email: String
   password: String
+  role: String
   avatarUrl: String
   age: Int
   gender: String
@@ -1517,6 +1649,7 @@ input UserCreateInput {
   memberChats: GroupChatRelateToManyForCreateInput
   forumPost: ForumPostRelateToManyForCreateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
+  notifications: NotificationRelateToManyForCreateInput
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -1537,6 +1670,11 @@ input GroupChatRelateToManyForCreateInput {
 input ForumPostRelateToManyForCreateInput {
   create: [ForumPostCreateInput!]
   connect: [ForumPostWhereUniqueInput!]
+}
+
+input NotificationRelateToManyForCreateInput {
+  create: [NotificationCreateInput!]
+  connect: [NotificationWhereUniqueInput!]
 }
 
 """JSON custom scalar type"""
@@ -1585,6 +1723,12 @@ type Mutation {
   updateGroupChats(data: [GroupChatUpdateArgs!]!): [GroupChat]
   deleteGroupChat(where: GroupChatWhereUniqueInput!): GroupChat
   deleteGroupChats(where: [GroupChatWhereUniqueInput!]!): [GroupChat]
+  createNotification(data: NotificationCreateInput!): Notification
+  createNotifications(data: [NotificationCreateInput!]!): [Notification]
+  updateNotification(where: NotificationWhereUniqueInput!, data: NotificationUpdateInput!): Notification
+  updateNotifications(data: [NotificationUpdateArgs!]!): [Notification]
+  deleteNotification(where: NotificationWhereUniqueInput!): Notification
+  deleteNotifications(where: [NotificationWhereUniqueInput!]!): [Notification]
   createParent(data: ParentCreateInput!): Parent
   createParents(data: [ParentCreateInput!]!): [Parent]
   updateParent(where: ParentWhereUniqueInput!, data: ParentUpdateInput!): Parent
@@ -1643,6 +1787,9 @@ type Mutation {
   createAiChatMessage(input: CreateAiChatMessageInput!): CreateAiChatMessageResult!
   typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
   updateUserStatus(input: UserStatusInput!): SuccessResponse!
+  customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
+  customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
+  customMarkAllNotificationsAsRead: MarkAllAsReadResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1660,6 +1807,7 @@ input CreateInitialUserInput {
   name: String
   email: String
   password: String
+  role: String
 }
 
 type Query {
@@ -1684,6 +1832,9 @@ type Query {
   groupChat(where: GroupChatWhereUniqueInput!): GroupChat
   groupChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
   groupChatsCount(where: GroupChatWhereInput! = {}): Int
+  notification(where: NotificationWhereUniqueInput!): Notification
+  notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
+  notificationsCount(where: NotificationWhereInput! = {}): Int
   parent(where: ParentWhereUniqueInput!): Parent
   parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
   parentsCount(where: ParentWhereInput! = {}): Int
@@ -1711,6 +1862,8 @@ type Query {
   getResources(input: GetResourcesInput): ResourceConnection!
   getForumPost(id: ID!): ForumPostDetails
   getForumPosts(input: GetForumPostsInput): ForumPostConnection!
+  customGetNotifications(input: GetNotificationsInput): NotificationsResult!
+  customGetUnreadCount(notificationType: NotificationType): UnreadCountResult!
 }
 
 union AuthenticatedItem = User
@@ -2105,6 +2258,82 @@ input UserStatusInput {
   status: String!
 }
 
+enum NotificationType {
+  CARE_PLAN
+  CHAT
+  FORUM
+  SYSTEM
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+input CreateNotificationInput {
+  userId: ID!
+  type: String!
+  notificationType: NotificationType!
+  priority: NotificationPriority
+  content: String!
+  actionUrl: String
+  metadata: JSON
+  relatedCarePlanId: ID
+  relatedChatId: ID
+  relatedForumPostId: ID
+}
+
+input GetNotificationsInput {
+  read: Boolean
+  notificationType: NotificationType
+  priority: NotificationPriority
+  take: Int
+  skip: Int
+}
+
+type NotificationDetails {
+  id: ID!
+  type: String!
+  notificationType: NotificationType!
+  priority: NotificationPriority!
+  content: String!
+  actionUrl: String
+  metadata: JSON
+  read: Boolean!
+  readAt: DateTime
+  createdAt: DateTime!
+}
+
+type CreateNotificationResult {
+  notification: NotificationDetails!
+  message: String!
+}
+
+type MarkAsReadResult {
+  notification: NotificationDetails!
+  message: String!
+}
+
+type MarkAllAsReadResult {
+  count: Int!
+  message: String!
+}
+
+type NotificationsResult {
+  notifications: [NotificationDetails!]!
+  total: Int!
+  hasMore: Boolean!
+  skip: Int!
+  take: Int!
+}
+
+type UnreadCountResult {
+  count: Int!
+  notificationType: NotificationType
+}
+
 type TypingIndicatorPayload {
   userId: ID!
   username: String
@@ -2123,4 +2352,6 @@ type Subscription {
   typingIndicator(groupId: ID!): TypingIndicatorPayload!
   userStatusChanged(userId: ID): UserStatusPayload!
   aiMessageReceived(sessionId: ID!): AiChatResponse!
+  notificationReceived(userId: ID!): NotificationDetails!
+  unreadCountChanged(userId: ID!): UnreadCountResult!
 }

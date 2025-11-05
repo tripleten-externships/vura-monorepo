@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, ScrollView } from 'react-native';
 import { useMutation } from '@apollo/client/react';
 import { SEND_CHAT_MESSAGE } from '../src/graphql/mutations/chatMutations';
 import { useWebSocket } from '../src/hooks/useWebSocket';
+import { websocketService } from '../src/services/websocket';
 
 export default function WSTestScreen() {
   const {
@@ -105,6 +106,28 @@ export default function WSTestScreen() {
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
       <Text style={{ fontSize: 20, fontWeight: '600' }}>WebSocket Test</Text>
       <Text>Connected: {isConnected ? 'yes' : 'no'}</Text>
+
+      <View style={{ gap: 4, backgroundColor: '#f5f5f5', padding: 8, borderRadius: 6 }}>
+        <Text style={{ fontWeight: '600', fontSize: 12 }}>Debug Tools</Text>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button
+            title="Enable Debug"
+            onPress={() => {
+              websocketService.enableDebugLogging();
+              appendLog('Debug logging enabled - check console');
+            }}
+            color="#FF9800"
+          />
+          <Button
+            title="Enable Socket.IO Debug"
+            onPress={() => {
+              websocketService.enableSocketIODebug();
+              appendLog('Socket.IO debug - reload page');
+            }}
+            color="#9C27B0"
+          />
+        </View>
+      </View>
 
       <View style={{ gap: 8 }}>
         <Text>Group ID</Text>

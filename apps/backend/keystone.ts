@@ -1,9 +1,12 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), 'apps/backend/.env') });
 
 import { config } from '@keystone-6/core';
 import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
-import { withAuth, session } from './auth';
+import { withAuth, session } from './api/middlewares/auth';
+
 import * as Models from './models';
 import { Query } from './api/resolvers/Query';
 import { Mutation } from './api/resolvers/Mutation';
@@ -14,6 +17,7 @@ import { chatRoutes } from './routes/chat';
 
 import { initWebSocketService } from './services/websocket';
 import { createSubscriptionServer } from './api/subscriptions/server';
+import { initializeEventHandlers } from './api/subscriptions/handlers';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -48,10 +52,13 @@ export default withAuth(
           httpServer: server,
           context: () => Promise.resolve(context),
         });
+
+        initializeEventHandlers(context);
       },
     },
     ui: {
-      isAccessAllowed: (context) => context.session !== undefined,
+      // signed in users with session data to access the admin ui
+      isAccessAllowed: (context) => !!context.session?.data,
       basePath: '/admin/ui',
     },
     db: {

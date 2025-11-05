@@ -66,7 +66,7 @@ class WebSocketService {
 
   constructor() {
     // Get API URL from environment or use default
-    this.baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    this.baseUrl = typeof VITE_API_URL !== 'undefined' ? VITE_API_URL : 'http://localhost:3001';
   }
 
   /**
@@ -294,6 +294,46 @@ class WebSocketService {
    */
   public onUserOffline(callback: EventCallback<{ userId: string }>): () => void {
     return this.on<{ userId: string }>(SocketEvents.USER_OFFLINE, callback);
+  }
+
+  /**
+   * Enable debug logging for Socket.IO messages
+   * This will log all incoming and outgoing messages to the console
+   */
+  public enableDebugLogging(): void {
+    if (!this.socket) {
+      console.warn('Socket not initialized yet. Debug logging will be enabled after connection.');
+      return;
+    }
+
+    console.log('Socket.IO debug logging enabled');
+
+    // log all outgoing events (emit)
+    const originalEmit = this.socket.emit.bind(this.socket);
+    this.socket.emit = function (event: string, ...args: any[]) {
+      console.log('Socket.IO OUT:', event, args);
+      return originalEmit(event, ...args);
+    };
+
+    // log all incoming events by wrapping the onevent handler
+    const originalOnevent = (this.socket as any).onevent;
+    (this.socket as any).onevent = function (packet: any) {
+      console.log('Socket.IO IN:', packet.data);
+      if (originalOnevent) {
+        originalOnevent.call(this, packet);
+      }
+    };
+  }
+
+  /**
+   * Enable Socket.IO internal debug logs
+   * This will show lower-level Socket.IO protocol messages
+   */
+  public enableSocketIODebug(): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.debug = 'socket.io-client:*';
+      console.log('Socket.IO internal debug enabled. Reload the page to see debug logs.');
+    }
   }
 }
 

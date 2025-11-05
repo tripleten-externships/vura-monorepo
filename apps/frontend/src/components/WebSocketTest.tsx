@@ -81,7 +81,9 @@ export const WebSocketTest = () => {
       setMessages((prev) => [...prev, 'Attempting manual reconnect...']);
 
       // create a direct socket connection for testing
-      const socket = io('http://localhost:3001', {
+      const apiBaseUrl =
+        typeof VITE_API_URL !== 'undefined' ? VITE_API_URL : 'http://localhost:3001';
+      const socket = io(apiBaseUrl, {
         path: '/socket.io',
         auth: { token: storedToken },
         extraHeaders: {
@@ -135,7 +137,8 @@ export const WebSocketTest = () => {
         setMessages((prev) => [...prev, 'WebSocketService connect succeeded']);
       } catch (wsError) {
         console.error('WebSocketService connect error:', wsError);
-        setMessages((prev) => [...prev, `WebSocketService error: ${wsError.message || wsError}`]);
+        const errorMessage = wsError instanceof Error ? wsError.message : String(wsError);
+        setMessages((prev) => [...prev, `WebSocketService error: ${errorMessage}`]);
       }
 
       setMessages((prev) => [...prev, 'Manual reconnect attempted']);
@@ -176,6 +179,24 @@ export const WebSocketTest = () => {
         <Button title="Force Reconnect" onPress={handleReconnect} color="#4CAF50" />
         <View style={{ height: 10 }} />
         <Button title="Check Token" onPress={showToken} color="#2196F3" />
+        <View style={{ height: 10 }} />
+        <Button
+          title="Enable Debug Logging"
+          onPress={() => {
+            websocketService.enableDebugLogging();
+            setMessages((prev) => [...prev, 'Debug logging enabled - check console']);
+          }}
+          color="#FF9800"
+        />
+        <View style={{ height: 10 }} />
+        <Button
+          title="Enable Socket.IO Debug"
+          onPress={() => {
+            websocketService.enableSocketIODebug();
+            setMessages((prev) => [...prev, 'Socket.IO debug enabled - reload page']);
+          }}
+          color="#9C27B0"
+        />
       </View>
 
       <View style={styles.messagesContainer}>
