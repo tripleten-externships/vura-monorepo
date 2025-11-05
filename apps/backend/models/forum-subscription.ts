@@ -17,8 +17,8 @@ export const ForumSubscription = list({
     },
   },
   fields: {
-    user: relationship({ ref: 'User', many: false }),
-    forumPost: relationship({ ref: 'ForumPost', many: false }),
+    user: relationship({ ref: 'User.forumSubscriptions', many: false }),
+    forumPost: relationship({ ref: 'ForumPost.subscribers', many: false }),
     topic: text({ validation: { isRequired: false, length: { max: 50 } } }),
     subscribedAt: timestamp({ defaultValue: { kind: 'now' } }),
   },

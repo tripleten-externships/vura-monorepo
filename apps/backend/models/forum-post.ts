@@ -55,6 +55,13 @@ export const ForumPost = list({
         displayMode: 'select',
       },
     }),
+    subscribers: relationship({
+      ref: 'ForumSubscription.forumPost',
+      many: true,
+      ui: {
+        displayMode: 'select',
+      },
+    }),
   },
   hooks: {
     //Automatically connect the author to the logged-in user and get their user ID.
