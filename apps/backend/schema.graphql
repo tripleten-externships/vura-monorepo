@@ -22,7 +22,7 @@ enum AiChatSessionStatusType {
 }
 
 """Date custom scalar type"""
-scalar DateTime
+scalar DateTime @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
 
 input AiChatSessionWhereUniqueInput {
   id: ID
@@ -1678,7 +1678,7 @@ input NotificationRelateToManyForCreateInput {
 }
 
 """JSON custom scalar type"""
-scalar JSON
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type Mutation {
   createAiChatSession(data: AiChatSessionCreateInput!): AiChatSession

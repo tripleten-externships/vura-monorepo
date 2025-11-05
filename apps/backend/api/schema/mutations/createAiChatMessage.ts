@@ -1,3 +1,4 @@
+import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
 import { logger } from '../../../utils/logger';
 import { aiService } from '../../../services/ai';
