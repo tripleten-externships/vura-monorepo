@@ -18,6 +18,7 @@ import { chatRoutes } from './routes/chat';
 import { initWebSocketService } from './services/websocket';
 import { createSubscriptionServer } from './api/subscriptions/server';
 import { initializeEventHandlers } from './api/subscriptions/handlers';
+import { aiService } from './services/ai/ai.service';
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -41,6 +42,9 @@ export default withAuth(
         chatRoutes(app);
       },
       extendHttpServer(server, context) {
+        // Initialize AI service with Prisma for database persistence
+        aiService.initializeWithPrisma(context.prisma);
+
         // Initialize WebSocket service for chat
         initWebSocketService({
           httpServer: server,

@@ -51,9 +51,11 @@ export function quickValidate(slot: StepKey, value: unknown): boolean {
     }
 
     case 'personalChallenges': {
-      if (!value) return false; // optional
-      if (Array.isArray(value))
+      if (!value) return false;
+      if (Array.isArray(value)) {
         return value.length >= 1 && value.length <= 5 && value.every((v) => typeof v === 'string');
+      }
+      return typeof value === 'string';
     }
     default:
       return true;

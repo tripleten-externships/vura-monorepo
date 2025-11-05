@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import type { PrismaClient } from '@prisma/client';
 import { AIProvider, ChatMessage, ChatResponse, ChatOptions } from './types';
 import { GeminiProvider } from './provider/gemini';
 import { getWebSocketService } from '../websocket';
@@ -15,7 +16,6 @@ import { ContextManager } from './context/contextManager';
 // Extraction
 import { Extractor } from './extract/extractor';
 import { validatorFor, SlotKey } from './extract/schema';
-import next from 'next';
 
 export type ProviderType = 'gemini' | 'openai' | 'claude';
 
@@ -38,6 +38,14 @@ export class AIService {
         return { text: (res as any)?.text, json: (res as any)?.json };
       },
     });
+  }
+
+  /**
+   * Initialize the AI service with Prisma client for database persistence
+   * This should be called once when the app starts
+   */
+  initializeWithPrisma(prisma: PrismaClient) {
+    this.ctx.setPrisma(prisma);
   }
 
   private initializeProviders() {
@@ -158,93 +166,114 @@ export class AIService {
   async continueOnboarding(
     conversationId: string,
     userInput: string
-  ): Promise<{ reply: string; done: boolean }> {
-    const ctx = await this.ctx.load(conversationId);
-    await this.ctx.appendMessage(conversationId, 'user', userInput);
+  ): Promise<{ reply: string; done: boolean; error?: string }> {
+    try {
+      const ctx = await this.ctx.load(conversationId);
+      await this.ctx.appendMessage(conversationId, 'user', userInput);
 
-    const slots = (ctx.longTerm.onboarding || {}) as OnboardingStep;
+      const slots = (ctx.longTerm.onboarding || {}) as OnboardingStep;
 
-    // Determine which slot is still missing (in order)
-    const order: SlotKey[] = ['age', 'parentCount', 'parentSpecialNeeds', 'personalChallenges'];
-    const current = order.find((k) => {
-      const v = (slots as any)[k];
-      return v === undefined || v === null || (Array.isArray(v) && v.length === 0);
-    });
+      // Determine which slot is still missing (in order)
+      const order: SlotKey[] = ['age', 'parentCount', 'parentSpecialNeeds', 'personalChallenges'];
+      const current = order.find((k) => {
+        const v = (slots as any)[k];
+        return v === undefined || v === null || (Array.isArray(v) && v.length === 0);
+      });
 
-    // If all slots are filled, generate plan
-    if (!current) {
-      const plan = await this.generateCarePlan(conversationId); // implement this method
-      const reply = `Here is your personalized care plan:\n\n${plan}`;
-      await this.ctx.appendMessage(conversationId, 'assistant', reply);
-      await this.ctx.setMeta(conversationId, { completed: true });
-      return { reply, done: true };
-    }
+      // If all slots are filled, generate plan
+      if (!current) {
+        const plan = await this.generateCarePlan(conversationId);
+        const reply = `Here is your personalized care plan:\n\n${plan}`;
+        await this.ctx.appendMessage(conversationId, 'assistant', reply);
+        await this.ctx.setMeta(conversationId, { completed: true });
+        return { reply, done: true };
+      }
 
-    // Extract only the current field as JSON, then validate/normalize
-    const validated = await this.extractor.run(
-      [
-        {
-          role: 'user',
-          content: `From the following input, extract only the field "${current}" as JSON with exactly that key.`,
-        },
-        { role: 'user', content: userInput },
-      ],
-      validatorFor(current) as any
-    );
+      // Extract only the current field as JSON, then validate/normalize
+      let validated;
+      try {
+        validated = await this.extractor.run(
+          [
+            {
+              role: 'user',
+              content: `From the following input, extract only the field "${current}" as JSON with exactly that key.`,
+            },
+            { role: 'user', content: userInput },
+          ],
+          validatorFor(current) as any
+        );
+      } catch (extractionError) {
+        const errorMsg = `I'm having trouble understanding your response. Could you please try again?`;
+        await this.ctx.appendMessage(conversationId, 'assistant', errorMsg);
+        return { reply: errorMsg, done: false, error: 'extraction_failed' };
+      }
 
-    // Merge into long-term onboarding slots
-    const patch: Partial<OnboardingStep> = {
-      [current]: (validated as any)[current],
-    } as Partial<OnboardingStep>;
+      // Merge into long-term onboarding slots
+      const patch: Partial<OnboardingStep> = {
+        [current]: (validated as any)[current],
+      } as Partial<OnboardingStep>;
 
-    const nextSlots = { ...slots, ...patch } as OnboardingStep;
-    await this.ctx.setLongTerm(conversationId, { onboarding: nextSlots });
+      const nextSlots = { ...slots, ...patch } as OnboardingStep;
+      await this.ctx.setLongTerm(conversationId, { onboarding: nextSlots });
 
-    // Determine next missing field
-    const nextMissing = order.find((k) => {
-      const v = (nextSlots as any)[k];
-      return v === undefined || v === null || (Array.isArray(v) && v.length === 0);
-    });
+      // Determine next missing field
+      const nextMissing = order.find((k) => {
+        const v = (nextSlots as any)[k];
+        return v === undefined || v === null || (Array.isArray(v) && v.length === 0);
+      });
 
-    if (!nextMissing) {
-      const plan = await this.generateCarePlan(conversationId); // implement this method
-      const reply = `Here is your personalized care plan:\n\n${plan}`;
-      await this.ctx.appendMessage(conversationId, 'assistant', reply);
-      await this.ctx.setMeta(conversationId, { completed: true });
-      return { reply, done: true };
-    } else {
-      const prompt = this.flow.promptFor(nextMissing);
-      await this.ctx.setMeta(conversationId, { step: nextMissing });
-      await this.ctx.appendMessage(conversationId, 'assistant', prompt);
-      return { reply: prompt, done: false };
+      if (!nextMissing) {
+        const plan = await this.generateCarePlan(conversationId);
+        const reply = `Here is your personalized care plan:\n\n${plan}`;
+        await this.ctx.appendMessage(conversationId, 'assistant', reply);
+        await this.ctx.setMeta(conversationId, { completed: true });
+        return { reply, done: true };
+      } else {
+        const prompt = this.flow.promptFor(nextMissing);
+        await this.ctx.setMeta(conversationId, { step: nextMissing });
+        await this.ctx.appendMessage(conversationId, 'assistant', prompt);
+        return { reply: prompt, done: false };
+      }
+    } catch (error) {
+      console.error('Error in continueOnboarding:', error);
+      return {
+        reply: 'I encountered an error. Please try again or contact support.',
+        done: false,
+        error: 'internal_error',
+      };
     }
   }
 
   // Generate care plan based on collected onboarding data
   private async generateCarePlan(conversationId: string): Promise<string> {
-    const ctx = await this.ctx.load(conversationId);
-    const slots = (ctx.longTerm.onboarding ?? {}) as OnboardingStep;
+    try {
+      const ctx = await this.ctx.load(conversationId);
+      const slots = (ctx.longTerm.onboarding ?? {}) as OnboardingStep;
 
-    const system: ChatMessage = {
-      role: 'system',
-      content:
-        'You are an expert caregiver assistant. Based on the user information, generate a personalized care plan with actionable steps.',
-    };
+      const system: ChatMessage = {
+        role: 'system',
+        content:
+          'You are an expert caregiver assistant. Based on the user information, generate a personalized care plan with actionable steps.',
+      };
 
-    const facts =
-      `Known facts about the user:\n` +
-      `- Age: ${slots.age}\n` +
-      `- Number of parents to care for: ${slots.parentCount}\n` +
-      `- Parents special needs: ${JSON.stringify(slots.parentSpecialNeeds ?? [])}\n` +
-      `- User personal challenges: ${JSON.stringify(slots.personalChallenges ?? [])}`;
+      const facts =
+        `Known facts about the user:\n` +
+        `- Age: ${slots.age}\n` +
+        `- Number of parents to care for: ${slots.parentCount}\n` +
+        `- Parents special needs: ${JSON.stringify(slots.parentSpecialNeeds ?? [])}\n` +
+        `- User personal challenges: ${JSON.stringify(slots.personalChallenges ?? [])}`;
 
-    const user: ChatMessage = {
-      role: 'user',
-      content: facts + '\n\nPlease provide a detailed care plan.',
-    };
+      const user: ChatMessage = {
+        role: 'user',
+        content: facts + '\n\nPlease provide a detailed care plan.',
+      };
 
-    const res = await this.chat([system, user]);
-    return (res as any)?.text || 'Unable to generate care plan at this time.';
+      const res = await this.chat([system, user]);
+      return (res as any)?.text || 'Unable to generate care plan at this time.';
+    } catch (error) {
+      console.error('Error generating care plan:', error);
+      return 'I apologize, but I encountered an error while generating your care plan. Please try again later or contact support for assistance.';
+    }
   }
 
   /**
