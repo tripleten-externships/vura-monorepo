@@ -9,24 +9,39 @@ import {
   integer,
   select,
 } from '@keystone-6/core/fields';
+import { isAdmin, isLoggedIn, isAdminOrOwner, requireAdmin } from '../utils/rbac';
 
 export const User = list({
   access: {
     operation: {
+      // Anyone can view users (you might want to restrict this later)
       query: () => true,
+      // Anyone can create a user (for registration)
       create: () => true,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
+      // Only logged-in users can update
+      update: ({ session }) => isLoggedIn(session),
+      // Only admins can delete users
+      delete: ({ session }) => isAdmin(session),
     },
     filter: {
       query: ({ session }) => {
-        if (!session?.data?.id) return false;
-        return { id: { equals: session.data.id } };
+        // Admins can see all users
+        if (isAdmin(session)) return true;
+
+        // Regular users can only see their own profile
+        if (isLoggedIn(session)) {
+          return { id: { equals: session.data.id } };
+        }
+
+        // Not logged in = can't see anything
+        return false;
       },
     },
     item: {
-      update: ({ session, item }) => item.id === session.data.id,
-      delete: ({ session, item }) => item.id === session.data.id,
+      // Users can only update their own profile, admins can update anyone
+      update: ({ session, item }) => isAdminOrOwner(session, item),
+      // Only admins can delete any user
+      delete: ({ session }) => isAdmin(session),
     },
   },
   fields: {
@@ -62,12 +77,18 @@ export const User = list({
       ],
       validation: { isRequired: false },
     }),
-    privacyToggle: checkbox({ defaultValue: true }),
-
-    //relationship to chat messages
+    privacyToggle: checkbox({ defaultValue: true }), //relationship to chat messages
     messages: relationship({ ref: 'ChatMessage.sender', many: true }),
 
-    isAdmin: checkbox({ defaultValue: true }),
+    // Only admins can view/modify admin status
+    isAdmin: checkbox({
+      defaultValue: false, // Changed from true to false - new users are NOT admin by default
+      access: {
+        read: ({ session }) => isAdmin(session), // Only admins can see who is admin
+        create: ({ session }) => isAdmin(session), // Only admins can make new admins
+        update: ({ session }) => isAdmin(session), // Only admins can change admin status
+      },
+    }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),

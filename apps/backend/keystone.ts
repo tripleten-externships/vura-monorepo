@@ -51,7 +51,10 @@ export default withAuth(
       },
     },
     ui: {
-      isAccessAllowed: (context) => context.session !== undefined,
+      // Only allow admin users to access the admin UI
+      isAccessAllowed: (context) => {
+        return context.session?.data?.isAdmin === true;
+      },
       basePath: '/admin/ui',
     },
     db: {
