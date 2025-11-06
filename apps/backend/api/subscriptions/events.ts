@@ -32,3 +32,13 @@ export interface UnreadCountChangedEvent {
   count: number;
   notificationType?: string;
 }
+
+export interface ForumPostCreatedEvent {
+  userId: string;
+  postId: string;
+  topic: string;
+  createdAt: string;
+  subscriberIds: string[];
+  content: string;
+  authorName: string;
+}
