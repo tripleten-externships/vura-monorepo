@@ -384,6 +384,8 @@ export const typeDefs = gql`
     customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
     customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
     customMarkAllNotificationsAsRead: MarkAllAsReadResult!
+    customSubscribToForum(topic: String!): ForumSubscriptionResult!
+    customUnSubscribToForum(topic: String!): ForumSubscriptionResult!
   }
 
   type Query {
