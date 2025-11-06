@@ -12,4 +12,6 @@ export enum SubscriptionTopics {
   NOTIFICATION_CREATED = 'NOTIFICATION_CREATED',
   NOTIFICATION_READ = 'NOTIFICATION_READ',
   UNREAD_COUNT_CHANGED = 'UNREAD_COUNT_CHANGED',
+  // Internal events (not exposed to GraphQL subscriptions)
+  CHAT_MESSAGE_CREATED = 'CHAT_MESSAGE_CREATED',
 }

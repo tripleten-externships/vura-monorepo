@@ -1,8 +1,7 @@
 import { list } from '@keystone-6/core';
-import { text, relationship, timestamp, integer } from '@keystone-6/core/fields';
-import { isItemAccess } from '../utils/access';
+import { text, relationship, timestamp } from '@keystone-6/core/fields';
+import { isItemAccess, isAuthenticated, isAdmin } from '../utils/access';
 
-// ChatMessage model to store messages in a group chat. Each message belongs to one group chat and one sender (user)
 export const ChatMessage = list({
   fields: {
     message: text({ validation: { isRequired: true } }),
@@ -11,21 +10,27 @@ export const ChatMessage = list({
       ref: 'GroupChat.messages',
       many: false,
     }),
-    sender: relationship({ ref: 'User.messages', many: false }),
+    sender: relationship({
+      ref: 'User.messages',
+      many: false,
+    }),
   },
+
   access: {
     operation: {
-      query: () => true,
-      create: ({ session }) => !!session?.data?.id,
+      query: () => true, // Everyone can read chat messages
+      create: isAuthenticated, // Only signed in users can send messages
       update: (args) => {
         const { session } = args;
         if (!session?.data?.id || !isItemAccess(args)) return false;
-        return session.data.id === args.item.sender?.id;
+        // Allow update if sender owns message or is admin
+        return session.data.id === args.item.sender?.id || session.data.role === 'admin';
       },
       delete: (args) => {
         const { session } = args;
         if (!session?.data?.id || !isItemAccess(args)) return false;
-        return session.data.id === args.item.sender?.id;
+        // Allow delete if sender owns message or is admin
+        return session.data.id === args.item.sender?.id || session.data.role === 'admin';
       },
     },
   },
