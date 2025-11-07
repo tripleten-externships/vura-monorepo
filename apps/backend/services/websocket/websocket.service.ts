@@ -6,6 +6,7 @@ import {
   SocketEvents,
   ChatMessagePayload,
   AiChatMessagePayload,
+  ForumPostPayload,
 } from './types';
 import { logger } from '../../utils/logger';
 
@@ -246,6 +247,12 @@ export class WebSocketService {
     for (const socketId of socketIds) {
       this.io.to(socketId).emit(event, data);
     }
+  }
+
+  public emitNewForumPost(post: ForumPostPayload) {
+    const roomId = `forum:${post.topic}`;
+    this.io.to(roomId).emit(SocketEvents.NEW_FORUM_POST, post);
+    logger.info(`Emitted new forum post to room ${roomId}`);
   }
 
   /**

@@ -31,6 +31,15 @@ export interface AiChatMessagePayload {
   author: string;
 }
 
+export interface ForumPostPayload {
+  id: string;
+  title: string;
+  topic: string;
+  content: string;
+  author: string;
+  createdAt: string;
+}
+
 export enum SocketEvents {
   // Connection events
   AUTHENTICATE = 'authenticate',
@@ -62,4 +71,6 @@ export enum SocketEvents {
   // Status events
   USER_ONLINE = 'user:online',
   USER_OFFLINE = 'user:offline',
+
+  NEW_FORUM_POST = 'forum:new_post',
 }
