@@ -10,6 +10,7 @@ export interface CreateForumPostInput {
   title: string;
   topic: string;
   content: string;
+  authorName: string;
 }
 
 export const customCreateForumPost = async (

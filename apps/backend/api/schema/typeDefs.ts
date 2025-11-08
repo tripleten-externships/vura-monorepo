@@ -136,6 +136,7 @@ export const typeDefs = gql`
     title: String!
     topic: String!
     content: String!
+    authorName: String!
   }
 
   type CustomCreateForumPostResult {
