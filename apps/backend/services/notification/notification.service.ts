@@ -9,6 +9,7 @@ import {
   NotificationType,
 } from './types';
 import { logger } from '../../utils/logger';
+// import { WebSocketService } from '../websocket';
 
 export class NotificationService implements INotificationService {
   /**
@@ -49,6 +50,7 @@ export class NotificationService implements INotificationService {
         content: data.content,
         user: { connect: { id: data.userId } },
       };
+      // const websocketService = new WebSocketService(io);
 
       // add optional fields
       if (data.actionUrl) {
@@ -84,7 +86,15 @@ export class NotificationService implements INotificationService {
         };
       }
 
+      // determine if user is already in chat - if true do not send notifications
+      // const userInGroup = websocketService.isUserInGroup(
+      //   targetUserId,
+      //   groupId
+      // );
+
       // create notification
+      // if(!userInGroup) {} --supposed to wrap await
+
       const notification = await context.db.Notification.createOne({
         data: notificationData,
       });
@@ -143,6 +153,7 @@ export class NotificationService implements INotificationService {
       }
 
       // create notifications for each user
+      // only notify user if the are not in chat by checking online status
       const notifications = await Promise.all(
         data.userIds.map((userId) =>
           this.createNotification(
