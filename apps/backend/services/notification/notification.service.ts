@@ -12,6 +12,11 @@ import { logger } from '../../utils/logger';
 // import { WebSocketService } from '../websocket';
 
 export class NotificationService implements INotificationService {
+  //  userMessageQueue: Map<string, // userId
+  //   {messages: string[]; // storing all messages sent to user during 30 second window
+  //     groupId: string; // linking notification correctly
+  //      timer: NodeJS.Timeout | null}>  // reset timer if new messages arrive
+  //       = new Map(); // add users to their queues
   /**
    * create and persist a single notification
    */
@@ -94,6 +99,22 @@ export class NotificationService implements INotificationService {
 
       // create notification
       // if(!userInGroup) {} --supposed to wrap await
+
+      // userQueue.timer = setTimeout(async () => {
+      //   const combinedContent = userQueue.messages.join('\n');
+
+      //   await this.dbContext.Notification.createOne({
+      //     data: {
+      //       userId: data.userId,
+      //       type: data.type,
+      //       notificationType: data.notificationType,
+      //       priority: data.priority,
+      //       content: data.content,
+      //       actionUrl: data.actionUrl, // should return last message in que ??
+      //     },
+      //   });
+      //   this.userMessageQueue.delete(targetUserId);
+      // }, 30000);
 
       const notification = await context.db.Notification.createOne({
         data: notificationData,
