@@ -2,6 +2,7 @@ import { Express, Request, Response } from 'express';
 import { aiService } from '../services/ai';
 import { ChatMessage } from '../services/ai/types';
 import bodyParser from 'body-parser';
+import { getWebSocketService } from '../services/websocket';
 
 export function chatRoutes(app: Express) {
   app.use('/api/chat', bodyParser.json({ limit: '4mb' }));
@@ -10,7 +11,7 @@ export function chatRoutes(app: Express) {
       return res.status(400).json({ error: 'Request body is required' });
     }
 
-    const { messages, systemPrompt, temperature, provider } = req.body;
+    const { messages, systemPrompt, temperature, provider, sessionId, userId } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'Messages array is required' });
@@ -31,10 +32,15 @@ export function chatRoutes(app: Express) {
       });
 
       try {
+        // check if we have a valid session ID and user ID for WebSocket streaming
+        const useWebSockets = sessionId && userId;
+
         for await (const chunk of aiService.streamChat(typedMessages, {
           systemPrompt,
           temperature,
           provider,
+          userId: useWebSockets ? userId : undefined,
+          sessionId: useWebSockets ? sessionId : undefined,
         })) {
           res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
         }
@@ -48,10 +54,15 @@ export function chatRoutes(app: Express) {
     }
 
     try {
+      // check if we have a valid session ID and user ID for WebSocket streaming
+      const useWebSockets = sessionId && userId;
+
       const response = await aiService.chat(typedMessages, {
         systemPrompt,
         temperature,
         provider,
+        userId: useWebSockets ? userId : undefined,
+        sessionId: useWebSockets ? sessionId : undefined,
       });
 
       res.status(200).json({

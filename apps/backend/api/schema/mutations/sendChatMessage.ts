@@ -1,5 +1,8 @@
 import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
+import { getWebSocketService } from '../../../services/websocket';
+import { pubsub, SubscriptionTopics } from '../../subscriptions/pubsub';
+import { ChatMessageCreatedEvent } from '../../subscriptions/events';
 
 export interface SendChatMessageInput {
   groupId: string;
@@ -104,6 +107,83 @@ export const sendChatMessage = async (
       throw new GraphQLError('Failed to retrieve created message', {
         extensions: { code: 'INTERNAL_SERVER_ERROR' },
       });
+    }
+
+    const messagePayload = {
+      id: populatedMessage.id,
+      message: populatedMessage.message,
+      createdAt: populatedMessage.createdAt,
+      sender: {
+        id: populatedMessage.sender.id,
+        name: populatedMessage.sender.name || populatedMessage.sender.email,
+      },
+      groupId: populatedMessage.group?.id || groupId,
+    };
+
+    // Emit the message via WebSockets (legacy approach)
+    try {
+      const websocketService = getWebSocketService();
+      websocketService.emitNewChatMessage(messagePayload);
+    } catch (wsError) {
+      console.error('Failed to emit WebSocket event:', wsError);
+      // don't throw error here, just log it - the message was saved successfully
+    }
+
+    // Publish the message to GraphQL subscriptions
+    try {
+      // Create a message object that matches the expected format in the subscription resolver
+      const subscriptionPayload = {
+        id: populatedMessage.id,
+        message: populatedMessage.message,
+        createdAt: populatedMessage.createdAt,
+        sender: populatedMessage.sender,
+        groupId: populatedMessage.group?.id || groupId,
+      };
+
+      // publish to the NEW_CHAT_MESSAGE topic for GraphQL subscriptions
+      pubsub.publish(SubscriptionTopics.NEW_CHAT_MESSAGE, subscriptionPayload);
+    } catch (subError) {
+      console.error('Failed to publish subscription event:', subError);
+      // Don't throw error, the message was saved successfully
+    }
+
+    // publish CHAT_MESSAGE_CREATED event for internal event handlers
+    try {
+      // collect all group member IDs (owner + members)
+      const allMemberIds: string[] = [];
+      if (fullGroupChat.owner?.id) {
+        allMemberIds.push(fullGroupChat.owner.id);
+      }
+      if (fullGroupChat.members && Array.isArray(fullGroupChat.members)) {
+        fullGroupChat.members.forEach((member: { id: string }) => {
+          if (member.id && !allMemberIds.includes(member.id)) {
+            allMemberIds.push(member.id);
+          }
+        });
+      }
+
+      // create event payload
+      const chatMessageEvent: ChatMessageCreatedEvent = {
+        messageId: populatedMessage.id,
+        message: trimmedMessage,
+        senderId: session.data.id,
+        senderName: populatedMessage.sender.name || populatedMessage.sender.email,
+        groupId: populatedMessage.group?.id || groupId,
+        groupName: fullGroupChat.groupName,
+        createdAt: populatedMessage.createdAt,
+        memberIds: allMemberIds,
+      };
+
+      // publish the event - event handlers will process it asynchronously
+      pubsub.publish(SubscriptionTopics.CHAT_MESSAGE_CREATED, chatMessageEvent);
+
+      console.log('Chat message event published', {
+        messageId: populatedMessage.id,
+        groupId,
+      });
+    } catch (eventError) {
+      console.error('Failed to publish chat message event:', eventError);
+      // don't throw error, the message was saved successfully
     }
 
     return {
