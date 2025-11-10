@@ -4,13 +4,13 @@ import { getWebSocketService } from '../../../services/websocket';
 import { pubsub, SubscriptionTopics } from '../../subscriptions/pubsub';
 import { logAuditEvent } from '../../../utils/logger';
 import { sanitizeContent } from '../../../utils/sanitizeContent';
+import { ForumPostCreatedEvent } from '../../subscriptions/events';
 
 // custom input type
 export interface CreateForumPostInput {
   title: string;
   topic: string;
   content: string;
-  authorName: string;
 }
 
 export const customCreateForumPost = async (
@@ -88,35 +88,30 @@ export const customCreateForumPost = async (
       title: post.title,
     });
 
+    // Prepare event payload
+    const eventPayload: ForumPostCreatedEvent = {
+      userId: context.session.data.id,
+      postId: post.id.toString(),
+      topic: post.topic as string,
+      title: post.title as string,
+      createdAt: (post.createdAt as Date).toISOString(),
+      subscriberIds: [],
+      content: post.content as string,
+      authorName: (post.author as any)?.name || '',
+    };
+
+    /// Emit the forumPost via WebSockets
     try {
       const websocketService = getWebSocketService();
-      websocketService.emitNewForumPost({
-        id: post.id.toString(),
-        title: post.title as string,
-        topic: post.topic as string,
-        content: post.content as string,
-        author: post.author as string,
-        createdAt: (post.createdAt as Date).toISOString(),
-      });
+      websocketService.emitNewForumPost(eventPayload);
     } catch (wsError) {
       console.error('Failed to emit WebSocket event:', wsError);
     }
 
+    // Publish the forumPost to GraphQL subscriptions
     try {
-      const forumPostPayload = {
-        id: post.id,
-        title: post.title,
-        topic: post.topic,
-        content: post.content,
-        author: post.author,
-        createdAt: post.createdAt,
-      };
-
-      pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, forumPostPayload);
-
-      console.log('Forum post event published:', {
-        postId: post.id,
-        topic: post.topic,
+      pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
+        forumPostCreated: eventPayload,
       });
     } catch (eventError) {
       console.error('Failed to publish forum post event:', eventError);
