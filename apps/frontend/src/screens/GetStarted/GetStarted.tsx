@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-// import { router } from 'expo-router';
-import { Bell } from '../src/components/NotificationBell/NotificationBell';
-import { Emoji } from '../src/components/Emoji/Emoji';
-import { PostInput } from '../src/components/PostInput/PostInput';
-import { InputField } from '../src/components/InputField/InputField';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AUTH_TOKEN } from '../src/store/apolloClient';
-import { WebSocketTest } from '../src/components/WebSocketTest';
-import { USER_LOGIN } from '../src/graphql/mutations';
 import { useMutation } from '@apollo/client/react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Bell } from '../../components/NotificationBell/NotificationBell';
+import { Emoji } from '../../components/Emoji/Emoji';
+import { PostInput } from '../../components/PostInput/PostInput';
+import { InputField } from '../../components/InputField/InputField';
+import { WebSocketTest } from '../../components/WebSocketTest';
+import { BottomNavBar } from '../../components/BottomNavBar';
+import { useNavigation } from '../../hooks/useNavigation';
+import { AUTH_TOKEN } from '../../store/apolloClient';
+import { USER_LOGIN } from '../../graphql/mutations';
 
-export default function WelcomePage() {
+export default function GetStartedPage() {
+  const navigation = useNavigation();
+  const [login, { loading }] = useMutation(USER_LOGIN);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const [login, { loading }] = useMutation(USER_LOGIN);
 
   // debug effect to monitor isLoggedIn state
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function WelcomePage() {
         await AsyncStorage.setItem(AUTH_TOKEN, auth.sessionToken);
         console.log('Token stored in AsyncStorage: ', auth.sessionToken);
         setIsLoggedIn(true);
+        navigation.push('/profile');
         Alert.alert('Success', `Logged in as ${auth.item.name || auth.item.email}`);
       } else if (auth.__typename === 'UserAuthenticationWithPasswordFailure') {
         console.error('Login failed: ', auth.message);
@@ -107,49 +110,9 @@ export default function WelcomePage() {
           backgroundColor: '#f6f4fa',
         }}
       />
-      <InputField
-        placeholderTextColor="rgba(54,54,54,0.5)"
-        placeholder="Ask AI helper, any question"
-        svgIcon={{ uri: '../../assets/arrow_right.png' }}
-        containerStyle={{
-          borderColor: '#e7e7e7',
-          height: 62,
-          paddingHorizontal: 16,
-          marginTop: 20,
-          width: 345,
-          backgroundColor: '#ffffff',
-        }}
-        iconStyle={{ width: 32, height: 32, marginTop: -4 }}
-      />
-      <InputField
-        placeholderTextColor="rgba(54,54,54,0.5)"
-        placeholder="Type your answer"
-        svgIcon={{ uri: '../../assets/Send.png' }}
-        containerStyle={{
-          borderColor: '#e7e7e7',
-          height: 62,
-          paddingHorizontal: 16,
-          marginTop: 20,
-          width: 345,
-          backgroundColor: '#ffffff',
-        }}
-        iconStyle={{ width: 24, height: 24 }}
-      />
-      {/* I added a post input field to test the component. */}
-      <PostInput
-        placeholderTextColor="rgba(54,54,54,0.5)"
-        titlePlaceholder="Post title"
-        bodyPlaceholder="Post text"
-      />
-      {/* test emoji component */}
-      <Emoji emojiIcon={{ uri: '../../assets/smile.svg' }} />
-      {/* test bell component  */}
-      <Bell bellIcon={{ uri: '../../assets/notification_bell.png' }} />
-      {/* Always show login button */}
       <TouchableOpacity
         style={[styles.button, loading && styles.buttonDisabled]}
         onPress={() => {
-          console.log('Login button pressed');
           handleLogin();
         }}
         disabled={loading}
@@ -158,18 +121,6 @@ export default function WelcomePage() {
           {loading ? 'Logging in...' : isLoggedIn ? 'Refresh Login' : 'Login'}
         </Text>
       </TouchableOpacity>
-
-      {/* Separate section for WebSocketTest */}
-      {isLoggedIn && (
-        <View style={styles.loggedInContainer}>
-          <Text style={styles.successText}>You're logged in! WebSocket test below:</Text>
-          <View style={styles.websocketContainer}>
-            {/* <WSTestScreen /> */}
-            <WebSocketTest />
-            {/* <Text>[Jonah - 20251020] WebSocket test disabled for now</Text> */}
-          </View>
-        </View>
-      )}
     </View>
   );
 }

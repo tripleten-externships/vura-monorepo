@@ -137,7 +137,8 @@ export const WebSocketTest = () => {
         setMessages((prev) => [...prev, 'WebSocketService connect succeeded']);
       } catch (wsError) {
         console.error('WebSocketService connect error:', wsError);
-        setMessages((prev) => [...prev, `WebSocketService error: ${wsError.message || wsError}`]);
+        const errorMessage = wsError instanceof Error ? wsError.message : String(wsError);
+        setMessages((prev) => [...prev, `WebSocketService error: ${errorMessage}`]);
       }
 
       setMessages((prev) => [...prev, 'Manual reconnect attempted']);

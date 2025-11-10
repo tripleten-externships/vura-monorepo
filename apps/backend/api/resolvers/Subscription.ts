@@ -8,7 +8,8 @@ export const Subscription = {
   messageSent: {
     subscribe: withFilter(
       () => pubsub.asyncIterableIterator(SubscriptionTopics.NEW_CHAT_MESSAGE),
-      async (payload, variables, context: any) => {
+      async (payload, variables, context: Context | undefined) => {
+        if (!context) return false;
         const userId = context.session?.data?.id;
         if (!userId) return false;
 
@@ -41,7 +42,8 @@ export const Subscription = {
   typingIndicator: {
     subscribe: withFilter(
       () => pubsub.asyncIterableIterator(SubscriptionTopics.TYPING_INDICATOR),
-      async (payload, variables, context: any) => {
+      async (payload, variables, context: Context | undefined) => {
+        if (!context) return false;
         const userId = context.session?.data?.id;
         if (!userId) return false;
         if (payload.groupId !== variables.groupId) return false;
@@ -64,7 +66,8 @@ export const Subscription = {
   userStatusChanged: {
     subscribe: withFilter(
       () => pubsub.asyncIterableIterator(SubscriptionTopics.USER_STATUS_CHANGED),
-      (payload, variables, context: any) => {
+      (payload, variables, context: Context | undefined) => {
+        if (!context) return false;
         const userId = context.session?.data?.id;
         if (!userId) return false;
         if (variables.userId) {
@@ -79,7 +82,8 @@ export const Subscription = {
   aiMessageReceived: {
     subscribe: withFilter(
       () => pubsub.asyncIterableIterator(SubscriptionTopics.NEW_AI_MESSAGE),
-      async (payload, variables, context: any) => {
+      async (payload, variables, context: Context | undefined) => {
+        if (!context) return false;
         const userId = context.session?.data?.id;
         if (!userId) return false;
         if (payload.sessionId !== variables.sessionId) return false;
@@ -94,6 +98,34 @@ export const Subscription = {
         } catch {
           return false;
         }
+      }
+    ),
+  },
+
+  // Subscribe to new notifications for a specific user
+  notificationReceived: {
+    subscribe: withFilter(
+      () => pubsub.asyncIterableIterator(SubscriptionTopics.NOTIFICATION_CREATED),
+      (payload, variables, context: Context | undefined) => {
+        if (!context) return false;
+        const userId = context.session?.data?.id;
+        if (!userId) return false;
+        // only send notifications to the intended user
+        return payload.userId === variables.userId && payload.userId === userId;
+      }
+    ),
+  },
+
+  // Subscribe to unread count changes for a specific user
+  unreadCountChanged: {
+    subscribe: withFilter(
+      () => pubsub.asyncIterableIterator(SubscriptionTopics.UNREAD_COUNT_CHANGED),
+      (payload, variables, context: Context | undefined) => {
+        if (!context) return false;
+        const userId = context.session?.data?.id;
+        if (!userId) return false;
+        // only send count updates to the intended user
+        return payload.userId === variables.userId && payload.userId === userId;
       }
     ),
   },

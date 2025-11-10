@@ -240,6 +240,19 @@ export const typeDefs = gql`
     metadata: JSON
   }
 
+  # Single AI chat message create (persist & return session id)
+  input CreateAiChatMessageInput {
+    sessionId: ID
+    prompt: String!
+  }
+
+  type CreateAiChatMessageResult {
+    success: Boolean!
+    message: String
+    error: String
+    sessionId: ID
+  }
+
   # Profile Management
   input UpdateProfileInput {
     name: String
@@ -274,6 +287,83 @@ export const typeDefs = gql`
     status: String!
   }
 
+  # Notification Types
+  enum NotificationType {
+    CARE_PLAN
+    CHAT
+    FORUM
+    SYSTEM
+  }
+
+  enum NotificationPriority {
+    LOW
+    MEDIUM
+    HIGH
+    URGENT
+  }
+
+  input CreateNotificationInput {
+    userId: ID!
+    type: String!
+    notificationType: NotificationType!
+    priority: NotificationPriority
+    content: String!
+    actionUrl: String
+    metadata: JSON
+    relatedCarePlanId: ID
+    relatedChatId: ID
+    relatedForumPostId: ID
+  }
+
+  input GetNotificationsInput {
+    read: Boolean
+    notificationType: NotificationType
+    priority: NotificationPriority
+    take: Int
+    skip: Int
+  }
+
+  type NotificationDetails {
+    id: ID!
+    type: String!
+    notificationType: NotificationType!
+    priority: NotificationPriority!
+    content: String!
+    actionUrl: String
+    metadata: JSON
+    read: Boolean!
+    readAt: DateTime
+    createdAt: DateTime!
+  }
+
+  type CreateNotificationResult {
+    notification: NotificationDetails!
+    message: String!
+  }
+
+  type MarkAsReadResult {
+    notification: NotificationDetails!
+    message: String!
+  }
+
+  type MarkAllAsReadResult {
+    count: Int!
+    message: String!
+  }
+
+  type NotificationsResult {
+    notifications: [NotificationDetails!]!
+    total: Int!
+    hasMore: Boolean!
+    skip: Int!
+    take: Int!
+  }
+
+  type UnreadCountResult {
+    count: Int!
+    notificationType: NotificationType
+  }
+
   # Root Types
   type Mutation {
     signup(input: SignupInput!): SignupResult!
@@ -288,8 +378,12 @@ export const typeDefs = gql`
     submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
     updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
     aiChat(input: AiChatInput!): AiChatResponse!
+    createAiChatMessage(input: CreateAiChatMessageInput!): CreateAiChatMessageResult!
     typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
     updateUserStatus(input: UserStatusInput!): SuccessResponse!
+    customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
+    customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
+    customMarkAllNotificationsAsRead: MarkAllAsReadResult!
   }
 
   type Query {
@@ -297,6 +391,8 @@ export const typeDefs = gql`
     getResources(input: GetResourcesInput): ResourceConnection!
     getForumPost(id: ID!): ForumPostDetails
     getForumPosts(input: GetForumPostsInput): ForumPostConnection!
+    customGetNotifications(input: GetNotificationsInput): NotificationsResult!
+    customGetUnreadCount(notificationType: NotificationType): UnreadCountResult!
   }
 
   # Typing indicator payload
@@ -327,5 +423,11 @@ export const typeDefs = gql`
 
     # Subscribe to AI chat messages for a specific session
     aiMessageReceived(sessionId: ID!): AiChatResponse!
+
+    # Subscribe to new notifications for a specific user
+    notificationReceived(userId: ID!): NotificationDetails!
+
+    # Subscribe to unread count changes for a specific user
+    unreadCountChanged(userId: ID!): UnreadCountResult!
   }
 `;

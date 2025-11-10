@@ -1,5 +1,12 @@
 import React from 'react';
-import { ImageBackground, View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import {
+  ImageBackground,
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Text,
+  ImageSourcePropType,
+} from 'react-native';
 import checkMark from '../../../assets/checkMark.png';
 
 interface CheckboxProps {
@@ -18,7 +25,7 @@ function Checkbox({ label, checked, onChange }: CheckboxProps) {
       >
         {checked ? (
           <ImageBackground
-            source={checkMark} //Adds the checked image if checked
+            source={checkMark as ImageSourcePropType} //Adds the checked image if checked
             style={[styles.checkbox, styles.checkMark]}
             imageStyle={{ borderRadius: 6 }}
           />
