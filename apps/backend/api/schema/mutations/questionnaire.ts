@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../../../types/context';
+import { questionnaireEmitter } from '../../../services/questionnaire/questionnaire.emitter';
 
 // Input Types
 export interface SaveQuestionnaireResponseInput {
@@ -363,6 +364,11 @@ export const submitQuestionnaire = async (
         carePlan: true,
         checklist: true,
       },
+    });
+    // emit event for completed questionnaire
+    questionnaireEmitter.emit('completed', {
+      id: updatedResponse.id,
+      data: updatedResponse,
     });
 
     // Update care plan progress if requested and applicable

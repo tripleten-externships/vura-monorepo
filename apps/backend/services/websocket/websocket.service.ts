@@ -11,6 +11,7 @@ import { logger } from '../../utils/logger';
 import { carePlanEmitter } from '../careplan/careplan.service';
 import jwt from 'jsonwebtoken';
 import { verifyToken } from '../../utils/jwt';
+import { notificationService } from '../notification/notification.service';
 
 export class WebSocketService {
   private io: SocketIOServer;

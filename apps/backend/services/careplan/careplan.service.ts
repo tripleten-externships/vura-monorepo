@@ -1,4 +1,5 @@
 import EventEmitter from 'eventemitter3';
+import { WebSocketService } from '../websocket';
 
 type CarePlanEventTypes = 'created' | 'updated' | 'deleted';
 
