@@ -47,6 +47,18 @@ export class NotificationService implements INotificationService {
         });
       }
 
+      // Skip if user is muted or blocked
+      const isMuted = await this.isUserMuted(
+        data.userId,
+        data.metadata?.senderId,
+        data.metadata?.groupId
+      );
+      const isBlocked = await this.isUserBlocked(data.userId, data.metadata?.senderId); // isUserBlocked and isUserMuted
+
+      if (isMuted || isBlocked) {
+        return null; // Do not send notification
+      }
+
       // prepare notification data
       const notificationData: any = {
         type: data.type,
@@ -57,7 +69,6 @@ export class NotificationService implements INotificationService {
       };
       // const websocketService = new WebSocketService(io);
 
-      // add optional fields
       if (data.actionUrl) {
         notificationData.actionUrl = data.actionUrl;
       }
@@ -139,6 +150,14 @@ export class NotificationService implements INotificationService {
       });
     }
   }
+  // AI helped with this - I am not sure where blocked/muted preferences are currently in the code
+  async isUserMuted(userId: string, senderId: string, groupId: string): Promise<boolean> {
+    return false;
+  }
+
+  async isUserBlocked(userId: string, senderId: string): Promise<boolean> {
+    return false;
+  } // I think these should be inside curly braces of createNotification, but there is an error when I do that
 
   /**
    * create notifications for multiple users in batch
