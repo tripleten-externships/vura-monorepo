@@ -9,6 +9,8 @@ import {
   NotificationType,
 } from './types';
 import { logger } from '../../utils/logger';
+import { getRedisClient, getUnreadKey } from '../cache/redis';
+import { pubsub, SubscriptionTopics } from '../../api/subscriptions/pubsub';
 
 export class NotificationService implements INotificationService {
   /**
@@ -96,6 +98,44 @@ export class NotificationService implements INotificationService {
         type: data.type,
         notificationType: data.notificationType,
       });
+
+      // increment unread counters in Redis and publish events
+      try {
+        const redis = getRedisClient();
+        const key = getUnreadKey(data.userId);
+        const results = await redis
+          .multi()
+          .hincrby(key, 'total', 1)
+          .hincrby(key, String(notification.notificationType), 1)
+          .exec();
+        const newTotal =
+          Array.isArray(results) && results[0] && results[0][1] != null
+            ? Number(results[0][1])
+            : undefined;
+
+        // publish unread count changed (single total count)
+        if (newTotal != null) {
+          pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+            userId: data.userId,
+            count: newTotal,
+          });
+        }
+
+        // publish notification created
+        pubsub.publish(SubscriptionTopics.NOTIFICATION_CREATED, {
+          userId: data.userId,
+          notificationId: notification.id,
+          type: notification.type,
+          notificationType: notification.notificationType,
+          priority: notification.priority,
+          content: notification.content,
+          actionUrl: notification.actionUrl,
+          metadata: notification.metadata,
+          createdAt: notification.createdAt,
+        });
+      } catch (e) {
+        console.error('Redis increment/publish failed after createNotification:', e);
+      }
 
       return notification;
     } catch (error: any) {
@@ -221,6 +261,31 @@ export class NotificationService implements INotificationService {
         userId,
       });
 
+      // decrement unread counters if it was previously unread, and publish
+      try {
+        if (notification.read === false) {
+          const redis = getRedisClient();
+          const key = getUnreadKey(userId);
+          const results = await redis
+            .multi()
+            .hincrby(key, 'total', -1)
+            .hincrby(key, String(notification.notificationType), -1)
+            .exec();
+          const newTotal =
+            Array.isArray(results) && results[0] && results[0][1] != null
+              ? Number(results[0][1])
+              : undefined;
+          if (newTotal != null) {
+            pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+              userId,
+              count: newTotal,
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Redis decrement/publish failed after markAsRead:', e);
+      }
+
       return updatedNotification;
     } catch (error: any) {
       console.error('Mark as read error:', error);
@@ -246,33 +311,40 @@ export class NotificationService implements INotificationService {
       }
 
       // get all unread notifications for the user first
-      const unreadNotifications = await context.db.Notification.findMany({
+      const unreadNotifications = await context.prisma.notification.updateMany({
         where: {
           user: { id: { equals: userId } },
           read: { equals: false },
         },
+        data: {
+          read: true,
+          readAt: new Date(),
+        },
       });
-
-      // update each notification individually
-      await Promise.all(
-        unreadNotifications.map((notification) =>
-          context.db.Notification.updateOne({
-            where: { id: String(notification.id) },
-            data: {
-              read: true,
-              readAt: new Date(),
-            },
-          })
-        )
-      );
-
-      const count = unreadNotifications.length;
+      const count = unreadNotifications.count;
 
       // log bulk read action
       logger.info('All notifications marked as read', {
         userId,
         count,
       });
+
+      // reset Redis counters to zero and publish
+      try {
+        const redis = getRedisClient();
+        const key = getUnreadKey(userId);
+        const TYPES = ['CARE_PLAN', 'CHAT', 'FORUM', 'SYSTEM'];
+        const multi = redis.multi();
+        multi.hset(key, 'total', 0);
+        TYPES.forEach((t) => multi.hset(key, t, 0));
+        await multi.exec();
+        pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+          userId,
+          count: 0,
+        });
+      } catch (e) {
+        console.error('Redis reset/publish failed after markAllAsRead:', e);
+      }
 
       return count;
     } catch (error: any) {
@@ -355,15 +427,16 @@ export class NotificationService implements INotificationService {
         });
       }
 
-      // count unread notifications
-      const count = await context.db.Notification.count({
-        where: {
-          user: { id: { equals: userId } },
-          read: { equals: false },
-        },
-      });
-
-      return count;
+      // Redis-only read for unread total
+      const redis = getRedisClient();
+      const key = getUnreadKey(userId);
+      const value = await redis.hget(key, 'total');
+      if (value === null) {
+        throw new GraphQLError('Unread count cache miss', {
+          extensions: { code: 'CACHE_MISS' },
+        });
+      }
+      return parseInt(value, 10) || 0;
     } catch (error: any) {
       console.error('Get unread count error:', error);
       if (error instanceof GraphQLError) {
@@ -397,16 +470,16 @@ export class NotificationService implements INotificationService {
         });
       }
 
-      // count unread notifications by type
-      const count = await context.db.Notification.count({
-        where: {
-          user: { id: { equals: userId } },
-          notificationType: { equals: type },
-          read: { equals: false },
-        },
-      });
-
-      return count;
+      // Redis-only read for unread by type
+      const redis = getRedisClient();
+      const key = getUnreadKey(userId);
+      const value = await redis.hget(key, String(type));
+      if (value === null) {
+        throw new GraphQLError('Unread count by type cache miss', {
+          extensions: { code: 'CACHE_MISS' },
+        });
+      }
+      return parseInt(value, 10) || 0;
     } catch (error: any) {
       console.error('Get unread count by type error:', error);
       if (error instanceof GraphQLError) {
