@@ -94,6 +94,7 @@ export const customCreateForumPost = async (
     if (error instanceof GraphQLError) {
       throw error;
     }
+
     throw new GraphQLError('Failed to create post', {
       extensions: { code: 'INTERNAL_SERVER_ERROR' },
     });
