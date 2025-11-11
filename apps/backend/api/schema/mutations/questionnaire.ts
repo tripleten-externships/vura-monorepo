@@ -223,6 +223,12 @@ export const saveQuestionnaireResponse = async (
       });
     }
 
+    // Emit questionnaire assignment event
+    questionnaireEmitter.emit('assigned', {
+      id: questionnaireResponse.id,
+      data: questionnaireResponse,
+    });
+
     // Update care plan progress if applicable
     let carePlanUpdated = false;
     if (carePlan && !input.isDraft) {
