@@ -37,5 +37,9 @@ export interface ForumPostCreatedEvent {
   userId: string;
   postId: string;
   topic: string;
+  title: string;
   createdAt: string;
+  subscriberIds: string[];
+  content: string;
+  authorName: string;
 }
