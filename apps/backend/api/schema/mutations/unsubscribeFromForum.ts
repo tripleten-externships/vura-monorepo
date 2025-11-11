@@ -2,18 +2,20 @@ import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
 import { notificationService } from '../../../services/notification';
 
-export const customUnSubscribToForum = async (
+// resolver function to unscribeFromForum
+export const customUnsubscribeFromForum = async (
   _: any,
   { topic }: { topic: string },
   context: Context
 ) => {
   try {
+    // checks that the user is authenticated
     if (!context.session?.data?.id) {
       throw new GraphQLError('User must be authenticated', {
         extensions: { code: 'UNAUTHENTICATED' },
       });
     }
-
+    // unsubscribe the user from a forum topic
     const result = await notificationService.createUnSubscription(
       context.session.data.id,
       topic,
