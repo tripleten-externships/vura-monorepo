@@ -1,7 +1,7 @@
 import { Context } from '../../../types/context';
 import { pubsub, SubscriptionTopics } from '../pubsub';
 import { ForumPostCreatedEvent } from '../events';
-import { notificationService } from '../../../services/notification';
+import { forumNotificationService } from '../../../services/forum/forum.service';
 import { logger } from '../../../utils/logger';
 
 function extractMentions(message: string): string[] {
@@ -16,28 +16,35 @@ function extractMentions(message: string): string[] {
   return [...new Set(mentions)];
 }
 
+/**
+ * Handle forumPost created events
+ * Creates notifications for group members and mentioned users
+ */
 export async function handleforumPostCreated(
   event: ForumPostCreatedEvent,
   context: Context
 ): Promise<void> {
   try {
+    // get all recipients
     const recipientIds = event.subscriberIds.filter((id) => id !== event.userId);
 
     if (recipientIds.length === 0) {
       logger.debug('No subscribers for forum topic', { postId: event.postId });
       return;
     }
+    // extract mentions from the content
     const mentionedUsers = extractMentions(event.content);
 
+    // separate mentioned users from regular recipients
     const mentionedRecipients = recipientIds.filter((id) => mentionedUsers.includes(id));
     const regularRecipients = recipientIds.filter((id) => !mentionedUsers.includes(id));
 
+    // create HIGH priority notifications for mentioned users
     if (mentionedRecipients.length > 0) {
-      const mentionednotifications = await notificationService.createBulkNotifications(
+      const mentionednotifications = await forumNotificationService.createBulkForumNotifications(
         {
           userIds: mentionedRecipients,
-          type: 'forum_mention',
-          notificationType: 'FORUM',
+          forumPostType: 'NEW_POST',
           priority: 'HIGH',
           content: `${event.authorName} mentioned you in a post about ${event.topic}`,
           actionUrl: `/forum/${event.postId}`,
@@ -51,6 +58,7 @@ export async function handleforumPostCreated(
         context
       );
 
+      // publish notification created events for real-time updates
       mentionednotifications.forEach((subscribe) => {
         pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
           userId: subscribe.user?.id || subscribe.userId,
@@ -63,17 +71,17 @@ export async function handleforumPostCreated(
         });
       });
       logger.info('High priority notifications created for mentions', {
-        messageId: event.postId,
+        postId: event.postId,
         count: mentionedRecipients.length,
       });
     }
 
+    // create MEDIUM priority notifications for other group members
     if (regularRecipients.length > 0) {
-      const mentionednotifications = await notificationService.createBulkNotifications(
+      const mentionednotifications = await forumNotificationService.createBulkForumNotifications(
         {
           userIds: regularRecipients,
-          type: 'forum_mention',
-          notificationType: 'FORUM',
+          forumPostType: 'NEW_POST',
           priority: 'MEDIUM',
           content: `${event.authorName} created a new post in the ${event.topic}`,
           actionUrl: `/forum/${event.postId}`,
@@ -86,7 +94,7 @@ export async function handleforumPostCreated(
         },
         context
       );
-
+      // publish notification created events for real-time updates
       mentionednotifications.forEach((subscribe) => {
         pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
           userId: subscribe.user?.id || subscribe.userId,
@@ -112,6 +120,10 @@ export async function handleforumPostCreated(
   }
 }
 
+/**
+ * Initialize forumPost event handlers
+ * Sets up listeners for  forum post creation events
+ */
 export function initializeForumPostEventHandlers(context: Context): void {
   pubsub.subscribe(SubscriptionTopics.FORUM_POST_CREATED, (payload: ForumPostCreatedEvent) => {
     handleforumPostCreated(payload, context).catch((error) => {

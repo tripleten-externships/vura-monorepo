@@ -139,6 +139,19 @@ export const typeDefs = gql`
     authorName: String!
   }
 
+  input CreateForumPostInput{
+  userId: string;
+  type: string;
+  notificationType: ForumPostType;
+  priority?: ForumPostPriority;
+  content: string;
+  actionUrl?: string;
+  metadata?: Record<string, any>;
+  expiresAt?: Date;
+  scheduledFor?: Date;
+  relatedForumPostId?: string;
+  }
+
   type CustomCreateForumPostResult {
     forumPost: ForumPostDetails!
     message: String!
@@ -189,6 +202,32 @@ export const typeDefs = gql`
     createdAt: DateTime!
     updatedAt: DateTime
     author: UserProfile
+  }
+
+  type ForumPostCreatedEvent {
+    postId: ID!
+    topic: String!
+    content: String!
+    authorName: String!
+    subscriberIds: [ID!]!
+    createdAt: String!
+  }
+
+  type Subscription {
+    forumPostCreated: ForumPostCreatedEvent!
+  }
+
+  type ForumSubscriptionResult {
+    success: Boolean!
+    message: String
+    subscriptionId: ID
+    notification: ForumSubscriptionNotification
+  }
+  type ForumSubscriptionNotification {
+    id: ID!
+    topic: String
+    content: String
+    actionUrl: String
   }
 
   # Group Chat Types
@@ -365,31 +404,7 @@ export const typeDefs = gql`
     notificationType: NotificationType
   }
 
-  type ForumPostCreatedEvent {
-    postId: ID!
-    topic: String!
-    content: String!
-    authorName: String!
-    subscriberIds: [ID!]!
-    createdAt: String!
-  }
-
-  type Subscription {
-    forumPostCreated: ForumPostCreatedEvent!
-  }
-
-  type ForumSubscriptionResult {
-    success: Boolean!
-    message: String
-    subscriptionId: ID
-    notification: ForumSubscriptionNotification
-  }
-  type ForumSubscriptionNotification {
-    id: ID!
-    topic: String
-    content: String
-    actionUrl: String
-  }
+  
 
   # Root Types
   type Mutation {
