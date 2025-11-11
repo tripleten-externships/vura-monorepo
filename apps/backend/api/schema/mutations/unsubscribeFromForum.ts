@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
-import { notificationService } from '../../../services/notification';
+import { forumNotificationService } from '../../../services/forum/forum.service';
 
 // resolver function to unscribeFromForum
 export const customUnsubscribeFromForum = async (
@@ -16,7 +16,7 @@ export const customUnsubscribeFromForum = async (
       });
     }
     // unsubscribe the user from a forum topic
-    const result = await notificationService.createUnSubscription(
+    const result = await forumNotificationService.createUnSubscription(
       context.session.data.id,
       topic,
       context
