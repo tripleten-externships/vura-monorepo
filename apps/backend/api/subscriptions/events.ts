@@ -37,10 +37,5 @@ export interface ForumPostCreatedEvent {
   userId: string;
   postId: string;
   topic: string;
-  title: string;
   createdAt: string;
-  // include all subscriber IDs for forumPost
-  subscriberIds: string[];
-  content: string;
-  authorName: string;
 }

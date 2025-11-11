@@ -404,8 +404,22 @@ export const typeDefs = gql`
     notificationType: NotificationType
   }
 
-  
+  type ForumSubscriptionResult {
+    success: Boolean!
+    message: String
+    subscriptionId: ID
+  }
+  type ForumSubscriptionNotification {
+    id: ID!
+    topic: String
+    content: String
+    actionUrl: String
+  }
 
+  type ForumSubscriptionResult {
+    message: String
+    notification: ForumSubscriptionNotification
+  }
   # Root Types
   type Mutation {
     signup(input: SignupInput!): SignupResult!
@@ -427,7 +441,7 @@ export const typeDefs = gql`
     customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
     customMarkAllNotificationsAsRead: MarkAllAsReadResult!
     customSubscribToForum(authorName: String!, topic: String!, postId: ID): ForumSubscriptionResult!
-    customUnsubscribeFromForum(topic: String!): ForumSubscriptionResult!
+    customUnSubscribToForum(topic: String!): ForumSubscriptionResult!
   }
 
   type Query {

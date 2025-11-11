@@ -52,6 +52,13 @@ export const ForumPost = list({
       ref: 'ForumPost.notifications',
       many: false,
     }),
+    subscribers: relationship({
+      ref: 'ForumSubscription.forumPost',
+      many: true,
+      ui: {
+        displayMode: 'select',
+      },
+    }),
   },
   // only allow logged-in users to query, create, update, or delete
   access: {

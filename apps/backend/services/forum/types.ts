@@ -23,6 +23,18 @@ export interface CreateForumPostInput {
   relatedForumPostId?: string;
 }
 
+export interface CreateSubscribeForum {
+  userId: string;
+  type: string;
+  authorName: string;
+  postId: string;
+  priority?: string;
+  content: string;
+  actionUrl?: string;
+  topic: string;
+  metadata?: Record<string, any>;
+}
+
 /**
  * input data for creating bulk forumnotifications
  */
@@ -48,4 +60,6 @@ export interface IForumNotificationService {
     data: CreateBulkForumNotificationsInput,
     context: Context
   ): Promise<any[]>;
+  createSubscription(data: CreateSubscribeForum, context: Context): Promise<any>;
+  createUnSubscription(userId: string, topic: string, context: Context): Promise<boolean>;
 }
