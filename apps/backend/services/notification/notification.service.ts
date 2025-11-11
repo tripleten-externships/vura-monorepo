@@ -7,7 +7,6 @@ import {
   PaginatedNotificationsResponse,
   INotificationService,
   NotificationType,
-  CreateSubscribeForum,
 } from './types';
 import { logger } from '../../utils/logger';
 
@@ -497,114 +496,6 @@ export class NotificationService implements INotificationService {
         throw error;
       }
       throw new GraphQLError('Failed to get notifications', {
-        extensions: { code: 'INTERNAL_SERVER_ERROR' },
-      });
-    }
-  }
-
-  async createSubscription(data: CreateSubscribeForum, context: Context): Promise<any> {
-    try {
-      if (!data.userId) {
-        throw new GraphQLError('User ID is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      if (!data.topic || data.topic.trim() === '') {
-        throw new GraphQLError('Topic is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      const existing = await context.db.ForumSubscription.findMany({
-        where: { user: { id: data.userId }, topic: data.topic },
-      });
-
-      if (existing.length > 0) {
-        throw new GraphQLError('Already subscribed to this topic', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      const subscriptionData: any = {
-        user: { connect: { id: data.userId } },
-        topic: data.topic,
-      };
-
-      if (data.actionUrl) {
-        subscriptionData.actionUrl = data.actionUrl;
-      }
-
-      if (data.metadata) {
-        subscriptionData.metadata = data.metadata;
-      }
-
-      if (data.postId) {
-        subscriptionData.postId = data.postId;
-      }
-
-      const subscription = await context.db.ForumSubscription.createOne({
-        data: subscriptionData,
-      });
-
-      logger.info('forum subscription created', {
-        userId: data.userId,
-        topic: data.topic,
-      });
-
-      return subscription;
-    } catch (error: any) {
-      console.error('Create subscription error:', error);
-      if (error instanceof GraphQLError) {
-        throw error;
-      }
-      throw new GraphQLError('Failed to create subscription', {
-        extensions: { code: 'INTERNAL_SERVER_ERROR' },
-      });
-    }
-  }
-  async createUnSubscription(userId: string, topic: string, context: Context): Promise<boolean> {
-    try {
-      if (!userId) {
-        throw new GraphQLError('userID is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      if (!topic) {
-        throw new GraphQLError('topic is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      const subscription = await context.db.ForumSubscription.findMany({
-        where: {
-          user: { id: { equals: userId } },
-          topic: { equals: topic },
-        },
-      });
-      if (subscription.length === 0) {
-        throw new GraphQLError('Subscription not found', {
-          extensions: { code: 'NOT_FOUND' },
-        });
-      }
-
-      await context.db.ForumSubscription.deleteOne({
-        where: {
-          user: { id: { equals: userId } },
-          topic: { equals: topic },
-        },
-      });
-
-      logger.info('Subscription deleted', { userId, topic });
-
-      return true;
-    } catch (error: any) {
-      console.error('Delete subscription error:', error);
-      if (error instanceof GraphQLError) {
-        throw error;
-      }
-      throw new GraphQLError('Failed to delete subscription', {
         extensions: { code: 'INTERNAL_SERVER_ERROR' },
       });
     }

@@ -67,18 +67,6 @@ export interface PaginatedNotificationsResponse {
   take: number;
 }
 
-export interface CreateSubscribeForum {
-  userId: string;
-  type: string;
-  authorName: string;
-  postId: string;
-  priority?: string;
-  content: string;
-  actionUrl?: string;
-  topic: string;
-  metadata?: Record<string, any>;
-}
-
 /**
  * service interface
  */
@@ -102,6 +90,4 @@ export interface INotificationService {
     filters: NotificationFilters,
     context: Context
   ): Promise<PaginatedNotificationsResponse>;
-  createSubscription(data: CreateSubscribeForum, context: Context): Promise<any>;
-  createUnSubscription(userId: string, topic: string, context: Context): Promise<boolean>;
 }
