@@ -249,6 +249,7 @@ export class WebSocketService {
     }
   }
 
+  // emit a new forum post for all users
   public emitNewForumPost(post: ForumPostPayload) {
     const roomId = `forum:${post.topic}`;
     this.io.to(roomId).emit(SocketEvents.NEW_FORUM_POST, post);

@@ -33,13 +33,11 @@ export interface AiChatMessagePayload {
 
 export interface ForumPostPayload {
   userId: string;
-  postId: string;
   title: string;
   topic: string;
   content: string;
   authorName: string;
   createdAt: string;
-  subscriberIds: string[];
 }
 
 export enum SocketEvents {
@@ -74,6 +72,6 @@ export enum SocketEvents {
   USER_ONLINE = 'user:online',
   USER_OFFLINE = 'user:offline',
 
-  // ForumPost event
+  //ForumPost event
   NEW_FORUM_POST = 'forum:new_post',
 }
