@@ -9,8 +9,14 @@ import {
   NotificationType,
 } from './types';
 import { logger } from '../../utils/logger';
+// import { WebSocketService } from '../websocket';
 
 export class NotificationService implements INotificationService {
+  //  userMessageQueue: Map<string, // userId
+  //   {messages: string[]; // storing all messages sent to user during 30 second window
+  //     groupId: string; // linking notification correctly
+  //      timer: NodeJS.Timeout | null}>  // reset timer if new messages arrive
+  //       = new Map(); // add users to their queues
   /**
    * create and persist a single notification
    */
@@ -41,6 +47,18 @@ export class NotificationService implements INotificationService {
         });
       }
 
+      // Skip if user is muted or blocked
+      const isMuted = await this.isUserMuted(
+        data.userId,
+        data.metadata?.senderId,
+        data.metadata?.groupId
+      );
+      const isBlocked = await this.isUserBlocked(data.userId, data.metadata?.senderId); // isUserBlocked and isUserMuted
+
+      if (isMuted || isBlocked) {
+        return null; // Do not send notification
+      }
+
       // prepare notification data
       const notificationData: any = {
         type: data.type,
@@ -49,8 +67,8 @@ export class NotificationService implements INotificationService {
         content: data.content,
         user: { connect: { id: data.userId } },
       };
+      // const websocketService = new WebSocketService(io);
 
-      // add optional fields
       if (data.actionUrl) {
         notificationData.actionUrl = data.actionUrl;
       }
@@ -84,7 +102,31 @@ export class NotificationService implements INotificationService {
         };
       }
 
+      // determine if user is already in chat - if true do not send notifications
+      // const userInGroup = websocketService.isUserInGroup(
+      //   targetUserId,
+      //   groupId
+      // );
+
       // create notification
+      // if(!userInGroup) {} --supposed to wrap await
+
+      // userQueue.timer = setTimeout(async () => {
+      //   const combinedContent = userQueue.messages.join('\n');
+
+      //   await this.dbContext.Notification.createOne({
+      //     data: {
+      //       userId: data.userId,
+      //       type: data.type,
+      //       notificationType: data.notificationType,
+      //       priority: data.priority,
+      //       content: data.content,
+      //       actionUrl: data.actionUrl, // should return last message in que ??
+      //     },
+      //   });
+      //   this.userMessageQueue.delete(targetUserId);
+      // }, 30000);
+
       const notification = await context.db.Notification.createOne({
         data: notificationData,
       });
@@ -108,6 +150,14 @@ export class NotificationService implements INotificationService {
       });
     }
   }
+  // AI helped with this - I am not sure where blocked/muted preferences are currently in the code
+  async isUserMuted(userId: string, senderId: string, groupId: string): Promise<boolean> {
+    return false;
+  }
+
+  async isUserBlocked(userId: string, senderId: string): Promise<boolean> {
+    return false;
+  } // I think these should be inside curly braces of createNotification, but there is an error when I do that
 
   /**
    * create notifications for multiple users in batch
@@ -143,6 +193,7 @@ export class NotificationService implements INotificationService {
       }
 
       // create notifications for each user
+      // only notify user if the are not in chat by checking online status
       const notifications = await Promise.all(
         data.userIds.map((userId) =>
           this.createNotification(
