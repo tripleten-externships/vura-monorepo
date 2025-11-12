@@ -3,7 +3,7 @@ import { Context } from '../../../types/context';
 import { forumNotificationService } from '../../../services/forum/forum.service';
 
 // resolver function to subscribeFromForum
-export const customSubscribToForum = async (
+export const customSubscribeToForum = async (
   _: any,
   { authorName, topic, postId }: { authorName: string; topic: string; postId: string },
   context: Context

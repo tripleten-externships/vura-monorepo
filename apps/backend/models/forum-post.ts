@@ -45,12 +45,8 @@ export const ForumPost = list({
     }),
     // relationship between forum posts and their notifications
     notifications: relationship({
-      ref: 'Notification.relatedForumPost',
+      ref: 'Notification.notifications',
       many: true,
-    }),
-    relatedForumPost: relationship({
-      ref: 'ForumPost.notifications',
-      many: false,
     }),
     subscribers: relationship({
       ref: 'ForumSubscription.forumPost',
@@ -58,6 +54,10 @@ export const ForumPost = list({
       ui: {
         displayMode: 'select',
       },
+    }),
+    author: relationship({
+      ref: 'User.forumPost',
+      many: false,
     }),
   },
   // only allow logged-in users to query, create, update, or delete

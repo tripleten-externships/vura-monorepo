@@ -139,17 +139,31 @@ export const typeDefs = gql`
     authorName: String!
   }
 
-  input CreateForumPostInput{
-  userId: string;
-  type: string;
-  notificationType: ForumPostType;
-  priority?: ForumPostPriority;
-  content: string;
-  actionUrl?: string;
-  metadata?: Record<string, any>;
-  expiresAt?: Date;
-  scheduledFor?: Date;
-  relatedForumPostId?: string;
+  input CreateForumPostInput {
+    userId: String
+    type: String
+    notificationType: NotificationType
+    priority: NotificationPriority!
+    content: String!
+    actionUrl: String
+    metadata: JSON!
+    expiresAt: DateTime
+    scheduledFor: DateTime
+    relatedForumPostId: String
+  }
+
+  type CustomSubscribeToForumResult {
+    success: Boolean!
+    message: String!
+    subscriptionId: ID!
+    notification: ForumSubscriptionNotification!
+  }
+
+  type ForumSubscriptionNotification {
+    id: ID!
+    topic: String!
+    content: String!
+    actionUrl: String!
   }
 
   type CustomCreateForumPostResult {
@@ -440,8 +454,12 @@ export const typeDefs = gql`
     customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
     customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
     customMarkAllNotificationsAsRead: MarkAllAsReadResult!
-    customSubscribToForum(authorName: String!, topic: String!, postId: ID): ForumSubscriptionResult!
-    customUnSubscribToForum(topic: String!): ForumSubscriptionResult!
+    customSubscribeToForum(
+      authorName: String!
+      topic: String!
+      postId: ID
+    ): ForumSubscriptionResult!
+    customUnsubscribeFromForum(topic: String!): ForumSubscriptionResult!
   }
 
   type Query {
@@ -489,3 +507,4 @@ export const typeDefs = gql`
     unreadCountChanged(userId: ID!): UnreadCountResult!
   }
 `;
+//
