@@ -22,7 +22,7 @@ enum AiChatSessionStatusType {
 }
 
 """Date custom scalar type"""
-scalar DateTime @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
+scalar DateTime
 
 input AiChatSessionWhereUniqueInput {
   id: ID
@@ -1461,6 +1461,11 @@ type User {
   forumPostCount(where: ForumPostWhereInput! = {}): Int
   questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
+  notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
+  notificationsCount(where: NotificationWhereInput! = {}): Int
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
 
 type PasswordState {
@@ -1492,6 +1497,10 @@ input UserWhereInput {
   memberChats: GroupChatManyRelationFilter
   forumPost: ForumPostManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
+  notifications: NotificationManyRelationFilter
+  createdAt: DateTimeNullableFilter
+  lastLoginDate: DateTimeNullableFilter
+  lastUpdateDate: DateTimeNullableFilter
 }
 
 input StringNullableFilter {
@@ -1569,6 +1578,10 @@ input UserUpdateInput {
   memberChats: GroupChatRelateToManyForUpdateInput
   forumPost: ForumPostRelateToManyForUpdateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
+  notifications: NotificationRelateToManyForUpdateInput
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -1628,6 +1641,10 @@ input UserCreateInput {
   memberChats: GroupChatRelateToManyForCreateInput
   forumPost: ForumPostRelateToManyForCreateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
+  notifications: NotificationRelateToManyForCreateInput
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -1656,7 +1673,7 @@ input NotificationRelateToManyForCreateInput {
 }
 
 """JSON custom scalar type"""
-scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+scalar JSON
 
 type Mutation {
   createAiChatSession(data: AiChatSessionCreateInput!): AiChatSession

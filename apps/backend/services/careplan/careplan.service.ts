@@ -1,5 +1,7 @@
 import EventEmitter from 'eventemitter3';
 import { WebSocketService } from '../websocket';
+import { Context } from '../../types/context';
+import { notificationService } from '../notification';
 
 type CarePlanEventTypes = 'created' | 'updated' | 'deleted';
 
@@ -33,6 +35,34 @@ export async function createCarePlan(
   return carePlan;
 }
 
+const systemContext = { session: { data: { id: 'system' } } } as Context;
+
+async function checkAndNotifyMilestone(carePlan: any, completionPercentage: number) {
+  const milestones = [25, 50, 75, 100];
+
+  // Round to nearest integer to avoid float mismatches
+  const rounded = Math.round(completionPercentage);
+
+  if (milestones.includes(rounded)) {
+    try {
+      await notificationService.createNotification(
+        {
+          userId: carePlan.assignedToId,
+          type: 'CARE_PLAN_MILESTONE',
+          notificationType: 'CARE_PLAN',
+          content: `Your care plan "${carePlan.title}" has reached ${rounded}% completion!`,
+          relatedCarePlanId: carePlan.id,
+        },
+        systemContext
+      );
+
+      console.log(`Milestone notification sent for ${rounded}% completion`);
+    } catch (error) {
+      console.error('Error sending milestone notification:', error);
+    }
+  }
+}
+
 export async function updateCarePlan(
   id: any,
   data: any,
@@ -48,6 +78,10 @@ export async function updateCarePlan(
     action: 'updated',
     data: updated,
   });
+
+  if (data.progressScore) {
+    await checkAndNotifyMilestone(updated, data.progressScore);
+  }
 
   return updated;
 }
