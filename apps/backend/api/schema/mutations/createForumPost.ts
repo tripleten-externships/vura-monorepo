@@ -118,7 +118,15 @@ export const customCreateForumPost = async (
     }
 
     return {
-      forumPost: post,
+      forumPost: {
+        id: post.id,
+        title: post.title,
+        topic: post.topic,
+        content: post.content,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        author: post.author,
+      },
       message: 'Post created successfully',
     };
   } catch (error: any) {

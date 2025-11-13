@@ -71,7 +71,7 @@ export const ForumPost = list({
     filter: {
       query: ({ session }) => {
         if (!session?.data?.id) return false;
-        return { user: { id: { equals: session.data.id } } };
+        return { author: { id: { equals: session.data.id } } };
       },
     },
   },
