@@ -227,6 +227,19 @@ export const typeDefs = gql`
 
   type Subscription {
     forumPostCreated: ForumPostCreatedEvent!
+    forumNotification(userId: String!): NotificationCreatedEvent!
+  }
+
+  type NotificationCreatedEvent {
+    notificationId: ID!
+    userId: ID!
+    type: String!
+    notificationType: String!
+    priority: String!
+    content: String!
+    actionUrl: String
+    metadata: JSON
+    createdAt: String!
   }
 
   type ForumSubscriptionResult {

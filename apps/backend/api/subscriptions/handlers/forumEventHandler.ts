@@ -46,6 +46,8 @@ export async function handleforumPostCreated(
           userIds: mentionedRecipients,
           forumPostType: 'NEW_POST',
           priority: 'HIGH',
+          title: event.title,
+          topic: event.topic,
           content: `${event.authorName} mentioned you in a post about ${event.topic}`,
           actionUrl: `/forum/${event.postId}`,
           metadata: {
@@ -83,6 +85,8 @@ export async function handleforumPostCreated(
           userIds: regularRecipients,
           forumPostType: 'NEW_POST',
           priority: 'MEDIUM',
+          title: event.title,
+          topic: event.topic,
           content: `${event.authorName} created a new post in the ${event.topic}`,
           actionUrl: `/forum/${event.postId}`,
           metadata: {
@@ -95,15 +99,17 @@ export async function handleforumPostCreated(
         context
       );
       // publish notification created events for real-time updates
-      mentionednotifications.forEach((subscribe) => {
-        pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
-          userId: subscribe.user?.id || subscribe.userId,
-          postId: event.postId,
-          topic: event.topic,
-          createdAt: subscribe.createdAt,
-          subscriberIds: mentionedRecipients,
-          content: subscribe.content,
-          authorName: event.authorName,
+      mentionednotifications.forEach((notification) => {
+        pubsub.publish(SubscriptionTopics.FORUM_NOTIFICATION, {
+          notificationId: notification.id,
+          userId: notification.userId,
+          type: 'NEW_POST',
+          notificationType: 'MENTION',
+          priority: notification.priority,
+          content: notification.content,
+          actionUrl: `/forum/${event.postId}`,
+          metadata: notification.metadata,
+          createdAt: notification.createdAt,
         });
       });
       logger.info('New forum post notifications processed', {
