@@ -578,11 +578,21 @@ input ResourceRelateToManyForCreateInput {
 
 type ForumPost {
   id: ID!
-  title: String
-  topic: String
+  type: String
+  forumPostType: String
+  priority: String
   content: String
+  actionUrl: String
+  metadata: JSON
+  read: Boolean
+  readAt: DateTime
+  expiresAt: DateTime
+  scheduledFor: DateTime
   createdAt: DateTime
-  updatedAt: DateTime
+  notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
+  notificationsCount(where: NotificationWhereInput! = {}): Int
+  subscribers(where: ForumSubscriptionWhereInput! = {}, orderBy: [ForumSubscriptionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumSubscriptionWhereUniqueInput): [ForumSubscription!]
+  subscribersCount(where: ForumSubscriptionWhereInput! = {}): Int
   author: User
 }
 
@@ -595,30 +605,81 @@ input ForumPostWhereInput {
   OR: [ForumPostWhereInput!]
   NOT: [ForumPostWhereInput!]
   id: IDFilter
-  title: StringFilter
-  topic: StringFilter
+  type: StringFilter
+  forumPostType: StringFilter
+  priority: StringFilter
   content: StringFilter
+  actionUrl: StringFilter
+  read: BooleanFilter
+  readAt: DateTimeNullableFilter
+  expiresAt: DateTimeNullableFilter
+  scheduledFor: DateTimeNullableFilter
   createdAt: DateTimeNullableFilter
-  updatedAt: DateTimeNullableFilter
+  notifications: NotificationManyRelationFilter
+  subscribers: ForumSubscriptionManyRelationFilter
   author: UserWhereInput
+}
+
+input BooleanFilter {
+  equals: Boolean
+  not: BooleanFilter
+}
+
+input NotificationManyRelationFilter {
+  every: NotificationWhereInput
+  some: NotificationWhereInput
+  none: NotificationWhereInput
+}
+
+input ForumSubscriptionManyRelationFilter {
+  every: ForumSubscriptionWhereInput
+  some: ForumSubscriptionWhereInput
+  none: ForumSubscriptionWhereInput
 }
 
 input ForumPostOrderByInput {
   id: OrderDirection
-  title: OrderDirection
-  topic: OrderDirection
+  type: OrderDirection
+  forumPostType: OrderDirection
+  priority: OrderDirection
   content: OrderDirection
+  actionUrl: OrderDirection
+  read: OrderDirection
+  readAt: OrderDirection
+  expiresAt: OrderDirection
+  scheduledFor: OrderDirection
   createdAt: OrderDirection
-  updatedAt: OrderDirection
 }
 
 input ForumPostUpdateInput {
-  title: String
-  topic: String
+  type: String
+  forumPostType: String
+  priority: String
   content: String
+  actionUrl: String
+  metadata: JSON
+  read: Boolean
+  readAt: DateTime
+  expiresAt: DateTime
+  scheduledFor: DateTime
   createdAt: DateTime
-  updatedAt: DateTime
+  notifications: NotificationRelateToManyForUpdateInput
+  subscribers: ForumSubscriptionRelateToManyForUpdateInput
   author: UserRelateToOneForUpdateInput
+}
+
+input NotificationRelateToManyForUpdateInput {
+  disconnect: [NotificationWhereUniqueInput!]
+  set: [NotificationWhereUniqueInput!]
+  create: [NotificationCreateInput!]
+  connect: [NotificationWhereUniqueInput!]
+}
+
+input ForumSubscriptionRelateToManyForUpdateInput {
+  disconnect: [ForumSubscriptionWhereUniqueInput!]
+  set: [ForumSubscriptionWhereUniqueInput!]
+  create: [ForumSubscriptionCreateInput!]
+  connect: [ForumSubscriptionWhereUniqueInput!]
 }
 
 input ForumPostUpdateArgs {
@@ -627,12 +688,89 @@ input ForumPostUpdateArgs {
 }
 
 input ForumPostCreateInput {
-  title: String
-  topic: String
+  type: String
+  forumPostType: String
+  priority: String
   content: String
+  actionUrl: String
+  metadata: JSON
+  read: Boolean
+  readAt: DateTime
+  expiresAt: DateTime
+  scheduledFor: DateTime
   createdAt: DateTime
-  updatedAt: DateTime
+  notifications: NotificationRelateToManyForCreateInput
+  subscribers: ForumSubscriptionRelateToManyForCreateInput
   author: UserRelateToOneForCreateInput
+}
+
+input NotificationRelateToManyForCreateInput {
+  create: [NotificationCreateInput!]
+  connect: [NotificationWhereUniqueInput!]
+}
+
+input ForumSubscriptionRelateToManyForCreateInput {
+  create: [ForumSubscriptionCreateInput!]
+  connect: [ForumSubscriptionWhereUniqueInput!]
+}
+
+type ForumSubscription {
+  id: ID!
+  user: User
+  forumPost: ForumPost
+  topic: String
+  subscribedAt: DateTime
+}
+
+input ForumSubscriptionWhereUniqueInput {
+  id: ID
+}
+
+input ForumSubscriptionWhereInput {
+  AND: [ForumSubscriptionWhereInput!]
+  OR: [ForumSubscriptionWhereInput!]
+  NOT: [ForumSubscriptionWhereInput!]
+  id: IDFilter
+  user: UserWhereInput
+  forumPost: ForumPostWhereInput
+  topic: StringFilter
+  subscribedAt: DateTimeNullableFilter
+}
+
+input ForumSubscriptionOrderByInput {
+  id: OrderDirection
+  topic: OrderDirection
+  subscribedAt: OrderDirection
+}
+
+input ForumSubscriptionUpdateInput {
+  user: UserRelateToOneForUpdateInput
+  forumPost: ForumPostRelateToOneForUpdateInput
+  topic: String
+  subscribedAt: DateTime
+}
+
+input ForumPostRelateToOneForUpdateInput {
+  create: ForumPostCreateInput
+  connect: ForumPostWhereUniqueInput
+  disconnect: Boolean
+}
+
+input ForumSubscriptionUpdateArgs {
+  where: ForumSubscriptionWhereUniqueInput!
+  data: ForumSubscriptionUpdateInput!
+}
+
+input ForumSubscriptionCreateInput {
+  user: UserRelateToOneForCreateInput
+  forumPost: ForumPostRelateToOneForCreateInput
+  topic: String
+  subscribedAt: DateTime
+}
+
+input ForumPostRelateToOneForCreateInput {
+  create: ForumPostCreateInput
+  connect: ForumPostWhereUniqueInput
 }
 
 type GroupChat {
@@ -747,6 +885,8 @@ type Notification {
   relatedCarePlan: CarePlan
   relatedChat: GroupChat
   relatedForumPost: ForumPost
+  notifications(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
+  notificationsCount(where: ForumPostWhereInput! = {}): Int
 }
 
 input NotificationWhereUniqueInput {
@@ -772,11 +912,13 @@ input NotificationWhereInput {
   relatedCarePlan: CarePlanWhereInput
   relatedChat: GroupChatWhereInput
   relatedForumPost: ForumPostWhereInput
+  notifications: ForumPostManyRelationFilter
 }
 
-input BooleanFilter {
-  equals: Boolean
-  not: BooleanFilter
+input ForumPostManyRelationFilter {
+  every: ForumPostWhereInput
+  some: ForumPostWhereInput
+  none: ForumPostWhereInput
 }
 
 input NotificationOrderByInput {
@@ -809,6 +951,7 @@ input NotificationUpdateInput {
   relatedCarePlan: CarePlanRelateToOneForUpdateInput
   relatedChat: GroupChatRelateToOneForUpdateInput
   relatedForumPost: ForumPostRelateToOneForUpdateInput
+  notifications: ForumPostRelateToManyForUpdateInput
 }
 
 input CarePlanRelateToOneForUpdateInput {
@@ -817,10 +960,11 @@ input CarePlanRelateToOneForUpdateInput {
   disconnect: Boolean
 }
 
-input ForumPostRelateToOneForUpdateInput {
-  create: ForumPostCreateInput
-  connect: ForumPostWhereUniqueInput
-  disconnect: Boolean
+input ForumPostRelateToManyForUpdateInput {
+  disconnect: [ForumPostWhereUniqueInput!]
+  set: [ForumPostWhereUniqueInput!]
+  create: [ForumPostCreateInput!]
+  connect: [ForumPostWhereUniqueInput!]
 }
 
 input NotificationUpdateArgs {
@@ -844,6 +988,7 @@ input NotificationCreateInput {
   relatedCarePlan: CarePlanRelateToOneForCreateInput
   relatedChat: GroupChatRelateToOneForCreateInput
   relatedForumPost: ForumPostRelateToOneForCreateInput
+  notifications: ForumPostRelateToManyForCreateInput
 }
 
 input CarePlanRelateToOneForCreateInput {
@@ -851,9 +996,9 @@ input CarePlanRelateToOneForCreateInput {
   connect: CarePlanWhereUniqueInput
 }
 
-input ForumPostRelateToOneForCreateInput {
-  create: ForumPostCreateInput
-  connect: ForumPostWhereUniqueInput
+input ForumPostRelateToManyForCreateInput {
+  create: [ForumPostCreateInput!]
+  connect: [ForumPostWhereUniqueInput!]
 }
 
 type Parent {
@@ -1467,6 +1612,8 @@ type User {
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
   notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
   notificationsCount(where: NotificationWhereInput! = {}): Int
+  forumSubscriptions(where: ForumSubscriptionWhereInput! = {}, orderBy: [ForumSubscriptionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumSubscriptionWhereUniqueInput): [ForumSubscription!]
+  forumSubscriptionsCount(where: ForumSubscriptionWhereInput! = {}): Int
 }
 
 type PasswordState {
@@ -1503,6 +1650,7 @@ input UserWhereInput {
   forumPost: ForumPostManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
   notifications: NotificationManyRelationFilter
+  forumSubscriptions: ForumSubscriptionManyRelationFilter
 }
 
 input StringNullableFilter {
@@ -1535,18 +1683,6 @@ input GroupChatManyRelationFilter {
   every: GroupChatWhereInput
   some: GroupChatWhereInput
   none: GroupChatWhereInput
-}
-
-input ForumPostManyRelationFilter {
-  every: ForumPostWhereInput
-  some: ForumPostWhereInput
-  none: ForumPostWhereInput
-}
-
-input NotificationManyRelationFilter {
-  every: NotificationWhereInput
-  some: NotificationWhereInput
-  none: NotificationWhereInput
 }
 
 input UserOrderByInput {
@@ -1586,6 +1722,7 @@ input UserUpdateInput {
   forumPost: ForumPostRelateToManyForUpdateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
   notifications: NotificationRelateToManyForUpdateInput
+  forumSubscriptions: ForumSubscriptionRelateToManyForUpdateInput
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -1607,20 +1744,6 @@ input GroupChatRelateToManyForUpdateInput {
   set: [GroupChatWhereUniqueInput!]
   create: [GroupChatCreateInput!]
   connect: [GroupChatWhereUniqueInput!]
-}
-
-input ForumPostRelateToManyForUpdateInput {
-  disconnect: [ForumPostWhereUniqueInput!]
-  set: [ForumPostWhereUniqueInput!]
-  create: [ForumPostCreateInput!]
-  connect: [ForumPostWhereUniqueInput!]
-}
-
-input NotificationRelateToManyForUpdateInput {
-  disconnect: [NotificationWhereUniqueInput!]
-  set: [NotificationWhereUniqueInput!]
-  create: [NotificationCreateInput!]
-  connect: [NotificationWhereUniqueInput!]
 }
 
 input UserUpdateArgs {
@@ -1650,6 +1773,7 @@ input UserCreateInput {
   forumPost: ForumPostRelateToManyForCreateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
   notifications: NotificationRelateToManyForCreateInput
+  forumSubscriptions: ForumSubscriptionRelateToManyForCreateInput
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -1665,16 +1789,6 @@ input ParentRelateToManyForCreateInput {
 input GroupChatRelateToManyForCreateInput {
   create: [GroupChatCreateInput!]
   connect: [GroupChatWhereUniqueInput!]
-}
-
-input ForumPostRelateToManyForCreateInput {
-  create: [ForumPostCreateInput!]
-  connect: [ForumPostWhereUniqueInput!]
-}
-
-input NotificationRelateToManyForCreateInput {
-  create: [NotificationCreateInput!]
-  connect: [NotificationWhereUniqueInput!]
 }
 
 """JSON custom scalar type"""
@@ -1717,6 +1831,12 @@ type Mutation {
   updateForumPosts(data: [ForumPostUpdateArgs!]!): [ForumPost]
   deleteForumPost(where: ForumPostWhereUniqueInput!): ForumPost
   deleteForumPosts(where: [ForumPostWhereUniqueInput!]!): [ForumPost]
+  createForumSubscription(data: ForumSubscriptionCreateInput!): ForumSubscription
+  createForumSubscriptions(data: [ForumSubscriptionCreateInput!]!): [ForumSubscription]
+  updateForumSubscription(where: ForumSubscriptionWhereUniqueInput!, data: ForumSubscriptionUpdateInput!): ForumSubscription
+  updateForumSubscriptions(data: [ForumSubscriptionUpdateArgs!]!): [ForumSubscription]
+  deleteForumSubscription(where: ForumSubscriptionWhereUniqueInput!): ForumSubscription
+  deleteForumSubscriptions(where: [ForumSubscriptionWhereUniqueInput!]!): [ForumSubscription]
   createGroupChat(data: GroupChatCreateInput!): GroupChat
   createGroupChats(data: [GroupChatCreateInput!]!): [GroupChat]
   updateGroupChat(where: GroupChatWhereUniqueInput!, data: GroupChatUpdateInput!): GroupChat
@@ -1790,6 +1910,8 @@ type Mutation {
   customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
   customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
   customMarkAllNotificationsAsRead: MarkAllAsReadResult!
+  customSubscribeToForum(authorName: String!, topic: String!, postId: ID): ForumSubscriptionResult!
+  customUnsubscribeFromForum(topic: String!): ForumSubscriptionResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1829,6 +1951,9 @@ type Query {
   forumPost(where: ForumPostWhereUniqueInput!): ForumPost
   forumPosts(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
   forumPostsCount(where: ForumPostWhereInput! = {}): Int
+  forumSubscription(where: ForumSubscriptionWhereUniqueInput!): ForumSubscription
+  forumSubscriptions(where: ForumSubscriptionWhereInput! = {}, orderBy: [ForumSubscriptionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumSubscriptionWhereUniqueInput): [ForumSubscription!]
+  forumSubscriptionsCount(where: ForumSubscriptionWhereInput! = {}): Int
   groupChat(where: GroupChatWhereUniqueInput!): GroupChat
   groupChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
   groupChatsCount(where: GroupChatWhereInput! = {}): Int
@@ -2115,6 +2240,34 @@ input CustomCreateForumPostInput {
   title: String!
   topic: String!
   content: String!
+  authorName: String!
+}
+
+input CreateForumPostInput {
+  userId: String
+  type: String
+  notificationType: NotificationType
+  priority: NotificationPriority!
+  content: String!
+  actionUrl: String
+  metadata: JSON!
+  expiresAt: DateTime
+  scheduledFor: DateTime
+  relatedForumPostId: String
+}
+
+type CustomSubscribeToForumResult {
+  success: Boolean!
+  message: String!
+  subscriptionId: ID!
+  notification: ForumSubscriptionNotification!
+}
+
+type ForumSubscriptionNotification {
+  id: ID!
+  topic: String!
+  content: String!
+  actionUrl: String!
 }
 
 type CustomCreateForumPostResult {
@@ -2167,6 +2320,32 @@ type ForumPostDetails {
   createdAt: DateTime!
   updatedAt: DateTime
   author: UserProfile
+}
+
+type ForumPostCreatedEvent {
+  postId: ID!
+  topic: String!
+  content: String!
+  authorName: String!
+  subscriberIds: [ID!]!
+  createdAt: String!
+}
+
+type Subscription {
+  forumPostCreated: ForumPostCreatedEvent!
+  messageSent(groupId: ID!): ChatMessageType!
+  typingIndicator(groupId: ID!): TypingIndicatorPayload!
+  userStatusChanged(userId: ID): UserStatusPayload!
+  aiMessageReceived(sessionId: ID!): AiChatResponse!
+  notificationReceived(userId: ID!): NotificationDetails!
+  unreadCountChanged(userId: ID!): UnreadCountResult!
+}
+
+type ForumSubscriptionResult {
+  success: Boolean!
+  message: String
+  subscriptionId: ID
+  notification: ForumSubscriptionNotification
 }
 
 input CreateGroupChatInput {
@@ -2345,13 +2524,4 @@ type UserStatusPayload {
   userId: ID!
   username: String
   status: String!
-}
-
-type Subscription {
-  messageSent(groupId: ID!): ChatMessageType!
-  typingIndicator(groupId: ID!): TypingIndicatorPayload!
-  userStatusChanged(userId: ID): UserStatusPayload!
-  aiMessageReceived(sessionId: ID!): AiChatResponse!
-  notificationReceived(userId: ID!): NotificationDetails!
-  unreadCountChanged(userId: ID!): UnreadCountResult!
 }

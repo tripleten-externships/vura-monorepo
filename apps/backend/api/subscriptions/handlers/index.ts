@@ -1,5 +1,6 @@
 import { Context } from '../../../types/context';
 import { initializeChatEventHandlers } from './chatEventHandler';
+import { initializeForumPostEventHandlers } from './forumEventHandler';
 import { logger } from '../../../utils/logger';
 
 /**
@@ -18,6 +19,7 @@ export function initializeEventHandlers(context: Context): void {
   try {
     // initialize chat event handlers (notifications for messages, mentions, etc)
     initializeChatEventHandlers(context);
+    initializeForumPostEventHandlers(context);
 
     // future handlers can be added here:
     // initializeForumEventHandlers(context);

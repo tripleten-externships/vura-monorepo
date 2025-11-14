@@ -105,6 +105,10 @@ export const User = list({
       ref: 'Notification.user',
       many: true,
     }),
+    forumSubscriptions: relationship({
+      ref: 'ForumSubscription.user',
+      many: true,
+    }),
   },
 
   ui: {

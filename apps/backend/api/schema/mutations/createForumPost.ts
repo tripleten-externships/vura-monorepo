@@ -1,14 +1,12 @@
 import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
+import { getWebSocketService } from '../../../services/websocket';
+import { pubsub, SubscriptionTopics } from '../../subscriptions/pubsub';
 import { logAuditEvent } from '../../../utils/logger';
 import { sanitizeContent } from '../../../utils/sanitizeContent';
-
-// custom input type
-export interface CreateForumPostInput {
-  title: string;
-  topic: string;
-  content: string;
-}
+import { ForumPostCreatedEvent } from '../../subscriptions/events';
+import { ForumPostPriority } from '../../../services/forum/types';
+import { CreateForumPostInput } from '../../../services/forum/types';
 
 export const customCreateForumPost = async (
   _: any,
@@ -74,10 +72,13 @@ export const customCreateForumPost = async (
 
     const post = await context.db.ForumPost.createOne({
       data: {
-        title: sanitizedTitle,
-        topic: topic,
-        content: sanitizedContent,
-        author: { connect: { id: context.session.data.id } },
+        title: data.title,
+        topic: data.topic,
+        content: data.content,
+        priority: data.priority,
+        metadata: data.metadata,
+        forumPostType: data.forumPostType,
+        author: { connect: { id: data.userId } },
       },
     });
 
@@ -85,15 +86,42 @@ export const customCreateForumPost = async (
       title: post.title,
     });
 
+    // Prepare event payload
+    const eventPayload: ForumPostCreatedEvent = {
+      userId: context.session.data.id,
+      postId: post.id.toString(),
+      topic: post.topic as string,
+      title: post.title as string,
+      createdAt: (post.createdAt as Date).toISOString(),
+      subscriberIds: [],
+      content: post.content as string,
+      authorName: (post.author as any)?.name || '',
+    };
+
+    /// Emit the forumPost via WebSockets
+    try {
+      const websocketService = getWebSocketService();
+      websocketService.emitNewForumPost(eventPayload);
+    } catch (wsError) {
+      console.error('Failed to emit WebSocket event:', wsError);
+    }
+
+    // Publish the forumPost to GraphQL subscriptions
+    try {
+      pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
+        forumPostCreated: eventPayload,
+      });
+    } catch (eventError) {
+      console.error('Failed to publish forum post event:', eventError);
+    }
+
     return {
       forumPost: post,
       message: 'Post created successfully',
     };
   } catch (error: any) {
     console.error('Create post error:', error);
-    if (error instanceof GraphQLError) {
-      throw error;
-    }
+
     throw new GraphQLError('Failed to create post', {
       extensions: { code: 'INTERNAL_SERVER_ERROR' },
     });
