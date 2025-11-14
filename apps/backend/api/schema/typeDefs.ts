@@ -132,31 +132,16 @@ export const typeDefs = gql`
   }
 
   # Forum Post Types
-  input CustomCreateForumPostInput {
+
+  input CreateForumPostInput {
     title: String!
     topic: String!
     content: String!
-    authorName: String!
-  }
-
-  input CreateForumPostInput {
-    userId: String
-    type: String
-    notificationType: NotificationType
-    priority: NotificationPriority!
-    content: String!
-    actionUrl: String
-    metadata: JSON!
-    expiresAt: DateTime
-    scheduledFor: DateTime
-    relatedForumPostId: String
-  }
-
-  type CustomSubscribeToForumResult {
-    success: Boolean!
-    message: String!
-    subscriptionId: ID!
-    notification: ForumSubscriptionNotification!
+    priority: ForumPostPriority
+    forumPostType: ForumPostType!
+    type: String!
+    metadata: JSON
+    userId: ID!
   }
 
   type ForumSubscriptionNotification {
@@ -195,6 +180,19 @@ export const typeDefs = gql`
     UPDATED_AT_DESC
     TITLE_ASC
     TITLE_DESC
+  }
+
+  enum ForumPostPriority {
+    LOW
+    MEDIUM
+    HIGH
+    URGENT
+  }
+
+  enum ForumPostType {
+    NEW_POST
+    REPLY_TO_YOUR_POST
+    REPLY_TO_SUBSCRIBED_POST
   }
 
   type ForumPostConnection {
@@ -438,7 +436,7 @@ export const typeDefs = gql`
   type Mutation {
     signup(input: SignupInput!): SignupResult!
     login(input: LoginInput!): LoginResult!
-    customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
+    customCreateForumPost(data: CreateForumPostInput!): CustomCreateForumPostResult!
     customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
     customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
     sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!

@@ -5,6 +5,7 @@ import {
   CreateBulkForumNotificationsInput,
   IForumNotificationService,
   CreateSubscribeForum,
+  ForumNotificationCreateData,
 } from './types';
 import { logger } from '../../utils/logger';
 
@@ -12,7 +13,7 @@ export class ForumNotificationService implements IForumNotificationService {
   /**
    * create and persist a single notification
    */
-  async createForumNotification(data: CreateForumPostInput, context: Context): Promise<any> {
+  async createForumNotification(data: ForumNotificationCreateData, context: Context): Promise<any> {
     try {
       // validate required fields
       if (!data.userId) {
@@ -128,22 +129,26 @@ export class ForumNotificationService implements IForumNotificationService {
         });
       }
 
+      interface ForumNotificationCreateData extends CreateForumPostInput {
+        author: { connect: { id: string } };
+      }
+
       // create notifications for each user
       const notifications = await Promise.all(
         data.userIds.map((userId) =>
           this.createForumNotification(
             {
-              userId,
-              type: 'FORUM',
-              forumPostType: data.forumPostType,
-              priority: data.priority,
+              title: data.title,
+              topic: data.topic,
               content: data.content,
-              actionUrl: data.actionUrl,
+              priority: data.priority,
               metadata: data.metadata,
+              actionUrl: data.actionUrl,
               expiresAt: data.expiresAt,
               scheduledFor: data.scheduledFor,
               relatedForumPostId: data.relatedForumPostId,
-            },
+              author: { connect: { id: context.session.data.id } },
+            } as ForumNotificationCreateData,
             context
           )
         )

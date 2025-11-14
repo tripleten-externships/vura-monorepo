@@ -5,13 +5,8 @@ import { pubsub, SubscriptionTopics } from '../../subscriptions/pubsub';
 import { logAuditEvent } from '../../../utils/logger';
 import { sanitizeContent } from '../../../utils/sanitizeContent';
 import { ForumPostCreatedEvent } from '../../subscriptions/events';
-
-// custom input type
-export interface CreateForumPostInput {
-  title: string;
-  topic: string;
-  content: string;
-}
+import { ForumPostPriority } from '../../../services/forum/types';
+import { CreateForumPostInput } from '../../../services/forum/types';
 
 export const customCreateForumPost = async (
   _: any,
@@ -19,6 +14,13 @@ export const customCreateForumPost = async (
   context: Context
 ) => {
   try {
+    console.log('--- customCreateForumPost resolver hit ---', data);
+
+    const allUsers = await context.db.User.findMany({});
+    console.log(
+      'DB Users:',
+      allUsers.map((u) => ({ id: u.id, name: u.name }))
+    );
     if (!context.session?.data?.id) {
       throw new GraphQLError('User must be authenticated to create forum posts', {
         extensions: { code: 'UNAUTHENTICATED' },
@@ -30,6 +32,13 @@ export const customCreateForumPost = async (
     // validation section aligns with Jira error handling instructions
     if (!title || title.trim() === '') {
       throw new GraphQLError('Title is required', {
+        extensions: { code: 'BAD_USER_INPUT' },
+      });
+    }
+
+    const user = await context.db.User.findOne({ where: { id: data.userId } });
+    if (!user) {
+      throw new GraphQLError(`User with id ${data.userId} does not exist`, {
         extensions: { code: 'BAD_USER_INPUT' },
       });
     }
@@ -77,10 +86,13 @@ export const customCreateForumPost = async (
 
     const post = await context.db.ForumPost.createOne({
       data: {
-        title: sanitizedTitle,
-        topic: topic,
-        content: sanitizedContent,
-        author: { connect: { id: context.session.data.id } },
+        title: data.title,
+        topic: data.topic,
+        content: data.content,
+        priority: data.priority,
+        metadata: data.metadata,
+        forumPostType: data.forumPostType,
+        author: { connect: { id: data.userId } },
       },
     });
 
@@ -118,15 +130,7 @@ export const customCreateForumPost = async (
     }
 
     return {
-      forumPost: {
-        id: post.id,
-        title: post.title,
-        topic: post.topic,
-        content: post.content,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-        author: post.author,
-      },
+      forumPost: post,
       message: 'Post created successfully',
     };
   } catch (error: any) {
