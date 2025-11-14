@@ -14,13 +14,6 @@ export const customCreateForumPost = async (
   context: Context
 ) => {
   try {
-    console.log('--- customCreateForumPost resolver hit ---', data);
-
-    const allUsers = await context.db.User.findMany({});
-    console.log(
-      'DB Users:',
-      allUsers.map((u) => ({ id: u.id, name: u.name }))
-    );
     if (!context.session?.data?.id) {
       throw new GraphQLError('User must be authenticated to create forum posts', {
         extensions: { code: 'UNAUTHENTICATED' },
@@ -32,13 +25,6 @@ export const customCreateForumPost = async (
     // validation section aligns with Jira error handling instructions
     if (!title || title.trim() === '') {
       throw new GraphQLError('Title is required', {
-        extensions: { code: 'BAD_USER_INPUT' },
-      });
-    }
-
-    const user = await context.db.User.findOne({ where: { id: data.userId } });
-    if (!user) {
-      throw new GraphQLError(`User with id ${data.userId} does not exist`, {
         extensions: { code: 'BAD_USER_INPUT' },
       });
     }
