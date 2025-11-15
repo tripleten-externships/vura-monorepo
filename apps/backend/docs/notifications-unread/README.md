@@ -54,7 +54,7 @@ This section documents the current interface that is live today, based on:
 - `Notification` Keystone list (model)
 - `customGetNotifications` query resolver
 - `customGetUnreadCount` query resolver
-- Service behavior in `notification.service.ts` (Rreids + pubsub)
+- Service behavior in `notification.service.ts` (Redis + pubsub)
 
 > The updated target (aggregate `unreadCounts` + richer subscription) is defined later in this doc for the "Real-time counter updates" subtask to implement.
 
@@ -96,11 +96,10 @@ enum NotificationPriority {
   HIGH
   URGENT
 }
-```
 
+"""
 Return shape for the unread count query (supports optional type filter.)
-
-```graphql
+"""
 type UnreadCount {
   count: Int!
   """
@@ -214,8 +213,8 @@ type Subcription {
 #### Runtime Notes
 
 - Redis Hash per user:
-  Key = `unread:{userId}`
-  Fields = `total` + each `NotificationType` (`CARE_PLAN`, `CHAT`, `FORUM`, `SYSTEM`)
+  - Key = `unread:{userId}`
+  - Fields = `total` + each `NotificationType` (`CARE_PLAN`, `CHAT`, `FORUM`, `SYSTEM`)
 - When counters change:
   - `createNotification` -> `HINCRBY total +1` and `HINCRBY <type> +1` -> publish `UNREAD_COUNT_CHANGED`
   - `marAsRead` -> `HINCRBY total -1` and `HINCRBY <type> -1` -> publish `UNREAD_COUNT_CHANGED`.
