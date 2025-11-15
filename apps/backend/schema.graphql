@@ -1785,6 +1785,7 @@ type Mutation {
   customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
   customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
   customMarkAllNotificationsAsRead: MarkAllAsReadResult!
+  assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -2327,6 +2328,18 @@ type NotificationsResult {
 type UnreadCountResult {
   count: Int!
   notificationType: NotificationType
+}
+
+input AssignQuestionnaireInput {
+  questionnaireId: ID!
+  assignedToId: ID!
+  carePlanId: ID
+}
+
+type AssignQuestionnaireResult {
+  success: Boolean!
+  message: String!
+  assignment: JSON
 }
 
 type TypingIndicatorPayload {

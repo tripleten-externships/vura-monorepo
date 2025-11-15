@@ -8,7 +8,7 @@ import {
   AiChatMessagePayload,
 } from './types';
 import { logger } from '../../utils/logger';
-import { carePlanEmitter } from '../careplan/careplan.service';
+// import { carePlanEmitter } from '../careplan/careplan.service';
 import jwt from 'jsonwebtoken';
 import { verifyToken } from '../../utils/jwt';
 import { notificationService } from '../notification/notification.service';
@@ -39,24 +39,24 @@ export class WebSocketService {
     logger.info('WebSocket service initialized');
   }
 
-  private subscribeToCarePlanEvents() {
-    carePlanEmitter.on('created', (payload) => {
-      this.io.emit(SocketEvents.CAREPLAN_CREATED, payload);
-      logger.info('Broadcasted care plan created event:', payload);
-    });
+  // private subscribeToCarePlanEvents() {
+  //   carePlanEmitter.on('created', (payload) => {
+  //     this.io.emit(SocketEvents.CAREPLAN_CREATED, payload);
+  //     logger.info('Broadcasted care plan created event:', payload);
+  //   });
 
-    carePlanEmitter.on('updated', (payload) => {
-      this.io.emit(SocketEvents.CAREPLAN_UPDATED, payload);
-      logger.info('Broadcasted care plan updated event:', payload);
-    });
+  //   carePlanEmitter.on('updated', (payload) => {
+  //     this.io.emit(SocketEvents.CAREPLAN_UPDATED, payload);
+  //     logger.info('Broadcasted care plan updated event:', payload);
+  //   });
 
-    carePlanEmitter.on('deleted', (payload) => {
-      this.io.emit(SocketEvents.CAREPLAN_DELETED, payload);
-      logger.info('Broadcasted care plan deleted event:', payload);
-    });
+  //   carePlanEmitter.on('deleted', (payload) => {
+  //     this.io.emit(SocketEvents.CAREPLAN_DELETED, payload);
+  //     logger.info('Broadcasted care plan deleted event:', payload);
+  //   });
 
-    logger.info('Subscribed to care plan events');
-  }
+  //   logger.info('Subscribed to care plan events');
+  // }
 
   private setupMiddleware() {
     this.io.use(async (socket: AuthenticatedSocket, next) => {

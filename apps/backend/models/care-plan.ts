@@ -7,8 +7,11 @@ export const CarePlan = list({
     operation: {
       query: isAuthenticated, // only signed-in users can query
       create: isAuthenticated, // only signed-in users can create
-      update: canAccessOwnData, // only the owner or admin can update
-      delete: canAccessOwnData, // only the owner or admin can delete
+      update: isAuthenticated, // only the owner or admin can update
+      // update: ({ session }) => !!session?.data?.id,
+
+      delete: isAuthenticated, // only the owner or admin can delete
+      // create: ({ session }) => !!session?.data?.id,
     },
     filter: {
       query: ({ session }) => {
@@ -16,6 +19,15 @@ export const CarePlan = list({
         // Admins can see all, regular users see only their own
         return isAdmin({ session }) ? true : { user: { id: { equals: session.data.id } } };
       },
+    },
+  },
+
+  hooks: {
+    resolveInput: async ({ operation, resolvedData, context }) => {
+      if (operation === 'create' && context.session?.data?.id) {
+        resolvedData.user = { connect: { id: context.session.data.id } };
+      }
+      return resolvedData;
     },
   },
 

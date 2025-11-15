@@ -17,6 +17,10 @@ export const User = list({
       create: () => true, // Anyone can register
       update: canAccessOwnData, // Only user or admin can update
       delete: canAccessOwnData, // Only user or admin can delete
+      //       query: () => true,
+      // create: () => true,
+      // update: () => true,
+      // delete: () => true,
     },
     filter: {
       query: ({ session }) => {

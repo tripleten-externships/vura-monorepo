@@ -38,9 +38,13 @@ export default withAuth(
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
       },
+      // extendExpressApp: (app) => {
+      //   chatRoutes(app);
+      // },
       extendExpressApp: (app) => {
-        chatRoutes(app);
+        app.use('/chat', chatRoutes); // all endpoints now live under /chat/*
       },
+
       extendHttpServer(server, context) {
         // Initialize AI service with Prisma for database persistence
         aiService.initializeWithPrisma(context.prisma);
