@@ -277,6 +277,229 @@ query UnreadByType($type: NotificationType!) {
 { "type": "CHAT" }
 ```
 
+**Sample response**
+
+```json
+{
+  "data": {
+    "unreadCount": { "count": 5, "notificationType": "CHAT" }
+  }
+}
+```
+
+### Paginated notifications (filterable)
+
+**Operation**
+
+```graphql
+query GetNotifications($input: GetNotificationsInput) {
+  notifications(input: $input) {
+    notifications {
+      id
+      type
+      notificationType
+      priority
+      content
+      actionUrl
+      metadata
+      read
+      readAt
+      createdAt
+    }
+    total
+    hasMore
+    skip
+    take
+  }
+}
+```
+
+**Variables (examples)**
+**_All unread, any type (page 1):_**
+
+```json
+{ "input": { "read": false, "take": 20, "skip": 0 } }
+```
+
+**_Unread of a specific type, high priority:_**
+
+```json
+{
+  "input": {
+    "read": false,
+    "notificationType": "CHAT",
+    "priority": "HIGH",
+    "take": 10,
+    "skip": 0
+  }
+}
+```
+
+**Sample response**
+
+```json
+{
+  "data": {
+    "notifications": {
+      "notifications": [
+        {
+          "id": "notif_123",
+          "type": "NEW_MESSAGE",
+          "notificationType": "CHAT",
+          "priority": "HIGH",
+          "content": "You have a new message",
+          "actionUrl": "/chats/abc",
+          "metadata": {},
+          "read": false,
+          "readAt": null,
+          "createdAt": "2025-11-12T18:05:31.102Z"
+        }
+      ],
+      "total": 42,
+      "hasMore": true,
+      "skip": 0,
+      "take": 10
+    }
+  }
+}
+```
+
+### Current - Subscription you can use right now
+
+> The backend publishes an internal `UNREAD_COUNT_CHANGED` with `{ userId, count }`. The GraphQL subscription exposes a simplified payload for the authenticated user.
+
+**Operation**
+
+```graphql
+subscription OnUnreadCountChanged {
+  unreadCountChanged {
+    count
+  }
+}
+```
+
+**Sample event**
+
+```json
+{
+  "data": { "unreadCountChanged": { "count": 18 } }
+}
+```
+
+When does this fire?
+
+- After `createNotification` (increments)
+- After `markAsRead` (decrements, if previously unread)
+- After `markAllAsRead` (resets to 0)
+
+### Future target - Coming from "Real-time counter updates" subtask
+
+> Keep in docs to know what to migrate in the FrontEnd. Not live updates.
+
+#### Aggregated unread counts
+
+**Operation**
+
+```graphql
+query GetUnreadCounts($input: UnreadCountsInput) {
+  unreadCounts(input: $input) {
+    total
+    asOf
+    byScope {
+      scope
+      count
+    }
+  }
+}
+```
+
+**Variables**
+
+```json
+{ "input": { "scopes": ["GLOBAL", "CHAT", "FORUM"] } }
+```
+
+**Sample response**
+
+```json
+{
+  "data": {
+    "unreadCounts": {
+      "total": 17,
+      "asOf": "2025-11-12T18:21:40.192Z",
+      "byScope": [
+        { "scope": "GLOBAL", "count": 17 },
+        { "scope": "CHAT", "count": 5 },
+        { "scope": "FORUM", "count": 3 }
+      ]
+    }
+  }
+}
+```
+
+#### Rich live updates (snapshot or delta)
+
+**Operation**
+
+```graphql
+subscription OnUnreadCountChange($input: UnreadCountsInput) {
+  unreadCountChange(input: $input) {
+    asOf
+    total
+    byScope {
+      scope
+      count
+    } # present when server sends full snapshot
+    delta {
+      scope
+      id
+      count
+    } # present when server sends delta
+  }
+}
+```
+
+**Variables**
+
+```json
+{ "input": { "scopes": ["GLOBAL", "CHAT"] } }
+```
+
+**Sample events**
+
+**_Snapshot variant:_**
+
+```json
+{
+  "data": {
+    "unreadCountChange": {
+      "asOf": "2025-11-12T18:22:95.012Z",
+      "total": 18,
+      "byScope": [
+        { "scope": "GLOBAL", "count": 18 },
+        { "scope": "CHAT", "count": 6 }
+      ],
+      "delta": null
+    }
+  }
+}
+```
+
+**_Delta variant:_**
+
+```json
+{
+  "data": {
+    "unreadCountChange": {
+      "asOf": "2025-11-12T18:22:10.441Z",
+      "total": 17,
+      "byScope": null,
+      "delta": [{ "scope": "CHAT", "count": 5 }]
+    }
+  }
+}
+```
+
 ## 4. Integration Notes (for FE)
 
 <!-- how the frontend should interact with it, including error codes and expected states -->
