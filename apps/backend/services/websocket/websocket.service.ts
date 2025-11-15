@@ -8,7 +8,6 @@ import {
   AiChatMessagePayload,
 } from './types';
 import { logger } from '../../utils/logger';
-// import { carePlanEmitter } from '../careplan/careplan.service';
 import jwt from 'jsonwebtoken';
 import { verifyToken } from '../../utils/jwt';
 import { notificationService } from '../notification/notification.service';
@@ -34,34 +33,14 @@ export class WebSocketService {
 
     this.setupMiddleware();
     this.setupEventHandlers();
-    this.subscribeToCarePlanEvents();
 
+    // Removed obsolete subscribeToCarePlanEvents() call
     logger.info('WebSocket service initialized');
   }
-
-  // private subscribeToCarePlanEvents() {
-  //   carePlanEmitter.on('created', (payload) => {
-  //     this.io.emit(SocketEvents.CAREPLAN_CREATED, payload);
-  //     logger.info('Broadcasted care plan created event:', payload);
-  //   });
-
-  //   carePlanEmitter.on('updated', (payload) => {
-  //     this.io.emit(SocketEvents.CAREPLAN_UPDATED, payload);
-  //     logger.info('Broadcasted care plan updated event:', payload);
-  //   });
-
-  //   carePlanEmitter.on('deleted', (payload) => {
-  //     this.io.emit(SocketEvents.CAREPLAN_DELETED, payload);
-  //     logger.info('Broadcasted care plan deleted event:', payload);
-  //   });
-
-  //   logger.info('Subscribed to care plan events');
-  // }
 
   private setupMiddleware() {
     this.io.use(async (socket: AuthenticatedSocket, next) => {
       try {
-        // get token either from auth or header
         const token =
           socket.handshake.auth?.token ||
           (socket.handshake.headers.authorization as string)?.replace('Bearer ', '');
@@ -71,7 +50,6 @@ export class WebSocketService {
           return next(new Error('Missing authentication token'));
         }
 
-        // verify token
         const decoded = verifyToken(token);
         if (!decoded || typeof decoded === 'string') {
           socket.emit('authentication:error', 'Invalid or expired token');
@@ -102,24 +80,17 @@ export class WebSocketService {
       }
 
       logger.info(`User connected: ${userId}`);
-
-      // track user's socket connections
       this.trackUserConnection(userId, socket.id);
-
-      // notify user's connections
       this.broadcastUserStatus(userId, true);
 
-      // handle join room (for group chats)
       socket.on(SocketEvents.JOIN_ROOM, (groupId: string) => {
         this.joinRoom(socket, groupId, userId);
       });
 
-      // handle leave room
       socket.on(SocketEvents.LEAVE_ROOM, (groupId: string) => {
         this.leaveRoom(socket, groupId, userId);
       });
 
-      // handle typing indicators
       socket.on(SocketEvents.TYPING_START, (groupId: string) => {
         socket.to(`group:${groupId}`).emit(SocketEvents.TYPING_START, { userId, groupId });
       });
@@ -128,7 +99,6 @@ export class WebSocketService {
         socket.to(`group:${groupId}`).emit(SocketEvents.TYPING_STOP, { userId, groupId });
       });
 
-      // handle disconnection
       socket.on('disconnect', () => {
         this.handleDisconnect(socket, userId);
       });
@@ -146,7 +116,6 @@ export class WebSocketService {
     const roomId = `group:${groupId}`;
     socket.join(roomId);
 
-    // track users in group
     if (!this.groupUsers.has(groupId)) {
       this.groupUsers.set(groupId, new Set());
     }
@@ -159,7 +128,6 @@ export class WebSocketService {
     const roomId = `group:${groupId}`;
     socket.leave(roomId);
 
-    // remove user from group tracking
     if (this.groupUsers.has(groupId)) {
       this.groupUsers.get(groupId)!.delete(userId);
       if (this.groupUsers.get(groupId)!.size === 0) {
@@ -175,12 +143,10 @@ export class WebSocketService {
 
     logger.info(`User disconnected: ${userId}`);
 
-    // remove socket from tracking
     if (this.userSockets.has(userId)) {
       this.userSockets.get(userId)!.delete(socket.id);
       if (this.userSockets.get(userId)!.size === 0) {
         this.userSockets.delete(userId);
-        // broadcast offline status only when all user's sockets are disconnected
         this.broadcastUserStatus(userId, false);
       }
     }
@@ -191,20 +157,12 @@ export class WebSocketService {
     this.io.emit(event, { userId });
   }
 
-  // public methods for sending messages
-
-  /**
-   * emit a new chat message to all users in a group
-   */
   public emitNewChatMessage(message: ChatMessagePayload) {
     const roomId = `group:${message.groupId}`;
     this.io.to(roomId).emit(SocketEvents.NEW_MESSAGE, message);
     logger.info(`Emitted new message to room ${roomId}`);
   }
 
-  /**
-   * emit AI message chunks for streaming responses
-   */
   public emitAiMessageChunk(userId: string, chunk: string, sessionId: string) {
     this.emitToUser(userId, SocketEvents.AI_MESSAGE_CHUNK, {
       content: chunk,
@@ -212,28 +170,18 @@ export class WebSocketService {
     });
   }
 
-  /**
-   * emit AI message completion
-   */
   public emitAiMessageComplete(userId: string, message: AiChatMessagePayload) {
     this.emitToUser(userId, SocketEvents.AI_MESSAGE_COMPLETE, message);
   }
 
-  /**
-   * emit to a specific user (across all their devices/connections)
-   */
   public emitToUser(userId: string, event: string, data: any) {
     if (!this.userSockets.has(userId)) return;
-
     const socketIds = this.userSockets.get(userId)!;
     for (const socketId of socketIds) {
       this.io.to(socketId).emit(event, data);
     }
   }
 
-  /**
-   * get the socket.io server instance
-   */
   public getIO(): SocketIOServer {
     return this.io;
   }
