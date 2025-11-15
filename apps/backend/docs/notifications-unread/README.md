@@ -315,6 +315,7 @@ query GetNotifications($input: GetNotificationsInput) {
 ```
 
 **Variables (examples)**
+
 **_All unread, any type (page 1):_**
 
 ```json
