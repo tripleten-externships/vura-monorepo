@@ -5,6 +5,7 @@ export type Context = KeystoneContext;
 
 export type Session = {
   data?: {
+    isAdmin: boolean;
     id: string;
     name?: string;
     role?: 'user' | 'admin';

@@ -17,6 +17,10 @@ export const User = list({
       create: () => true, // Anyone can register
       update: canAccessOwnData, // Only user or admin can update
       delete: canAccessOwnData, // Only user or admin can delete
+      //       query: () => true,
+      // create: () => true,
+      // update: () => true,
+      // delete: () => true,
     },
     filter: {
       query: ({ session }) => {
@@ -77,7 +81,18 @@ export const User = list({
 
     // Relationships
     messages: relationship({ ref: 'ChatMessage.sender', many: true }),
-    isAdmin: checkbox({ defaultValue: true }),
+    carePlan: relationship({ ref: 'CarePlan.user', many: true }),
+    aiChatSessions: relationship({ ref: 'AiChatSession.user', many: true }),
+    parents: relationship({ ref: 'Parent.user', many: true }),
+    ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
+    memberChats: relationship({ ref: 'GroupChat.members', many: true }),
+    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
+    questionnaireResponses: relationship({
+      ref: 'QuestionnaireResponse.user',
+      many: true,
+    }),
+    notifications: relationship({ ref: 'Notification.user', many: true }),
+
     // Metadata
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
@@ -90,20 +105,6 @@ export const User = list({
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
       ui: { description: 'Automatically updates on record change' },
-    }),
-    carePlan: relationship({ ref: 'CarePlan.user', many: true }),
-    aiChatSessions: relationship({ ref: 'AiChatSession.user', many: true }),
-    parents: relationship({ ref: 'Parent.user', many: true }),
-    ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
-    memberChats: relationship({ ref: 'GroupChat.members', many: true }),
-    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
-    questionnaireResponses: relationship({
-      ref: 'QuestionnaireResponse.user',
-      many: true,
-    }),
-    notifications: relationship({
-      ref: 'Notification.user',
-      many: true,
     }),
   },
 

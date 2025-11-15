@@ -28,6 +28,12 @@ export enum SocketEvents {
   // Status events
   USER_ONLINE = 'user:online',
   USER_OFFLINE = 'user:offline',
+
+  //careplan events
+  // Care Plan events
+  CAREPLAN_CREATED = 'carePlan:created',
+  CAREPLAN_UPDATED = 'carePlan:updated',
+  CAREPLAN_DELETED = 'carePlan:deleted',
 }
 
 export interface ChatMessage {
@@ -67,6 +73,31 @@ class WebSocketService {
   constructor() {
     // Get API URL from environment or use default
     this.baseUrl = typeof VITE_API_URL !== 'undefined' ? VITE_API_URL : 'http://localhost:3001';
+
+    // Automatically detect token changes in localStorage
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (event) => {
+        // Watch for changes to "authToken"
+        if (event.key === 'authToken') {
+          const newToken = event.newValue;
+
+          // A new token appeared - reconnect
+          if (newToken && newToken !== this.token) {
+            console.log('Token changed, reconnecting WebSocket...');
+            this.disconnect();
+            this.connect(newToken).catch((err) =>
+              console.error('Reconnect failed after token change:', err)
+            );
+          }
+
+          // Token removed (logout) - disconnect
+          else if (!newToken && this.token) {
+            console.log('Token removed, disconnecting WebSocket...');
+            this.disconnect();
+          }
+        }
+      });
+    }
   }
 
   /**
@@ -85,10 +116,7 @@ class WebSocketService {
 
         this.socket = io(this.baseUrl, {
           path: '/socket.io',
-          auth: { token },
-          extraHeaders: {
-            Authorization: token,
-          },
+          withCredentials: true, // send Keystone session cookie automatically
           reconnection: true,
           reconnectionAttempts: this.maxReconnectAttempts,
           reconnectionDelay: 1000,
@@ -297,6 +325,27 @@ class WebSocketService {
   }
 
   /**
+   * Listen for Care Plan creation
+   */
+  public onCarePlanCreated(callback: EventCallback<any>): () => void {
+    return this.on<any>(SocketEvents.CAREPLAN_CREATED, callback);
+  }
+
+  /**
+   * Listen for Care Plan updates
+   */
+  public onCarePlanUpdated(callback: EventCallback<any>): () => void {
+    return this.on<any>(SocketEvents.CAREPLAN_UPDATED, callback);
+  }
+
+  /**
+   * Listen for Care Plan deletion
+   */
+  public onCarePlanDeleted(callback: EventCallback<any>): () => void {
+    return this.on<any>(SocketEvents.CAREPLAN_DELETED, callback);
+  }
+
+  /**
    * Enable debug logging for Socket.IO messages
    * This will log all incoming and outgoing messages to the console
    */
@@ -339,3 +388,8 @@ class WebSocketService {
 
 // Export singleton instance
 export const websocketService = new WebSocketService();
+
+// Add this for browser console testing (remove later for production)
+if (typeof window !== 'undefined') {
+  (window as any).websocketService = websocketService;
+}

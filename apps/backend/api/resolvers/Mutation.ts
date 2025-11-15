@@ -26,7 +26,9 @@ const withAuth = (resolver: Function) => (root: any, args: any, context: any, in
 export const Mutation = {
   signup,
   login,
-  typingIndicator,
+  // Wrap protected mutations with custom resolvers (via withAuth)
+  // Protected mutations
+
   // Wrap protected mutations with custom resolvers (via withAuth)
   customCreateForumPost: withAuth(customCreateForumPost),
   customDeleteForumPost: withAuth(customDeleteForumPost),
@@ -36,8 +38,9 @@ export const Mutation = {
   submitQuestionnaire: withAuth(submitQuestionnaire),
   updateProfile: withAuth(updateProfile),
   aiChat: withAuth(aiChat),
-  createAiChatMessage: withAuth(createAiChatMessage),
+  typingIndicator: withAuth(typingIndicator),
   updateUserStatus: withAuth(updateUserStatus),
+  createAiChatMessage: withAuth(createAiChatMessage),
   customCreateNotification: withAuth(customCreateNotification),
   customMarkNotificationAsRead: withAuth(customMarkNotificationAsRead),
   customMarkAllNotificationsAsRead: withAuth(customMarkAllNotificationsAsRead),
