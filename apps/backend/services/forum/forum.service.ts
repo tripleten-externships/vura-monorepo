@@ -49,10 +49,6 @@ export class ForumNotificationService implements IForumNotificationService {
         content: data.content,
       };
 
-      if (data.actionUrl) {
-        notificationData.actionUrl = data.actionUrl;
-      }
-
       if (data.metadata) {
         notificationData.metadata = data.metadata;
       }
@@ -143,7 +139,6 @@ export class ForumNotificationService implements IForumNotificationService {
               content: data.content,
               priority: data.priority,
               metadata: data.metadata,
-              actionUrl: data.actionUrl,
               expiresAt: data.expiresAt,
               scheduledFor: data.scheduledFor,
               relatedForumPostId: data.relatedForumPostId,
@@ -182,7 +177,10 @@ export class ForumNotificationService implements IForumNotificationService {
       }
       // Check if the user is already subscribed to this topic
       const existing = await context.db.ForumSubscription.findMany({
-        where: { user: { id: data.userId }, topic: data.topic },
+        where: {
+          user: { id: { equals: data.userId } },
+          topic: { equals: data.topic },
+        },
       });
 
       if (existing.length > 0) {
@@ -194,20 +192,13 @@ export class ForumNotificationService implements IForumNotificationService {
       const subscriptionData: any = {
         user: { connect: { id: data.userId } },
         topic: data.topic,
+        content: `Subscribed to "${data.topic}"`,
       };
-
-      if (data.actionUrl) {
-        subscriptionData.actionUrl = data.actionUrl;
-      }
 
       if (data.metadata) {
         subscriptionData.metadata = data.metadata;
       }
 
-      if (data.postId) {
-        subscriptionData.postId = data.postId;
-      }
-      // Create a new forum subscription
       const subscription = await context.db.ForumSubscription.createOne({
         data: subscriptionData,
       });
