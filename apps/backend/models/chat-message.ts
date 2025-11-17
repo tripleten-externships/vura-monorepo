@@ -1,6 +1,6 @@
 import { list } from '@keystone-6/core';
 import { text, relationship, timestamp, integer } from '@keystone-6/core/fields';
-import { isItemAccess } from '../utils/access';
+import { isAdmin, isLoggedIn } from '../utils/rbac';
 
 // ChatMessage model to store messages in a group chat. Each message belongs to one group chat and one sender (user)
 export const ChatMessage = list({
@@ -15,17 +15,27 @@ export const ChatMessage = list({
   },
   access: {
     operation: {
-      query: () => true,
-      create: ({ session }) => !!session?.data?.id,
-      update: (args) => {
-        const { session } = args;
-        if (!session?.data?.id || !isItemAccess(args)) return false;
-        return session.data.id === args.item.sender?.id;
+      // Logged-in users can query chat messages (filtered by group membership)
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create chat messages
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update messages
+      update: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can delete messages
+      delete: ({ session }) => isLoggedIn(session),
+    },
+    item: {
+      // Users can only update their own messages, admins can update any
+      update: ({ session, item }) => {
+        if (isAdmin(session)) return true;
+        if (!isLoggedIn(session) || !session?.data?.id) return false;
+        return session.data.id === item.senderId;
       },
-      delete: (args) => {
-        const { session } = args;
-        if (!session?.data?.id || !isItemAccess(args)) return false;
-        return session.data.id === args.item.sender?.id;
+      // Users can only delete their own messages, admins can delete any
+      delete: ({ session, item }) => {
+        if (isAdmin(session)) return true;
+        if (!isLoggedIn(session) || !session?.data?.id) return false;
+        return session.data.id === item.senderId;
       },
     },
   },

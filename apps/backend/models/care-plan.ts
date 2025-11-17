@@ -1,7 +1,7 @@
 import { list } from '@keystone-6/core';
 // import type { Lists } from '.keystone/types';
 import { text, relationship, float, timestamp } from '@keystone-6/core/fields';
-import { isAdmin, isLoggedIn, createUserFilter } from '../utils/rbac';
+import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 export const CarePlan = list({
   access: {
@@ -31,9 +31,7 @@ export const CarePlan = list({
     },
     item: {
       // Users can only update their own care plans, admins can update any
-      update: ({ session, item }) => {
-        return isAdmin(session) || item.userId === session?.data?.id;
-      },
+      update: ({ session, item }) => isAdminOrOwner(session, item),
       // Only admins can delete any care plan
       delete: ({ session }) => isAdmin(session),
     },
