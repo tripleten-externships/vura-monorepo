@@ -247,10 +247,10 @@ export class ForumNotificationService implements IForumNotificationService {
         });
       }
 
-      for (const sub of subscriptions) {
-        const subscriptionId: string = sub.id as string;
-        await context.db.ForumSubscription.deleteOne({ where: { id: subscriptionId } });
-      }
+      const subscriptionIds = subscriptions.map((sub) => sub.id as string);
+      await context.db.ForumSubscription.deleteMany({
+        where: subscriptionIds.map((id) => ({ id })),
+      });
 
       logger.info('Subscription deleted', { userId, topic });
       return true;
