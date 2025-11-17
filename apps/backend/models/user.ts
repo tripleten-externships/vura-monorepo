@@ -15,7 +15,7 @@ export const User = list({
   access: {
     operation: {
       // Anyone can view users (you might want to restrict this later)
-      query: () => true,
+      query: ({ session }) => isAdmin(session),
       // Anyone can create a user (for registration)
       create: () => true,
       // Only logged-in users can update
@@ -64,6 +64,16 @@ export const User = list({
         isRequired: false,
         // commenting out the regex validation temporarily until we are able to add a default avatar
         // match: { regex: /^https?:\/\/.+/i, explanation: 'Avatar must be a valid URL' }, // ensure that the string contains http:// or https:// and at least one letter after
+      },
+    }),
+    role: select({
+      options: [
+        { label: 'User', value: 'user' },
+        { label: 'Admin', value: 'admin' },
+      ],
+      defaultValue: 'user',
+      ui: {
+        displayMode: 'segmented-control',
       },
     }),
     age: integer({

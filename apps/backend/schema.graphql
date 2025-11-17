@@ -1441,6 +1441,7 @@ type User {
   email: String
   password: PasswordState
   avatarUrl: String
+  role: String
   age: Int
   gender: String
   privacyToggle: Boolean
@@ -1485,6 +1486,7 @@ input UserWhereInput {
   name: StringFilter
   email: StringFilter
   avatarUrl: StringFilter
+  role: StringNullableFilter
   age: IntNullableFilter
   gender: StringNullableFilter
   privacyToggle: BooleanFilter
@@ -1552,6 +1554,7 @@ input UserOrderByInput {
   name: OrderDirection
   email: OrderDirection
   avatarUrl: OrderDirection
+  role: OrderDirection
   age: OrderDirection
   gender: OrderDirection
   privacyToggle: OrderDirection
@@ -1566,6 +1569,7 @@ input UserUpdateInput {
   email: String
   password: String
   avatarUrl: String
+  role: String
   age: Int
   gender: String
   privacyToggle: Boolean
@@ -1629,6 +1633,7 @@ input UserCreateInput {
   email: String
   password: String
   avatarUrl: String
+  role: String
   age: Int
   gender: String
   privacyToggle: Boolean

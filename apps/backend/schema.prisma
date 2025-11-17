@@ -249,11 +249,12 @@ model User {
   email                  String                  @unique @default("")
   password               String
   avatarUrl              String                  @default("")
+  role                   String?                 @default("user")
   age                    Int?
   gender                 String?
   privacyToggle          Boolean                 @default(true)
   messages               ChatMessage[]           @relation("ChatMessage_sender")
-  isAdmin                Boolean                 @default(true)
+  isAdmin                Boolean                 @default(false)
   createdAt              DateTime?               @default(now())
   lastLoginDate          DateTime?               @default(now())
   lastUpdateDate         DateTime?               @updatedAt
