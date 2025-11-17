@@ -1,7 +1,7 @@
 import { Context } from '../../../types/context';
 import { pubsub, SubscriptionTopics } from '../pubsub';
 import { ForumPostCreatedEvent } from '../events';
-import { forumNotificationService } from '../../../services/forum/forum.service';
+import { forumNotificationService } from '../../../services/forum';
 import { logger } from '../../../utils/logger';
 
 function extractMentions(message: string): string[] {
@@ -27,6 +27,8 @@ export async function handleforumPostCreated(
   try {
     // get all recipients
     const recipientIds = event.subscriberIds.filter((id) => id !== event.userId);
+    console.log('event.subscriberIds:', event.subscriberIds);
+    console.log('recipientIds:', recipientIds);
 
     if (recipientIds.length === 0) {
       logger.debug('No subscribers for forum topic', { postId: event.postId });
@@ -41,6 +43,10 @@ export async function handleforumPostCreated(
 
     // create HIGH priority notifications for mentioned users
     if (mentionedRecipients.length > 0) {
+      console.log(
+        'Notification content:',
+        `${event.authorName} mentioned you in a post about ${event.topic}`
+      );
       const mentionednotifications = await forumNotificationService.createBulkForumNotifications(
         {
           userIds: mentionedRecipients,
@@ -49,7 +55,6 @@ export async function handleforumPostCreated(
           title: event.title,
           topic: event.topic,
           content: `${event.authorName} mentioned you in a post about ${event.topic}`,
-          actionUrl: `/forum/${event.postId}`,
           metadata: {
             postId: event.postId,
             topic: event.topic,
@@ -90,7 +95,6 @@ export async function handleforumPostCreated(
           title: event.title,
           topic: event.topic,
           content: `${event.authorName} created a new post in the ${event.topic}`,
-          actionUrl: `/forum/${event.postId}`,
           metadata: {
             postId: event.postId,
             topic: event.topic,
@@ -110,7 +114,6 @@ export async function handleforumPostCreated(
           notificationType: 'MENTION',
           priority: notification.priority,
           content: notification.content,
-          actionUrl: `/forum/${event.postId}`,
           metadata: notification.metadata,
           createdAt: notification.createdAt,
         });
