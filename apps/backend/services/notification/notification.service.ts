@@ -12,11 +12,6 @@ import { logger } from '../../utils/logger';
 // import { WebSocketService } from '../websocket';
 
 export class NotificationService implements INotificationService {
-  //  userMessageQueue: Map<string, // userId
-  //   {messages: string[]; // storing all messages sent to user during 30 second window
-  //     groupId: string; // linking notification correctly
-  //      timer: NodeJS.Timeout | null}>  // reset timer if new messages arrive
-  //       = new Map(); // add users to their queues
   /**
    * create and persist a single notification
    */
@@ -67,7 +62,6 @@ export class NotificationService implements INotificationService {
         content: data.content,
         user: { connect: { id: data.userId } },
       };
-      // const websocketService = new WebSocketService(io);
 
       if (data.actionUrl) {
         notificationData.actionUrl = data.actionUrl;
@@ -111,22 +105,6 @@ export class NotificationService implements INotificationService {
       // create notification
       // if(!userInGroup) {} --supposed to wrap await
 
-      // userQueue.timer = setTimeout(async () => {
-      //   const combinedContent = userQueue.messages.join('\n');
-
-      //   await this.dbContext.Notification.createOne({
-      //     data: {
-      //       userId: data.userId,
-      //       type: data.type,
-      //       notificationType: data.notificationType,
-      //       priority: data.priority,
-      //       content: data.content,
-      //       actionUrl: data.actionUrl, // should return last message in que ??
-      //     },
-      //   });
-      //   this.userMessageQueue.delete(targetUserId);
-      // }, 30000);
-
       const notification = await context.db.Notification.createOne({
         data: notificationData,
       });
@@ -158,6 +136,58 @@ export class NotificationService implements INotificationService {
   async isUserBlocked(userId: string, senderId: string): Promise<boolean> {
     return false;
   } // I think these should be inside curly braces of createNotification, but there is an error when I do that
+
+  // handle batch notifications
+  public batchNotifications() {
+    let buffer = []; // store incoming notifications
+    let batching = false; // prevents multiple loops from running
+
+    function onIncomingMessage(msg) {
+      buffer.push(msg);
+
+      if (!batching) {
+        batching = true;
+        startBatchingLoop();
+      }
+    }
+
+    async function startBatchingLoop() {
+      const batchStartTime = Date.now();
+      const max_iterations = 500; // arbitrary #
+
+      for (let i = 0; i < max_iterations; i++) {
+        if (Date.now() - batchStartTime >= 30000) {
+          // stop if 30 seconds (arbitrary) passes
+          sendBatch();
+          batching = false;
+          return;
+        }
+
+        await new Promise((res) => setTimeout(res, 50)); // pausing to make sure loop doesn't pass too quickly
+      }
+
+      sendBatch();
+      batching = false;
+    }
+
+    function sendBatch() {
+      if (buffer.length === 0) {
+        return; // nothing to send
+      }
+
+      const batch = buffer;
+      buffer = []; // clear buffer
+
+      try {
+        await context.db.createBulkNotifications(batch);
+      } catch (err) {
+        console.error('Error sending notification batch:', err);
+      }
+    }
+
+    // return function used when a new message arrives
+    return onIncomingMessage;
+  }
 
   /**
    * create notifications for multiple users in batch
