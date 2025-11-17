@@ -60,6 +60,8 @@ export async function handleforumPostCreated(
         context
       );
 
+      console.log('mentionednotifications:', mentionednotifications);
+
       // publish notification created events for real-time updates
       mentionednotifications.forEach((subscribe) => {
         pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
@@ -68,7 +70,7 @@ export async function handleforumPostCreated(
           topic: event.topic,
           createdAt: subscribe.createdAt,
           subscriberIds: mentionedRecipients,
-          content: subscribe.content,
+          content: `${event.authorName} mentioned you in a post about ${event.topic}`,
           authorName: event.authorName,
         });
       });
@@ -98,6 +100,7 @@ export async function handleforumPostCreated(
         },
         context
       );
+
       // publish notification created events for real-time updates
       mentionednotifications.forEach((notification) => {
         pubsub.publish(SubscriptionTopics.FORUM_NOTIFICATION, {

@@ -86,6 +86,12 @@ export const customCreateForumPost = async (
       title: post.title,
     });
 
+    const subscribers = await context.db.ForumSubscription.findMany({
+      where: { topic: { equals: data.topic } },
+    });
+
+    const subscriberIds = subscribers.map((s) => s.userId as string);
+
     // Prepare event payload
     const eventPayload: ForumPostCreatedEvent = {
       userId: context.session.data.id,
@@ -93,7 +99,7 @@ export const customCreateForumPost = async (
       topic: post.topic as string,
       title: post.title as string,
       createdAt: (post.createdAt as Date).toISOString(),
-      subscriberIds: [],
+      subscriberIds,
       content: post.content as string,
       authorName: (post.author as any)?.name || '',
     };
@@ -108,11 +114,9 @@ export const customCreateForumPost = async (
 
     // Publish the forumPost to GraphQL subscriptions
     try {
-      pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
-        forumPostCreated: eventPayload,
-      });
+      pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, eventPayload);
     } catch (eventError) {
-      console.error('Failed to publish forum post event:', eventError);
+      console.error('Failed to publish forum post created event:', eventError);
     }
 
     return {

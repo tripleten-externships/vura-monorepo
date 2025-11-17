@@ -234,27 +234,25 @@ export class ForumNotificationService implements IForumNotificationService {
         });
       }
 
-      const subscription = await context.db.ForumSubscription.findMany({
+      const subscriptions = await context.db.ForumSubscription.findMany({
         where: {
-          user: { id: { equals: userId } },
           topic: { equals: topic },
+          user: { id: { equals: userId } },
         },
       });
-      if (subscription.length === 0) {
+
+      if (subscriptions.length === 0) {
         throw new GraphQLError('Subscription not found', {
           extensions: { code: 'NOT_FOUND' },
         });
       }
-      // Delete the forum subscription
-      await context.db.ForumSubscription.deleteOne({
-        where: {
-          user: { id: { equals: userId } },
-          topic: { equals: topic },
-        },
-      });
+
+      for (const sub of subscriptions) {
+        const subscriptionId: string = sub.id as string;
+        await context.db.ForumSubscription.deleteOne({ where: { id: subscriptionId } });
+      }
 
       logger.info('Subscription deleted', { userId, topic });
-
       return true;
     } catch (error: any) {
       console.error('Delete subscription error:', error);
