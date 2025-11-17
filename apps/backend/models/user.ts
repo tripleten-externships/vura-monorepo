@@ -8,23 +8,39 @@ import {
   select,
   checkbox,
 } from '@keystone-6/core/fields';
-import { isAuthenticated, canAccessOwnData } from '../utils/access';
+import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 export const User = list({
   access: {
     operation: {
-      query: isAuthenticated, // Only signed-in users can query
-      create: () => true, // Anyone can register
-      update: canAccessOwnData, // Only user or admin can update
-      delete: canAccessOwnData, // Only user or admin can delete
+      // Anyone can view users (you might want to restrict this later)
+      query: ({ session }) => isAdmin(session),
+      // Anyone can create a user (for registration)
+      create: () => true,
+      // Only logged-in users can update
+      update: ({ session }) => isLoggedIn(session),
+      // Only admins can delete users
+      delete: ({ session }) => isAdmin(session),
     },
     filter: {
       query: ({ session }) => {
-        // Restrict queries to the logged-in user unless admin
-        if (!session?.data?.id) return false;
-        if (session.data.role === 'admin') return true;
-        return { id: { equals: session.data.id } };
+        // Admins can see all users
+        if (isAdmin(session)) return true;
+
+        // Regular users can only see their own profile
+        if (isLoggedIn(session)) {
+          return { id: { equals: session.data.id } };
+        }
+
+        // Not logged in = can't see anything
+        return false;
       },
+    },
+    item: {
+      // Users can only update their own profile, admins can update anyone
+      update: ({ session, item }) => isAdminOrOwner(session, item),
+      // Only admins can delete any user
+      delete: ({ session }) => isAdmin(session),
     },
   },
 
@@ -55,7 +71,6 @@ export const User = list({
         displayMode: 'segmented-control',
       },
     }),
-
     avatarUrl: text({
       validation: { isRequired: false },
       ui: { description: 'Optional profile image URL' },
@@ -69,16 +84,18 @@ export const User = list({
         { label: 'Non-Binary', value: 'non-binary' },
       ],
     }),
-
-    privacyToggle: checkbox({
-      defaultValue: true,
-      ui: { description: 'If unchecked, profile may be visible to others' },
-    }),
-
-    // Relationships
+    privacyToggle: checkbox({ defaultValue: true }), //relationship to chat messages
     messages: relationship({ ref: 'ChatMessage.sender', many: true }),
-    isAdmin: checkbox({ defaultValue: true }),
-    // Metadata
+
+    // Only admins can view/modify admin status
+    isAdmin: checkbox({
+      defaultValue: false, // Changed from true to false - new users are NOT admin by default
+      access: {
+        read: ({ session }) => isAdmin(session), // Only admins can see who is admin
+        create: ({ session }) => isAdmin(session), // Only admins can make new admins
+        update: ({ session }) => isAdmin(session), // Only admins can change admin status
+      },
+    }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
       ui: { description: 'When the account was created' },

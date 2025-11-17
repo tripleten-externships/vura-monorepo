@@ -254,7 +254,7 @@ model User {
   gender                 String?
   privacyToggle          Boolean                 @default(true)
   messages               ChatMessage[]           @relation("ChatMessage_sender")
-  isAdmin                Boolean                 @default(true)
+  isAdmin                Boolean                 @default(false)
   createdAt              DateTime?               @default(now())
   lastLoginDate          DateTime?               @default(now())
   lastUpdateDate         DateTime?               @updatedAt
