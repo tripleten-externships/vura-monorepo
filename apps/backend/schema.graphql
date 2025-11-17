@@ -22,7 +22,7 @@ enum AiChatSessionStatusType {
 }
 
 """Date custom scalar type"""
-scalar DateTime
+scalar DateTime @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
 
 input AiChatSessionWhereUniqueInput {
   id: ID
@@ -332,7 +332,15 @@ input AiMessageRelateToOneForCreateInput {
 type CarePlan {
   id: ID!
   name: String
+  progressScore: Float
+  lastAssessmentAt: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
   user: User
+  questionnaires(where: QuestionnaireWhereInput! = {}, orderBy: [QuestionnaireOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireWhereUniqueInput): [Questionnaire!]
+  questionnairesCount(where: QuestionnaireWhereInput! = {}): Int
+  questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
+  questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
 }
 
 input CarePlanWhereUniqueInput {
@@ -345,17 +353,59 @@ input CarePlanWhereInput {
   NOT: [CarePlanWhereInput!]
   id: IDFilter
   name: StringFilter
+  progressScore: FloatNullableFilter
+  lastAssessmentAt: DateTimeNullableFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
   user: UserWhereInput
+  questionnaires: QuestionnaireManyRelationFilter
+  questionnaireResponses: QuestionnaireResponseManyRelationFilter
+}
+
+input QuestionnaireManyRelationFilter {
+  every: QuestionnaireWhereInput
+  some: QuestionnaireWhereInput
+  none: QuestionnaireWhereInput
+}
+
+input QuestionnaireResponseManyRelationFilter {
+  every: QuestionnaireResponseWhereInput
+  some: QuestionnaireResponseWhereInput
+  none: QuestionnaireResponseWhereInput
 }
 
 input CarePlanOrderByInput {
   id: OrderDirection
   name: OrderDirection
+  progressScore: OrderDirection
+  lastAssessmentAt: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
 }
 
 input CarePlanUpdateInput {
   name: String
+  progressScore: Float
+  lastAssessmentAt: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForUpdateInput
+  questionnaires: QuestionnaireRelateToManyForUpdateInput
+  questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
+}
+
+input QuestionnaireRelateToManyForUpdateInput {
+  disconnect: [QuestionnaireWhereUniqueInput!]
+  set: [QuestionnaireWhereUniqueInput!]
+  create: [QuestionnaireCreateInput!]
+  connect: [QuestionnaireWhereUniqueInput!]
+}
+
+input QuestionnaireResponseRelateToManyForUpdateInput {
+  disconnect: [QuestionnaireResponseWhereUniqueInput!]
+  set: [QuestionnaireResponseWhereUniqueInput!]
+  create: [QuestionnaireResponseCreateInput!]
+  connect: [QuestionnaireResponseWhereUniqueInput!]
 }
 
 input CarePlanUpdateArgs {
@@ -365,7 +415,23 @@ input CarePlanUpdateArgs {
 
 input CarePlanCreateInput {
   name: String
+  progressScore: Float
+  lastAssessmentAt: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForCreateInput
+  questionnaires: QuestionnaireRelateToManyForCreateInput
+  questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
+}
+
+input QuestionnaireRelateToManyForCreateInput {
+  create: [QuestionnaireCreateInput!]
+  connect: [QuestionnaireWhereUniqueInput!]
+}
+
+input QuestionnaireResponseRelateToManyForCreateInput {
+  create: [QuestionnaireResponseCreateInput!]
+  connect: [QuestionnaireResponseWhereUniqueInput!]
 }
 
 type ChatMessage {
@@ -429,9 +495,16 @@ input GroupChatRelateToOneForCreateInput {
 
 type Checklist {
   id: ID!
-  name: String
+  name: String!
+  completionScore: Float
+  createdAt: DateTime
+  updatedAt: DateTime
   resources(where: ResourceWhereInput! = {}, orderBy: [ResourceOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ResourceWhereUniqueInput): [Resource!]
   resourcesCount(where: ResourceWhereInput! = {}): Int
+  questionnaires(where: QuestionnaireWhereInput! = {}, orderBy: [QuestionnaireOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireWhereUniqueInput): [Questionnaire!]
+  questionnairesCount(where: QuestionnaireWhereInput! = {}): Int
+  questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
+  questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
 }
 
 input ChecklistWhereUniqueInput {
@@ -444,7 +517,12 @@ input ChecklistWhereInput {
   NOT: [ChecklistWhereInput!]
   id: IDFilter
   name: StringFilter
+  completionScore: FloatNullableFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
   resources: ResourceManyRelationFilter
+  questionnaires: QuestionnaireManyRelationFilter
+  questionnaireResponses: QuestionnaireResponseManyRelationFilter
 }
 
 input ResourceManyRelationFilter {
@@ -456,11 +534,19 @@ input ResourceManyRelationFilter {
 input ChecklistOrderByInput {
   id: OrderDirection
   name: OrderDirection
+  completionScore: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
 }
 
 input ChecklistUpdateInput {
   name: String
+  completionScore: Float
+  createdAt: DateTime
+  updatedAt: DateTime
   resources: ResourceRelateToManyForUpdateInput
+  questionnaires: QuestionnaireRelateToManyForUpdateInput
+  questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
 }
 
 input ResourceRelateToManyForUpdateInput {
@@ -477,7 +563,12 @@ input ChecklistUpdateArgs {
 
 input ChecklistCreateInput {
   name: String
+  completionScore: Float
+  createdAt: DateTime
+  updatedAt: DateTime
   resources: ResourceRelateToManyForCreateInput
+  questionnaires: QuestionnaireRelateToManyForCreateInput
+  questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
 }
 
 input ResourceRelateToManyForCreateInput {
@@ -549,11 +640,11 @@ type GroupChat {
   groupName: String
   messages(where: ChatMessageWhereInput! = {}, orderBy: [ChatMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChatMessageWhereUniqueInput): [ChatMessage!]
   messagesCount(where: ChatMessageWhereInput! = {}): Int
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: User
   members(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   membersCount(where: UserWhereInput! = {}): Int
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input GroupChatWhereUniqueInput {
@@ -567,10 +658,10 @@ input GroupChatWhereInput {
   id: IDFilter
   groupName: StringFilter
   messages: ChatMessageManyRelationFilter
-  createdAt: DateTimeNullableFilter
-  updatedAt: DateTimeNullableFilter
   owner: UserWhereInput
   members: UserManyRelationFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
 }
 
 input ChatMessageManyRelationFilter {
@@ -595,10 +686,10 @@ input GroupChatOrderByInput {
 input GroupChatUpdateInput {
   groupName: String
   messages: ChatMessageRelateToManyForUpdateInput
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: UserRelateToOneForUpdateInput
   members: UserRelateToManyForUpdateInput
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input ChatMessageRelateToManyForUpdateInput {
@@ -623,10 +714,10 @@ input GroupChatUpdateArgs {
 input GroupChatCreateInput {
   groupName: String
   messages: ChatMessageRelateToManyForCreateInput
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: UserRelateToOneForCreateInput
   members: UserRelateToManyForCreateInput
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input ChatMessageRelateToManyForCreateInput {
@@ -637,6 +728,132 @@ input ChatMessageRelateToManyForCreateInput {
 input UserRelateToManyForCreateInput {
   create: [UserCreateInput!]
   connect: [UserWhereUniqueInput!]
+}
+
+type Notification {
+  id: ID!
+  type: String
+  notificationType: String
+  priority: String
+  content: String
+  actionUrl: String
+  metadata: JSON
+  read: Boolean
+  readAt: DateTime
+  expiresAt: DateTime
+  scheduledFor: DateTime
+  createdAt: DateTime
+  user: User
+  relatedCarePlan: CarePlan
+  relatedChat: GroupChat
+  relatedForumPost: ForumPost
+}
+
+input NotificationWhereUniqueInput {
+  id: ID
+}
+
+input NotificationWhereInput {
+  AND: [NotificationWhereInput!]
+  OR: [NotificationWhereInput!]
+  NOT: [NotificationWhereInput!]
+  id: IDFilter
+  type: StringFilter
+  notificationType: StringFilter
+  priority: StringFilter
+  content: StringFilter
+  actionUrl: StringFilter
+  read: BooleanFilter
+  readAt: DateTimeNullableFilter
+  expiresAt: DateTimeNullableFilter
+  scheduledFor: DateTimeNullableFilter
+  createdAt: DateTimeNullableFilter
+  user: UserWhereInput
+  relatedCarePlan: CarePlanWhereInput
+  relatedChat: GroupChatWhereInput
+  relatedForumPost: ForumPostWhereInput
+}
+
+input BooleanFilter {
+  equals: Boolean
+  not: BooleanFilter
+}
+
+input NotificationOrderByInput {
+  id: OrderDirection
+  type: OrderDirection
+  notificationType: OrderDirection
+  priority: OrderDirection
+  content: OrderDirection
+  actionUrl: OrderDirection
+  read: OrderDirection
+  readAt: OrderDirection
+  expiresAt: OrderDirection
+  scheduledFor: OrderDirection
+  createdAt: OrderDirection
+}
+
+input NotificationUpdateInput {
+  type: String
+  notificationType: String
+  priority: String
+  content: String
+  actionUrl: String
+  metadata: JSON
+  read: Boolean
+  readAt: DateTime
+  expiresAt: DateTime
+  scheduledFor: DateTime
+  createdAt: DateTime
+  user: UserRelateToOneForUpdateInput
+  relatedCarePlan: CarePlanRelateToOneForUpdateInput
+  relatedChat: GroupChatRelateToOneForUpdateInput
+  relatedForumPost: ForumPostRelateToOneForUpdateInput
+}
+
+input CarePlanRelateToOneForUpdateInput {
+  create: CarePlanCreateInput
+  connect: CarePlanWhereUniqueInput
+  disconnect: Boolean
+}
+
+input ForumPostRelateToOneForUpdateInput {
+  create: ForumPostCreateInput
+  connect: ForumPostWhereUniqueInput
+  disconnect: Boolean
+}
+
+input NotificationUpdateArgs {
+  where: NotificationWhereUniqueInput!
+  data: NotificationUpdateInput!
+}
+
+input NotificationCreateInput {
+  type: String
+  notificationType: String
+  priority: String
+  content: String
+  actionUrl: String
+  metadata: JSON
+  read: Boolean
+  readAt: DateTime
+  expiresAt: DateTime
+  scheduledFor: DateTime
+  createdAt: DateTime
+  user: UserRelateToOneForCreateInput
+  relatedCarePlan: CarePlanRelateToOneForCreateInput
+  relatedChat: GroupChatRelateToOneForCreateInput
+  relatedForumPost: ForumPostRelateToOneForCreateInput
+}
+
+input CarePlanRelateToOneForCreateInput {
+  create: CarePlanCreateInput
+  connect: CarePlanWhereUniqueInput
+}
+
+input ForumPostRelateToOneForCreateInput {
+  create: ForumPostCreateInput
+  connect: ForumPostWhereUniqueInput
 }
 
 type Parent {
@@ -712,10 +929,472 @@ input ParentCreateInput {
   user: UserRelateToOneForCreateInput
 }
 
+type Question {
+  id: ID!
+  questionText: String
+  questionType: QuestionQuestionTypeType
+  options: JSON
+  isRequired: Boolean
+  order: Int
+  category: String
+  minValue: Int
+  maxValue: Int
+  questionnaire: Questionnaire
+  responses(where: QuestionResponseWhereInput! = {}, orderBy: [QuestionResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionResponseWhereUniqueInput): [QuestionResponse!]
+  responsesCount(where: QuestionResponseWhereInput! = {}): Int
+}
+
+enum QuestionQuestionTypeType {
+  text
+  multiple_choice
+  rating_scale
+  boolean
+  scale
+}
+
+input QuestionWhereUniqueInput {
+  id: ID
+}
+
+input QuestionWhereInput {
+  AND: [QuestionWhereInput!]
+  OR: [QuestionWhereInput!]
+  NOT: [QuestionWhereInput!]
+  id: IDFilter
+  questionText: StringFilter
+  questionType: QuestionQuestionTypeTypeNullableFilter
+  isRequired: BooleanFilter
+  order: IntNullableFilter
+  category: StringFilter
+  minValue: IntNullableFilter
+  maxValue: IntNullableFilter
+  questionnaire: QuestionnaireWhereInput
+  responses: QuestionResponseManyRelationFilter
+}
+
+input QuestionQuestionTypeTypeNullableFilter {
+  equals: QuestionQuestionTypeType
+  in: [QuestionQuestionTypeType!]
+  notIn: [QuestionQuestionTypeType!]
+  not: QuestionQuestionTypeTypeNullableFilter
+}
+
+input QuestionResponseManyRelationFilter {
+  every: QuestionResponseWhereInput
+  some: QuestionResponseWhereInput
+  none: QuestionResponseWhereInput
+}
+
+input QuestionOrderByInput {
+  id: OrderDirection
+  questionText: OrderDirection
+  questionType: OrderDirection
+  isRequired: OrderDirection
+  order: OrderDirection
+  category: OrderDirection
+  minValue: OrderDirection
+  maxValue: OrderDirection
+}
+
+input QuestionUpdateInput {
+  questionText: String
+  questionType: QuestionQuestionTypeType
+  options: JSON
+  isRequired: Boolean
+  order: Int
+  category: String
+  minValue: Int
+  maxValue: Int
+  questionnaire: QuestionnaireRelateToOneForUpdateInput
+  responses: QuestionResponseRelateToManyForUpdateInput
+}
+
+input QuestionnaireRelateToOneForUpdateInput {
+  create: QuestionnaireCreateInput
+  connect: QuestionnaireWhereUniqueInput
+  disconnect: Boolean
+}
+
+input QuestionResponseRelateToManyForUpdateInput {
+  disconnect: [QuestionResponseWhereUniqueInput!]
+  set: [QuestionResponseWhereUniqueInput!]
+  create: [QuestionResponseCreateInput!]
+  connect: [QuestionResponseWhereUniqueInput!]
+}
+
+input QuestionUpdateArgs {
+  where: QuestionWhereUniqueInput!
+  data: QuestionUpdateInput!
+}
+
+input QuestionCreateInput {
+  questionText: String
+  questionType: QuestionQuestionTypeType
+  options: JSON
+  isRequired: Boolean
+  order: Int
+  category: String
+  minValue: Int
+  maxValue: Int
+  questionnaire: QuestionnaireRelateToOneForCreateInput
+  responses: QuestionResponseRelateToManyForCreateInput
+}
+
+input QuestionnaireRelateToOneForCreateInput {
+  create: QuestionnaireCreateInput
+  connect: QuestionnaireWhereUniqueInput
+}
+
+input QuestionResponseRelateToManyForCreateInput {
+  create: [QuestionResponseCreateInput!]
+  connect: [QuestionResponseWhereUniqueInput!]
+}
+
+type QuestionResponse {
+  id: ID!
+  answer: JSON
+  confidence: Int
+  notes: String
+  answeredAt: DateTime
+  updatedAt: DateTime
+  question: Question
+  questionnaireResponse: QuestionnaireResponse
+}
+
+input QuestionResponseWhereUniqueInput {
+  id: ID
+}
+
+input QuestionResponseWhereInput {
+  AND: [QuestionResponseWhereInput!]
+  OR: [QuestionResponseWhereInput!]
+  NOT: [QuestionResponseWhereInput!]
+  id: IDFilter
+  confidence: IntNullableFilter
+  notes: StringFilter
+  answeredAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
+  question: QuestionWhereInput
+  questionnaireResponse: QuestionnaireResponseWhereInput
+}
+
+input QuestionResponseOrderByInput {
+  id: OrderDirection
+  confidence: OrderDirection
+  notes: OrderDirection
+  answeredAt: OrderDirection
+  updatedAt: OrderDirection
+}
+
+input QuestionResponseUpdateInput {
+  answer: JSON
+  confidence: Int
+  notes: String
+  answeredAt: DateTime
+  updatedAt: DateTime
+  question: QuestionRelateToOneForUpdateInput
+  questionnaireResponse: QuestionnaireResponseRelateToOneForUpdateInput
+}
+
+input QuestionRelateToOneForUpdateInput {
+  create: QuestionCreateInput
+  connect: QuestionWhereUniqueInput
+  disconnect: Boolean
+}
+
+input QuestionnaireResponseRelateToOneForUpdateInput {
+  create: QuestionnaireResponseCreateInput
+  connect: QuestionnaireResponseWhereUniqueInput
+  disconnect: Boolean
+}
+
+input QuestionResponseUpdateArgs {
+  where: QuestionResponseWhereUniqueInput!
+  data: QuestionResponseUpdateInput!
+}
+
+input QuestionResponseCreateInput {
+  answer: JSON
+  confidence: Int
+  notes: String
+  answeredAt: DateTime
+  updatedAt: DateTime
+  question: QuestionRelateToOneForCreateInput
+  questionnaireResponse: QuestionnaireResponseRelateToOneForCreateInput
+}
+
+input QuestionRelateToOneForCreateInput {
+  create: QuestionCreateInput
+  connect: QuestionWhereUniqueInput
+}
+
+input QuestionnaireResponseRelateToOneForCreateInput {
+  create: QuestionnaireResponseCreateInput
+  connect: QuestionnaireResponseWhereUniqueInput
+}
+
+type Questionnaire {
+  id: ID!
+  title: String
+  description: String
+  questionnaireType: QuestionnaireQuestionnaireTypeType
+  category: String
+  isActive: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+  questions(where: QuestionWhereInput! = {}, orderBy: [QuestionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionWhereUniqueInput): [Question!]
+  questionsCount(where: QuestionWhereInput! = {}): Int
+  responses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
+  responsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
+  carePlans(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
+  carePlansCount(where: CarePlanWhereInput! = {}): Int
+  checklists(where: ChecklistWhereInput! = {}, orderBy: [ChecklistOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChecklistWhereUniqueInput): [Checklist!]
+  checklistsCount(where: ChecklistWhereInput! = {}): Int
+}
+
+enum QuestionnaireQuestionnaireTypeType {
+  care_plan_assessment
+  checklist_evaluation
+  general_assessment
+  progress_review
+}
+
+input QuestionnaireWhereUniqueInput {
+  id: ID
+}
+
+input QuestionnaireWhereInput {
+  AND: [QuestionnaireWhereInput!]
+  OR: [QuestionnaireWhereInput!]
+  NOT: [QuestionnaireWhereInput!]
+  id: IDFilter
+  title: StringFilter
+  description: StringFilter
+  questionnaireType: QuestionnaireQuestionnaireTypeTypeNullableFilter
+  category: StringFilter
+  isActive: BooleanFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
+  questions: QuestionManyRelationFilter
+  responses: QuestionnaireResponseManyRelationFilter
+  carePlans: CarePlanManyRelationFilter
+  checklists: ChecklistManyRelationFilter
+}
+
+input QuestionnaireQuestionnaireTypeTypeNullableFilter {
+  equals: QuestionnaireQuestionnaireTypeType
+  in: [QuestionnaireQuestionnaireTypeType!]
+  notIn: [QuestionnaireQuestionnaireTypeType!]
+  not: QuestionnaireQuestionnaireTypeTypeNullableFilter
+}
+
+input QuestionManyRelationFilter {
+  every: QuestionWhereInput
+  some: QuestionWhereInput
+  none: QuestionWhereInput
+}
+
+input CarePlanManyRelationFilter {
+  every: CarePlanWhereInput
+  some: CarePlanWhereInput
+  none: CarePlanWhereInput
+}
+
+input ChecklistManyRelationFilter {
+  every: ChecklistWhereInput
+  some: ChecklistWhereInput
+  none: ChecklistWhereInput
+}
+
+input QuestionnaireOrderByInput {
+  id: OrderDirection
+  title: OrderDirection
+  description: OrderDirection
+  questionnaireType: OrderDirection
+  category: OrderDirection
+  isActive: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
+}
+
+input QuestionnaireUpdateInput {
+  title: String
+  description: String
+  questionnaireType: QuestionnaireQuestionnaireTypeType
+  category: String
+  isActive: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+  questions: QuestionRelateToManyForUpdateInput
+  responses: QuestionnaireResponseRelateToManyForUpdateInput
+  carePlans: CarePlanRelateToManyForUpdateInput
+  checklists: ChecklistRelateToManyForUpdateInput
+}
+
+input QuestionRelateToManyForUpdateInput {
+  disconnect: [QuestionWhereUniqueInput!]
+  set: [QuestionWhereUniqueInput!]
+  create: [QuestionCreateInput!]
+  connect: [QuestionWhereUniqueInput!]
+}
+
+input CarePlanRelateToManyForUpdateInput {
+  disconnect: [CarePlanWhereUniqueInput!]
+  set: [CarePlanWhereUniqueInput!]
+  create: [CarePlanCreateInput!]
+  connect: [CarePlanWhereUniqueInput!]
+}
+
+input ChecklistRelateToManyForUpdateInput {
+  disconnect: [ChecklistWhereUniqueInput!]
+  set: [ChecklistWhereUniqueInput!]
+  create: [ChecklistCreateInput!]
+  connect: [ChecklistWhereUniqueInput!]
+}
+
+input QuestionnaireUpdateArgs {
+  where: QuestionnaireWhereUniqueInput!
+  data: QuestionnaireUpdateInput!
+}
+
+input QuestionnaireCreateInput {
+  title: String
+  description: String
+  questionnaireType: QuestionnaireQuestionnaireTypeType
+  category: String
+  isActive: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+  questions: QuestionRelateToManyForCreateInput
+  responses: QuestionnaireResponseRelateToManyForCreateInput
+  carePlans: CarePlanRelateToManyForCreateInput
+  checklists: ChecklistRelateToManyForCreateInput
+}
+
+input QuestionRelateToManyForCreateInput {
+  create: [QuestionCreateInput!]
+  connect: [QuestionWhereUniqueInput!]
+}
+
+input CarePlanRelateToManyForCreateInput {
+  create: [CarePlanCreateInput!]
+  connect: [CarePlanWhereUniqueInput!]
+}
+
+input ChecklistRelateToManyForCreateInput {
+  create: [ChecklistCreateInput!]
+  connect: [ChecklistWhereUniqueInput!]
+}
+
+type QuestionnaireResponse {
+  id: ID!
+  status: QuestionnaireResponseStatusType
+  progressScore: Float
+  completionPercentage: Float
+  startedAt: DateTime
+  completedAt: DateTime
+  lastSavedAt: DateTime
+  user: User
+  questionnaire: Questionnaire
+  carePlan: CarePlan
+  checklist: Checklist
+  questionResponses(where: QuestionResponseWhereInput! = {}, orderBy: [QuestionResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionResponseWhereUniqueInput): [QuestionResponse!]
+  questionResponsesCount(where: QuestionResponseWhereInput! = {}): Int
+}
+
+enum QuestionnaireResponseStatusType {
+  draft
+  completed
+  in_progress
+}
+
+input QuestionnaireResponseWhereUniqueInput {
+  id: ID
+}
+
+input QuestionnaireResponseWhereInput {
+  AND: [QuestionnaireResponseWhereInput!]
+  OR: [QuestionnaireResponseWhereInput!]
+  NOT: [QuestionnaireResponseWhereInput!]
+  id: IDFilter
+  status: QuestionnaireResponseStatusTypeNullableFilter
+  progressScore: FloatNullableFilter
+  completionPercentage: FloatNullableFilter
+  startedAt: DateTimeNullableFilter
+  completedAt: DateTimeNullableFilter
+  lastSavedAt: DateTimeNullableFilter
+  user: UserWhereInput
+  questionnaire: QuestionnaireWhereInput
+  carePlan: CarePlanWhereInput
+  checklist: ChecklistWhereInput
+  questionResponses: QuestionResponseManyRelationFilter
+}
+
+input QuestionnaireResponseStatusTypeNullableFilter {
+  equals: QuestionnaireResponseStatusType
+  in: [QuestionnaireResponseStatusType!]
+  notIn: [QuestionnaireResponseStatusType!]
+  not: QuestionnaireResponseStatusTypeNullableFilter
+}
+
+input QuestionnaireResponseOrderByInput {
+  id: OrderDirection
+  status: OrderDirection
+  progressScore: OrderDirection
+  completionPercentage: OrderDirection
+  startedAt: OrderDirection
+  completedAt: OrderDirection
+  lastSavedAt: OrderDirection
+}
+
+input QuestionnaireResponseUpdateInput {
+  status: QuestionnaireResponseStatusType
+  progressScore: Float
+  completionPercentage: Float
+  startedAt: DateTime
+  completedAt: DateTime
+  lastSavedAt: DateTime
+  user: UserRelateToOneForUpdateInput
+  questionnaire: QuestionnaireRelateToOneForUpdateInput
+  carePlan: CarePlanRelateToOneForUpdateInput
+  checklist: ChecklistRelateToOneForUpdateInput
+  questionResponses: QuestionResponseRelateToManyForUpdateInput
+}
+
+input ChecklistRelateToOneForUpdateInput {
+  create: ChecklistCreateInput
+  connect: ChecklistWhereUniqueInput
+  disconnect: Boolean
+}
+
+input QuestionnaireResponseUpdateArgs {
+  where: QuestionnaireResponseWhereUniqueInput!
+  data: QuestionnaireResponseUpdateInput!
+}
+
+input QuestionnaireResponseCreateInput {
+  status: QuestionnaireResponseStatusType
+  progressScore: Float
+  completionPercentage: Float
+  startedAt: DateTime
+  completedAt: DateTime
+  lastSavedAt: DateTime
+  user: UserRelateToOneForCreateInput
+  questionnaire: QuestionnaireRelateToOneForCreateInput
+  carePlan: CarePlanRelateToOneForCreateInput
+  checklist: ChecklistRelateToOneForCreateInput
+  questionResponses: QuestionResponseRelateToManyForCreateInput
+}
+
+input ChecklistRelateToOneForCreateInput {
+  create: ChecklistCreateInput
+  connect: ChecklistWhereUniqueInput
+}
+
 type Resource {
   id: ID!
-  link: String
-  content: String
+  link: String!
+  content: String!
   checklist: Checklist
 }
 
@@ -745,12 +1424,6 @@ input ResourceUpdateInput {
   checklist: ChecklistRelateToOneForUpdateInput
 }
 
-input ChecklistRelateToOneForUpdateInput {
-  create: ChecklistCreateInput
-  connect: ChecklistWhereUniqueInput
-  disconnect: Boolean
-}
-
 input ResourceUpdateArgs {
   where: ResourceWhereUniqueInput!
   data: ResourceUpdateInput!
@@ -760,11 +1433,6 @@ input ResourceCreateInput {
   link: String
   content: String
   checklist: ChecklistRelateToOneForCreateInput
-}
-
-input ChecklistRelateToOneForCreateInput {
-  create: ChecklistCreateInput
-  connect: ChecklistWhereUniqueInput
 }
 
 type User {
@@ -795,6 +1463,10 @@ type User {
   memberChatsCount(where: GroupChatWhereInput! = {}): Int
   forumPost(where: ForumPostWhereInput! = {}, orderBy: [ForumPostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumPostWhereUniqueInput): [ForumPost!]
   forumPostCount(where: ForumPostWhereInput! = {}): Int
+  questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
+  questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
+  notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
+  notificationsCount(where: NotificationWhereInput! = {}): Int
 }
 
 type PasswordState {
@@ -829,6 +1501,8 @@ input UserWhereInput {
   ownedChats: GroupChatManyRelationFilter
   memberChats: GroupChatManyRelationFilter
   forumPost: ForumPostManyRelationFilter
+  questionnaireResponses: QuestionnaireResponseManyRelationFilter
+  notifications: NotificationManyRelationFilter
 }
 
 input StringNullableFilter {
@@ -843,17 +1517,6 @@ input StringNullableFilter {
   startsWith: String
   endsWith: String
   not: StringNullableFilter
-}
-
-input BooleanFilter {
-  equals: Boolean
-  not: BooleanFilter
-}
-
-input CarePlanManyRelationFilter {
-  every: CarePlanWhereInput
-  some: CarePlanWhereInput
-  none: CarePlanWhereInput
 }
 
 input AiChatSessionManyRelationFilter {
@@ -878,6 +1541,12 @@ input ForumPostManyRelationFilter {
   every: ForumPostWhereInput
   some: ForumPostWhereInput
   none: ForumPostWhereInput
+}
+
+input NotificationManyRelationFilter {
+  every: NotificationWhereInput
+  some: NotificationWhereInput
+  none: NotificationWhereInput
 }
 
 input UserOrderByInput {
@@ -915,13 +1584,8 @@ input UserUpdateInput {
   ownedChats: GroupChatRelateToManyForUpdateInput
   memberChats: GroupChatRelateToManyForUpdateInput
   forumPost: ForumPostRelateToManyForUpdateInput
-}
-
-input CarePlanRelateToManyForUpdateInput {
-  disconnect: [CarePlanWhereUniqueInput!]
-  set: [CarePlanWhereUniqueInput!]
-  create: [CarePlanCreateInput!]
-  connect: [CarePlanWhereUniqueInput!]
+  questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
+  notifications: NotificationRelateToManyForUpdateInput
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -952,6 +1616,13 @@ input ForumPostRelateToManyForUpdateInput {
   connect: [ForumPostWhereUniqueInput!]
 }
 
+input NotificationRelateToManyForUpdateInput {
+  disconnect: [NotificationWhereUniqueInput!]
+  set: [NotificationWhereUniqueInput!]
+  create: [NotificationCreateInput!]
+  connect: [NotificationWhereUniqueInput!]
+}
+
 input UserUpdateArgs {
   where: UserWhereUniqueInput!
   data: UserUpdateInput!
@@ -977,11 +1648,8 @@ input UserCreateInput {
   ownedChats: GroupChatRelateToManyForCreateInput
   memberChats: GroupChatRelateToManyForCreateInput
   forumPost: ForumPostRelateToManyForCreateInput
-}
-
-input CarePlanRelateToManyForCreateInput {
-  create: [CarePlanCreateInput!]
-  connect: [CarePlanWhereUniqueInput!]
+  questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
+  notifications: NotificationRelateToManyForCreateInput
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -1004,9 +1672,12 @@ input ForumPostRelateToManyForCreateInput {
   connect: [ForumPostWhereUniqueInput!]
 }
 
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
+input NotificationRelateToManyForCreateInput {
+  create: [NotificationCreateInput!]
+  connect: [NotificationWhereUniqueInput!]
+}
+
+"""JSON custom scalar type"""
 scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type Mutation {
@@ -1052,12 +1723,42 @@ type Mutation {
   updateGroupChats(data: [GroupChatUpdateArgs!]!): [GroupChat]
   deleteGroupChat(where: GroupChatWhereUniqueInput!): GroupChat
   deleteGroupChats(where: [GroupChatWhereUniqueInput!]!): [GroupChat]
+  createNotification(data: NotificationCreateInput!): Notification
+  createNotifications(data: [NotificationCreateInput!]!): [Notification]
+  updateNotification(where: NotificationWhereUniqueInput!, data: NotificationUpdateInput!): Notification
+  updateNotifications(data: [NotificationUpdateArgs!]!): [Notification]
+  deleteNotification(where: NotificationWhereUniqueInput!): Notification
+  deleteNotifications(where: [NotificationWhereUniqueInput!]!): [Notification]
   createParent(data: ParentCreateInput!): Parent
   createParents(data: [ParentCreateInput!]!): [Parent]
   updateParent(where: ParentWhereUniqueInput!, data: ParentUpdateInput!): Parent
   updateParents(data: [ParentUpdateArgs!]!): [Parent]
   deleteParent(where: ParentWhereUniqueInput!): Parent
   deleteParents(where: [ParentWhereUniqueInput!]!): [Parent]
+  createQuestion(data: QuestionCreateInput!): Question
+  createQuestions(data: [QuestionCreateInput!]!): [Question]
+  updateQuestion(where: QuestionWhereUniqueInput!, data: QuestionUpdateInput!): Question
+  updateQuestions(data: [QuestionUpdateArgs!]!): [Question]
+  deleteQuestion(where: QuestionWhereUniqueInput!): Question
+  deleteQuestions(where: [QuestionWhereUniqueInput!]!): [Question]
+  createQuestionResponse(data: QuestionResponseCreateInput!): QuestionResponse
+  createQuestionResponses(data: [QuestionResponseCreateInput!]!): [QuestionResponse]
+  updateQuestionResponse(where: QuestionResponseWhereUniqueInput!, data: QuestionResponseUpdateInput!): QuestionResponse
+  updateQuestionResponses(data: [QuestionResponseUpdateArgs!]!): [QuestionResponse]
+  deleteQuestionResponse(where: QuestionResponseWhereUniqueInput!): QuestionResponse
+  deleteQuestionResponses(where: [QuestionResponseWhereUniqueInput!]!): [QuestionResponse]
+  createQuestionnaire(data: QuestionnaireCreateInput!): Questionnaire
+  createQuestionnaires(data: [QuestionnaireCreateInput!]!): [Questionnaire]
+  updateQuestionnaire(where: QuestionnaireWhereUniqueInput!, data: QuestionnaireUpdateInput!): Questionnaire
+  updateQuestionnaires(data: [QuestionnaireUpdateArgs!]!): [Questionnaire]
+  deleteQuestionnaire(where: QuestionnaireWhereUniqueInput!): Questionnaire
+  deleteQuestionnaires(where: [QuestionnaireWhereUniqueInput!]!): [Questionnaire]
+  createQuestionnaireResponse(data: QuestionnaireResponseCreateInput!): QuestionnaireResponse
+  createQuestionnaireResponses(data: [QuestionnaireResponseCreateInput!]!): [QuestionnaireResponse]
+  updateQuestionnaireResponse(where: QuestionnaireResponseWhereUniqueInput!, data: QuestionnaireResponseUpdateInput!): QuestionnaireResponse
+  updateQuestionnaireResponses(data: [QuestionnaireResponseUpdateArgs!]!): [QuestionnaireResponse]
+  deleteQuestionnaireResponse(where: QuestionnaireResponseWhereUniqueInput!): QuestionnaireResponse
+  deleteQuestionnaireResponses(where: [QuestionnaireResponseWhereUniqueInput!]!): [QuestionnaireResponse]
   createResource(data: ResourceCreateInput!): Resource
   createResources(data: [ResourceCreateInput!]!): [Resource]
   updateResource(where: ResourceWhereUniqueInput!, data: ResourceUpdateInput!): Resource
@@ -1075,6 +1776,20 @@ type Mutation {
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
   signup(input: SignupInput!): SignupResult!
   login(input: LoginInput!): LoginResult!
+  customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
+  customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
+  customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
+  sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
+  saveQuestionnaireResponse(input: SaveQuestionnaireResponseInput!): SaveQuestionnaireResponseResult!
+  submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
+  updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
+  aiChat(input: AiChatInput!): AiChatResponse!
+  createAiChatMessage(input: CreateAiChatMessageInput!): CreateAiChatMessageResult!
+  typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
+  updateUserStatus(input: UserStatusInput!): SuccessResponse!
+  customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
+  customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
+  customMarkAllNotificationsAsRead: MarkAllAsReadResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1092,6 +1807,7 @@ input CreateInitialUserInput {
   name: String
   email: String
   password: String
+  role: String
 }
 
 type Query {
@@ -1116,9 +1832,24 @@ type Query {
   groupChat(where: GroupChatWhereUniqueInput!): GroupChat
   groupChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
   groupChatsCount(where: GroupChatWhereInput! = {}): Int
+  notification(where: NotificationWhereUniqueInput!): Notification
+  notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
+  notificationsCount(where: NotificationWhereInput! = {}): Int
   parent(where: ParentWhereUniqueInput!): Parent
   parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
   parentsCount(where: ParentWhereInput! = {}): Int
+  question(where: QuestionWhereUniqueInput!): Question
+  questions(where: QuestionWhereInput! = {}, orderBy: [QuestionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionWhereUniqueInput): [Question!]
+  questionsCount(where: QuestionWhereInput! = {}): Int
+  questionResponse(where: QuestionResponseWhereUniqueInput!): QuestionResponse
+  questionResponses(where: QuestionResponseWhereInput! = {}, orderBy: [QuestionResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionResponseWhereUniqueInput): [QuestionResponse!]
+  questionResponsesCount(where: QuestionResponseWhereInput! = {}): Int
+  questionnaire(where: QuestionnaireWhereUniqueInput!): Questionnaire
+  questionnaires(where: QuestionnaireWhereInput! = {}, orderBy: [QuestionnaireOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireWhereUniqueInput): [Questionnaire!]
+  questionnairesCount(where: QuestionnaireWhereInput! = {}): Int
+  questionnaireResponse(where: QuestionnaireResponseWhereUniqueInput!): QuestionnaireResponse
+  questionnaireResponses(where: QuestionnaireResponseWhereInput! = {}, orderBy: [QuestionnaireResponseOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: QuestionnaireResponseWhereUniqueInput): [QuestionnaireResponse!]
+  questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
   resource(where: ResourceWhereUniqueInput!): Resource
   resources(where: ResourceWhereInput! = {}, orderBy: [ResourceOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ResourceWhereUniqueInput): [Resource!]
   resourcesCount(where: ResourceWhereInput! = {}): Int
@@ -1128,6 +1859,11 @@ type Query {
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
   userProfile: UserProfile
+  getResources(input: GetResourcesInput): ResourceConnection!
+  getForumPost(id: ID!): ForumPostDetails
+  getForumPosts(input: GetForumPostsInput): ForumPostConnection!
+  customGetNotifications(input: GetNotificationsInput): NotificationsResult!
+  customGetUnreadCount(notificationType: NotificationType): UnreadCountResult!
 }
 
 union AuthenticatedItem = User
@@ -1268,6 +2004,42 @@ enum KeystoneAdminUISortDirection {
   DESC
 }
 
+input SaveQuestionnaireResponseInput {
+  questionnaireId: ID!
+  carePlanId: ID
+  checklistId: ID
+  responses: [QuestionResponseInput!]!
+  isDraft: Boolean
+}
+
+input QuestionResponseInput {
+  questionId: ID!
+  answer: JSON!
+  confidence: Int
+  notes: String
+}
+
+input SubmitQuestionnaireInput {
+  questionnaireResponseId: ID!
+  updateCarePlanProgress: Boolean
+}
+
+type SaveQuestionnaireResponseResult {
+  questionnaireResponseId: ID!
+  message: String!
+  completionPercentage: Float!
+  carePlanUpdated: Boolean
+  checklistUpdated: Boolean
+}
+
+type SubmitQuestionnaireResult {
+  questionnaireResponseId: ID!
+  message: String!
+  completedAt: DateTime!
+  carePlanProgressScore: Float
+  checklistCompletionScore: Float
+}
+
 input SignupInput {
   name: String!
   email: String!
@@ -1304,4 +2076,282 @@ type UserProfile {
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
+}
+
+input GetResourcesInput {
+  first: Int
+  after: String
+  checklistId: ID
+  searchTerm: String
+  orderBy: ResourceOrderBy
+}
+
+enum ResourceOrderBy {
+  ID_ASC
+  ID_DESC
+  CONTENT_ASC
+  CONTENT_DESC
+}
+
+type ResourceConnection {
+  edges: [ResourceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ResourceEdge {
+  node: Resource!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input CustomCreateForumPostInput {
+  title: String!
+  topic: String!
+  content: String!
+}
+
+type CustomCreateForumPostResult {
+  forumPost: ForumPostDetails!
+  message: String!
+}
+
+type CustomDeleteForumPostResult {
+  success: Boolean!
+  message: String!
+  deletedPostId: ID!
+}
+
+input GetForumPostsInput {
+  first: Int
+  after: String
+  topic: String
+  authorId: ID
+  searchTerm: String
+  dateFrom: DateTime
+  dateTo: DateTime
+  orderBy: ForumPostOrderBy
+}
+
+enum ForumPostOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  TITLE_ASC
+  TITLE_DESC
+}
+
+type ForumPostConnection {
+  edges: [ForumPostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ForumPostEdge {
+  node: ForumPostDetails!
+  cursor: String!
+}
+
+type ForumPostDetails {
+  id: ID!
+  title: String!
+  topic: String!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  author: UserProfile
+}
+
+input CreateGroupChatInput {
+  groupName: String!
+  memberIds: [ID!]!
+}
+
+type CustomCreateGroupChatResult {
+  groupId: ID!
+  groupName: String!
+  message: String!
+}
+
+input SendChatMessageInput {
+  groupId: String!
+  message: String!
+}
+
+type SendChatMessageResult {
+  chatMessage: ChatMessageType!
+  message: String!
+}
+
+type ChatMessageType {
+  id: ID!
+  message: String!
+  createdAt: DateTime!
+  sender: UserProfile
+  group: ID!
+}
+
+input AiChatMessageInput {
+  role: String!
+  content: String!
+}
+
+input AiChatInput {
+  messages: [AiChatMessageInput!]!
+  systemPrompt: String
+  temperature: Float
+  provider: String
+}
+
+type AiChatResponse {
+  content: String!
+  usage: JSON
+  metadata: JSON
+}
+
+input CreateAiChatMessageInput {
+  sessionId: ID
+  prompt: String!
+}
+
+type CreateAiChatMessageResult {
+  success: Boolean!
+  message: String
+  error: String
+  sessionId: ID
+}
+
+input UpdateProfileInput {
+  name: String
+  email: String
+  age: Int
+  gender: String
+  avatarUrl: String
+  currentPassword: String
+}
+
+type UpdateProfileResponse {
+  success: Boolean!
+  message: String
+  error: String
+  userId: ID
+}
+
+type SuccessResponse {
+  success: Boolean!
+  message: String
+}
+
+input TypingIndicatorInput {
+  groupId: ID!
+  isTyping: Boolean!
+}
+
+input UserStatusInput {
+  status: String!
+}
+
+enum NotificationType {
+  CARE_PLAN
+  CHAT
+  FORUM
+  SYSTEM
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+input CreateNotificationInput {
+  userId: ID!
+  type: String!
+  notificationType: NotificationType!
+  priority: NotificationPriority
+  content: String!
+  actionUrl: String
+  metadata: JSON
+  relatedCarePlanId: ID
+  relatedChatId: ID
+  relatedForumPostId: ID
+}
+
+input GetNotificationsInput {
+  read: Boolean
+  notificationType: NotificationType
+  priority: NotificationPriority
+  take: Int
+  skip: Int
+}
+
+type NotificationDetails {
+  id: ID!
+  type: String!
+  notificationType: NotificationType!
+  priority: NotificationPriority!
+  content: String!
+  actionUrl: String
+  metadata: JSON
+  read: Boolean!
+  readAt: DateTime
+  createdAt: DateTime!
+}
+
+type CreateNotificationResult {
+  notification: NotificationDetails!
+  message: String!
+}
+
+type MarkAsReadResult {
+  notification: NotificationDetails!
+  message: String!
+}
+
+type MarkAllAsReadResult {
+  count: Int!
+  message: String!
+}
+
+type NotificationsResult {
+  notifications: [NotificationDetails!]!
+  total: Int!
+  hasMore: Boolean!
+  skip: Int!
+  take: Int!
+}
+
+type UnreadCountResult {
+  count: Int!
+  notificationType: NotificationType
+}
+
+type TypingIndicatorPayload {
+  userId: ID!
+  username: String
+  groupId: ID!
+  isTyping: Boolean!
+}
+
+type UserStatusPayload {
+  userId: ID!
+  username: String
+  status: String!
+}
+
+type Subscription {
+  messageSent(groupId: ID!): ChatMessageType!
+  typingIndicator(groupId: ID!): TypingIndicatorPayload!
+  userStatusChanged(userId: ID): UserStatusPayload!
+  aiMessageReceived(sessionId: ID!): AiChatResponse!
+  notificationReceived(userId: ID!): NotificationDetails!
+  unreadCountChanged(userId: ID!): UnreadCountResult!
 }

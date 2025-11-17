@@ -1,70 +1,64 @@
-// guard helpers (requireAuth, requireRole)
-// middlewares/auth.ts
-// authentication imports
+// apps/backend/api/middlewares/auth.ts
 import { createAuth } from '@keystone-6/auth';
 import { statelessSessions } from '@keystone-6/core/session';
+import type { Session } from '../../types/context'; // adjust path if needed
 
-// user's access field imports
-import { list } from '@keystone-6/core';
-import { text } from '@keystone-6/core/fields';
+type AccessArgs = {
+  session?: Session;
+  item?: { id?: string; authorId?: string; userId?: string };
+};
 
-// dDefine a secret for JWT/session signing
-const sessionSecret = process.env.SESSION_SECRET || 'a-super-secret-string';
+// Fail fast in prod if secret missing
+if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('SESSION_SECRET must be set in production');
+}
 
-// define how long sessions last (in seconds)
+const sessionSecret =
+  process.env.SESSION_SECRET?.trim() || 'thisisatemporaryfallbackkeythatisdefinitely32charslong';
+// console.log('Using session secret:', sessionSecret);
+console.log('Secret length:', sessionSecret.length);
+
 const sessionMaxAge = 60 * 60 * 24 * 30; // 30 days
 
-// configure Keystone Auth
-export const { withAuth } = createAuth({
-  listKey: 'User', // which list (model) handles auth
-  identityField: 'email', // field users log in with
-  secretField: 'password', // field storing the password
-  sessionData: 'id name role', // data we store in the session JWT
+const { withAuth } = createAuth({
+  listKey: 'User',
+  identityField: 'email',
+  secretField: 'password',
+  sessionData: 'id name email role',
   initFirstItem: {
-    fields: ['name', 'email', 'password', 'role'], // what to collect when creating the first user
+    fields: ['name', 'email', 'password', 'role'],
   },
 });
 
-// create a session strategy
-export const session = statelessSessions({
+const session = statelessSessions({
   maxAge: sessionMaxAge,
   secret: sessionSecret,
 });
 
-// Guard Helpers
-export const requireAuth = (session) => {
-  if (!session?.data) {
-    throw new Error('Authentication required');
-  }
+// ---------- Guards ----------
+export const requireAuth = (session: Session) => {
+  if (!session?.data) throw new Error('Authentication required');
   return session;
 };
 
-export const requireRole = (session, role: string) => {
-  if (!session?.data) {
-    throw new Error('Authentication required');
-  }
-  if (session.data.role !== role) {
-    throw new Error(`Requires ${role} role`);
-  }
+export const requireRole = (session: Session, role: 'admin' | 'user') => {
+  if (!session?.data) throw new Error('Authentication required');
+  if (session.data.role !== role) throw new Error(`Requires ${role} role`);
   return session;
 };
 
-// add expiry function -- check to see if token packages set already
-// cache and validation logic for manual instance
+export const isAuthenticated = ({ session }: AccessArgs): boolean => !!session?.data;
 
-// publicly viewable resources
-export const publicResources = list({
-  access: {
-    operation: {
-      query: () => true, // anyone can see public Resources
-      create: ({ session }) => session?.id?.isAdmin, // only sistem admins can create
-      update: ({ session }) => session?.id?.isAdmin, // only sistem admins can update
-      delete: ({ session }) => session?.id?.isAdmin, // only sistem admins can delete
-    },
-  },
-  fields: {
-    title: text({ validation: { isRequired: true } }),
-    content: text({ ui: { displayMode: 'textarea' } }),
-    // other public fields...
-  },
-});
+export const isAdmin = ({ session }: AccessArgs): boolean => session?.data?.role === 'admin';
+
+export const canAccessOwnData = ({ session, item }: AccessArgs): boolean => {
+  if (!session?.data) return false;
+  if (session.data.role === 'admin') return true;
+  return (
+    item?.id === session.data.id ||
+    item?.authorId === session.data.id ||
+    item?.userId === session.data.id
+  );
+};
+
+export { withAuth, session };

@@ -1,17 +1,25 @@
 import dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), 'apps/backend/.env') });
+
 import { config } from '@keystone-6/core';
+import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
 import initGoogleStrategy from './google-strategy';
+import { withAuth, session } from './api/middlewares/auth';
 
-dotenv.config();
-
-import { withAuth, session } from './auth';
 import * as Models from './models';
-import { typeDefs } from './api/schema/typeDefs';
-import { Mutation } from './api/resolvers/Mutation';
 import { Query } from './api/resolvers/Query';
-import { DateTime } from './api/resolvers/scalars';
-import { mergeSchemas } from '@graphql-tools/schema';
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { Mutation } from './api/resolvers/Mutation';
+import { Subscription } from './api/resolvers/Subscription';
+import { DateTime, JSON } from './api/resolvers/scalars';
+import { typeDefs } from './api/schema/typeDefs';
+import { chatRoutes } from './routes/chat';
+
+import { initWebSocketService } from './services/websocket';
+import { createSubscriptionServer } from './api/subscriptions/server';
+import { initializeEventHandlers } from './api/subscriptions/handlers';
+import { aiService } from './services/ai/ai.service';
 
 initGoogleStrategy();
 
@@ -33,9 +41,33 @@ export default withAuth(
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
       },
+      extendExpressApp: (app) => {
+        chatRoutes(app);
+      },
+      extendHttpServer(server, context) {
+        // Initialize AI service with Prisma for database persistence
+        aiService.initializeWithPrisma(context.prisma);
+
+        // Initialize WebSocket service for chat
+        initWebSocketService({
+          httpServer: server,
+          context: () => Promise.resolve(context),
+        });
+
+        // Initialize GraphQL subscription server
+        createSubscriptionServer({
+          httpServer: server,
+          context: () => Promise.resolve(context),
+        });
+
+        initializeEventHandlers(context);
+      },
     },
     ui: {
-      isAccessAllowed: (context) => context.session !== undefined,
+      // Only allow admin users to access the admin UI
+      isAccessAllowed: (context) => {
+        return context.session?.data?.isAdmin === true;
+      },
       basePath: '/admin/ui',
     },
     db: {
@@ -52,15 +84,17 @@ export default withAuth(
         introspection: true,
       },
       extendGraphqlSchema: (schema) => {
+        // Merge Keystone's generated schema with custom executable schema.
         const customSchema = makeExecutableSchema({
           typeDefs,
           resolvers: {
             DateTime,
+            JSON,
             Mutation,
             Query,
+            Subscription,
           },
         });
-
         return mergeSchemas({
           schemas: [schema, customSchema],
         });
@@ -88,6 +122,7 @@ export default withAuth(
         forcePathStyle: true,
       },
     },
+
     lists: Models,
     session,
   })
