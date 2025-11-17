@@ -1,15 +1,14 @@
 import { list } from '@keystone-6/core';
-import type { Lists } from '.keystone/types';
 import {
-  checkbox,
   text,
   password,
   timestamp,
   relationship,
   integer,
   select,
+  checkbox,
 } from '@keystone-6/core/fields';
-import { isAdmin, isLoggedIn, isAdminOrOwner, requireAdmin } from '../utils/rbac';
+import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 export const User = list({
   access: {
@@ -44,28 +43,24 @@ export const User = list({
       delete: ({ session }) => isAdmin(session),
     },
   },
+
   fields: {
+    // Basic info
     name: text({ validation: { isRequired: true } }),
     email: text({
       validation: { isRequired: true },
       isIndexed: 'unique',
     }),
+
+    // Keystone handles hashing automatically
     password: password({
-      //keystone password field automatically hashes password
       validation: {
         length: { min: 10, max: 100 },
         isRequired: true,
         rejectCommon: true,
       },
-      bcrypt: require('bcryptjs'),
     }),
-    avatarUrl: text({
-      validation: {
-        isRequired: false,
-        // commenting out the regex validation temporarily until we are able to add a default avatar
-        // match: { regex: /^https?:\/\/.+/i, explanation: 'Avatar must be a valid URL' }, // ensure that the string contains http:// or https:// and at least one letter after
-      },
-    }),
+
     role: select({
       options: [
         { label: 'User', value: 'user' },
@@ -76,16 +71,18 @@ export const User = list({
         displayMode: 'segmented-control',
       },
     }),
-    age: integer({
+    avatarUrl: text({
       validation: { isRequired: false },
+      ui: { description: 'Optional profile image URL' },
     }),
+
+    age: integer(),
     gender: select({
       options: [
         { label: 'Female', value: 'female' },
         { label: 'Male', value: 'male' },
         { label: 'Non-Binary', value: 'non-binary' },
       ],
-      validation: { isRequired: false },
     }),
     privacyToggle: checkbox({ defaultValue: true }), //relationship to chat messages
     messages: relationship({ ref: 'ChatMessage.sender', many: true }),
@@ -101,39 +98,36 @@ export const User = list({
     }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
+      ui: { description: 'When the account was created' },
     }),
     lastLoginDate: timestamp({
       defaultValue: { kind: 'now' },
-    }), // manually updated lastLoginDate
+      ui: { description: 'Manually updated on login' },
+    }),
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
+      ui: { description: 'Automatically updates on record change' },
     }),
     carePlan: relationship({ ref: 'CarePlan.user', many: true }),
-    aiChatSessions: relationship({
-      ref: 'AiChatSession.user',
-      many: true,
-    }),
-    parents: relationship({
-      ref: 'Parent.user',
-      many: true,
-    }),
-
-    // relationship to GroupChat
+    aiChatSessions: relationship({ ref: 'AiChatSession.user', many: true }),
+    parents: relationship({ ref: 'Parent.user', many: true }),
     ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
     memberChats: relationship({ ref: 'GroupChat.members', many: true }),
-    // relationship to forumPost
     forumPost: relationship({ ref: 'ForumPost.author', many: true }),
-
-    // relationship to questionnaire responses
     questionnaireResponses: relationship({
       ref: 'QuestionnaireResponse.user',
       many: true,
     }),
-
-    // relationship to notifications
     notifications: relationship({
       ref: 'Notification.user',
       many: true,
     }),
+  },
+
+  ui: {
+    listView: {
+      initialSort: { field: 'name', direction: 'ASC' },
+      initialColumns: ['name', 'email', 'role'],
+    },
   },
 });

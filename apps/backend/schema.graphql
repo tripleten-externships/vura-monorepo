@@ -640,11 +640,11 @@ type GroupChat {
   groupName: String
   messages(where: ChatMessageWhereInput! = {}, orderBy: [ChatMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChatMessageWhereUniqueInput): [ChatMessage!]
   messagesCount(where: ChatMessageWhereInput! = {}): Int
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: User
   members(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   membersCount(where: UserWhereInput! = {}): Int
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input GroupChatWhereUniqueInput {
@@ -658,10 +658,10 @@ input GroupChatWhereInput {
   id: IDFilter
   groupName: StringFilter
   messages: ChatMessageManyRelationFilter
-  createdAt: DateTimeNullableFilter
-  updatedAt: DateTimeNullableFilter
   owner: UserWhereInput
   members: UserManyRelationFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
 }
 
 input ChatMessageManyRelationFilter {
@@ -686,10 +686,10 @@ input GroupChatOrderByInput {
 input GroupChatUpdateInput {
   groupName: String
   messages: ChatMessageRelateToManyForUpdateInput
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: UserRelateToOneForUpdateInput
   members: UserRelateToManyForUpdateInput
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input ChatMessageRelateToManyForUpdateInput {
@@ -714,10 +714,10 @@ input GroupChatUpdateArgs {
 input GroupChatCreateInput {
   groupName: String
   messages: ChatMessageRelateToManyForCreateInput
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: UserRelateToOneForCreateInput
   members: UserRelateToManyForCreateInput
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input ChatMessageRelateToManyForCreateInput {
@@ -861,9 +861,9 @@ type Parent {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: User
 }
 
@@ -879,8 +879,8 @@ input ParentWhereInput {
   name: StringFilter
   age: IntFilter
   relationship: StringFilter
-  created_at: DateTimeNullableFilter
-  updated_at: DateTimeNullableFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
   user: UserWhereInput
 }
 
@@ -900,17 +900,17 @@ input ParentOrderByInput {
   name: OrderDirection
   age: OrderDirection
   relationship: OrderDirection
-  created_at: OrderDirection
-  updated_at: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
 }
 
 input ParentUpdateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForUpdateInput
 }
 
@@ -923,9 +923,9 @@ input ParentCreateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForCreateInput
 }
 
@@ -1440,8 +1440,8 @@ type User {
   name: String
   email: String
   password: PasswordState
-  avatarUrl: String
   role: String
+  avatarUrl: String
   age: Int
   gender: String
   privacyToggle: Boolean
@@ -1485,8 +1485,8 @@ input UserWhereInput {
   id: IDFilter
   name: StringFilter
   email: StringFilter
-  avatarUrl: StringFilter
   role: StringNullableFilter
+  avatarUrl: StringFilter
   age: IntNullableFilter
   gender: StringNullableFilter
   privacyToggle: BooleanFilter
@@ -1553,8 +1553,8 @@ input UserOrderByInput {
   id: OrderDirection
   name: OrderDirection
   email: OrderDirection
-  avatarUrl: OrderDirection
   role: OrderDirection
+  avatarUrl: OrderDirection
   age: OrderDirection
   gender: OrderDirection
   privacyToggle: OrderDirection
@@ -1568,8 +1568,8 @@ input UserUpdateInput {
   name: String
   email: String
   password: String
-  avatarUrl: String
   role: String
+  avatarUrl: String
   age: Int
   gender: String
   privacyToggle: Boolean
@@ -1632,8 +1632,8 @@ input UserCreateInput {
   name: String
   email: String
   password: String
-  avatarUrl: String
   role: String
+  avatarUrl: String
   age: Int
   gender: String
   privacyToggle: Boolean
@@ -1784,6 +1784,7 @@ type Mutation {
   submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
   updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
   aiChat(input: AiChatInput!): AiChatResponse!
+  createAiChatMessage(input: CreateAiChatMessageInput!): CreateAiChatMessageResult!
   typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
   updateUserStatus(input: UserStatusInput!): SuccessResponse!
   customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
@@ -1806,6 +1807,7 @@ input CreateInitialUserInput {
   name: String
   email: String
   password: String
+  role: String
 }
 
 type Query {
@@ -2212,6 +2214,18 @@ type AiChatResponse {
   content: String!
   usage: JSON
   metadata: JSON
+}
+
+input CreateAiChatMessageInput {
+  sessionId: ID
+  prompt: String!
+}
+
+type CreateAiChatMessageResult {
+  success: Boolean!
+  message: String
+  error: String
+  sessionId: ID
 }
 
 input UpdateProfileInput {

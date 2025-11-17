@@ -70,25 +70,30 @@ export const GroupChat = list({
       },
     },
   },
+
   fields: {
     groupName: text({ validation: { isRequired: true } }),
     messages: relationship({ ref: 'ChatMessage.group', many: true }),
+
+    owner: relationship({
+      ref: 'User.ownedChats',
+      db: { foreignKey: { map: 'ownerId' } },
+      ui: { labelField: 'name' },
+    }),
+
+    members: relationship({
+      ref: 'User.memberChats',
+      many: true,
+      ui: { labelField: 'name' },
+    }),
+
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
       db: { map: 'created_at' },
     }),
-    updatedAt: timestamp({
-      db: {
-        updatedAt: true,
-        map: 'updated_at',
-      },
-    }),
 
-    // relationship to User
-    owner: relationship({
-      ref: 'User.ownedChats',
-      db: { foreignKey: { map: 'ownerId' } },
+    updatedAt: timestamp({
+      db: { updatedAt: true, map: 'updated_at' },
     }),
-    members: relationship({ ref: 'User.memberChats', many: true }),
   },
 });

@@ -1,5 +1,3 @@
-import { User } from './user';
-
 import { list } from '@keystone-6/core';
 import { text, integer, relationship, json, timestamp } from '@keystone-6/core/fields';
 import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
@@ -37,29 +35,19 @@ export const Parent = list({
       delete: ({ session, item }) => isAdminOrOwner(session, item),
     },
   },
-  //auto incrementing id
+
   db: { idField: { kind: 'autoincrement' } },
 
   fields: {
-    name: text({
-      validation: { isRequired: true },
-    }),
+    name: text({ validation: { isRequired: true } }),
+    age: integer({ validation: { isRequired: true } }),
+    relationship: text({ validation: { isRequired: true } }),
+    healthConditions: json(),
 
-    age: integer({
-      validation: { isRequired: true, min: 0 },
-    }),
+    createdAt: timestamp({ defaultValue: { kind: 'now' } }),
+    updatedAt: timestamp({ db: { updatedAt: true } }),
 
-    relationship: text({
-      validation: { isRequired: true },
-    }),
-    health_conditions: json(),
-
-    created_at: timestamp({
-      defaultValue: { kind: 'now' },
-    }),
-    updated_at: timestamp({
-      db: { updatedAt: true },
-    }),
+    // Relationship back to the User
     user: relationship({
       ref: 'User.parents',
       many: false,
@@ -69,9 +57,9 @@ export const Parent = list({
       },
     }),
   },
+
   hooks: {
     validateInput: async ({ resolvedData, addValidationError }) => {
-      //Make sure parent is always linked to a user
       if (!resolvedData.user) {
         addValidationError('Parent must be linked to a User.');
       }

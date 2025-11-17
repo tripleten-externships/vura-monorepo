@@ -109,11 +109,11 @@ model GroupChat {
   id                            String         @id @default(uuid())
   groupName                     String         @default("")
   messages                      ChatMessage[]  @relation("ChatMessage_group")
-  createdAt                     DateTime?      @default(now()) @map("created_at")
-  updatedAt                     DateTime?      @updatedAt @map("updated_at")
   owner                         User?          @relation("GroupChat_owner", fields: [ownerId], references: [id])
   ownerId                       String?        @map("ownerId")
   members                       User[]         @relation("GroupChat_members")
+  createdAt                     DateTime?      @default(now()) @map("created_at")
+  updatedAt                     DateTime?      @updatedAt @map("updated_at")
   from_Notification_relatedChat Notification[] @relation("Notification_relatedChat")
 
   @@index([ownerId])
@@ -148,15 +148,15 @@ model Notification {
 }
 
 model Parent {
-  id                Int       @id @default(autoincrement())
-  name              String    @default("")
-  age               Int
-  relationship      String    @default("")
-  health_conditions Json?
-  created_at        DateTime? @default(now())
-  updated_at        DateTime? @updatedAt
-  user              User?     @relation("Parent_user", fields: [userId], references: [id])
-  userId            String?   @map("user")
+  id               Int       @id @default(autoincrement())
+  name             String    @default("")
+  age              Int
+  relationship     String    @default("")
+  healthConditions Json?
+  createdAt        DateTime? @default(now())
+  updatedAt        DateTime? @updatedAt
+  user             User?     @relation("Parent_user", fields: [userId], references: [id])
+  userId           String?   @map("user")
 
   @@index([userId])
 }
@@ -248,8 +248,8 @@ model User {
   name                   String                  @default("")
   email                  String                  @unique @default("")
   password               String
-  avatarUrl              String                  @default("")
   role                   String?                 @default("user")
+  avatarUrl              String                  @default("")
   age                    Int?
   gender                 String?
   privacyToggle          Boolean                 @default(true)

@@ -1,5 +1,4 @@
 import { list } from '@keystone-6/core';
-// import type { Lists } from '.keystone/types';
 import { text, relationship, float, timestamp } from '@keystone-6/core/fields';
 import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
@@ -36,30 +35,16 @@ export const CarePlan = list({
       delete: ({ session }) => isAdmin(session),
     },
   },
+
   fields: {
     name: text({ validation: { isRequired: true } }),
-    progressScore: float({
-      validation: { isRequired: false },
-    }),
-    lastAssessmentAt: timestamp({
-      validation: { isRequired: false },
-    }),
-    createdAt: timestamp({
-      defaultValue: { kind: 'now' },
-    }),
-    updatedAt: timestamp({
-      defaultValue: { kind: 'now' },
-      db: { updatedAt: true },
-    }),
+    progressScore: float(),
+    lastAssessmentAt: timestamp(),
+    createdAt: timestamp({ defaultValue: { kind: 'now' } }),
+    updatedAt: timestamp({ defaultValue: { kind: 'now' }, db: { updatedAt: true } }),
 
     user: relationship({ ref: 'User.carePlan' }),
-    questionnaires: relationship({
-      ref: 'Questionnaire.carePlans',
-      many: true,
-    }),
-    questionnaireResponses: relationship({
-      ref: 'QuestionnaireResponse.carePlan',
-      many: true,
-    }),
+    questionnaires: relationship({ ref: 'Questionnaire.carePlans', many: true }),
+    questionnaireResponses: relationship({ ref: 'QuestionnaireResponse.carePlan', many: true }),
   },
 });

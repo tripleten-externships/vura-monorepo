@@ -1,8 +1,7 @@
 import { list } from '@keystone-6/core';
-import { text, relationship, timestamp, integer } from '@keystone-6/core/fields';
+import { text, relationship, timestamp } from '@keystone-6/core/fields';
 import { isAdmin, isLoggedIn } from '../utils/rbac';
 
-// ChatMessage model to store messages in a group chat. Each message belongs to one group chat and one sender (user)
 export const ChatMessage = list({
   fields: {
     message: text({ validation: { isRequired: true } }),
@@ -11,8 +10,12 @@ export const ChatMessage = list({
       ref: 'GroupChat.messages',
       many: false,
     }),
-    sender: relationship({ ref: 'User.messages', many: false }),
+    sender: relationship({
+      ref: 'User.messages',
+      many: false,
+    }),
   },
+
   access: {
     operation: {
       // Logged-in users can query chat messages (filtered by group membership)

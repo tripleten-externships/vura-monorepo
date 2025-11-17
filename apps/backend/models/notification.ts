@@ -15,6 +15,7 @@ export const Notification = list({
         { label: 'System', value: 'SYSTEM' },
       ],
       validation: { isRequired: true },
+      db: { isNullable: false },
     }),
     priority: select({
       options: [
@@ -25,6 +26,7 @@ export const Notification = list({
       ],
       defaultValue: 'MEDIUM',
       validation: { isRequired: true },
+      db: { isNullable: false },
     }),
     content: text({
       validation: { isRequired: true },
