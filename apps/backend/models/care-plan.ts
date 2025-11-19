@@ -1,21 +1,47 @@
 import { list } from '@keystone-6/core';
 import { text, relationship, float, timestamp } from '@keystone-6/core/fields';
-import { isAuthenticated, canAccessOwnData, isAdmin } from '../api/middlewares/auth';
+import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 export const CarePlan = list({
   access: {
     operation: {
-      query: isAuthenticated, // only signed-in users can query
-      create: isAuthenticated, // only signed-in users can create
-      update: canAccessOwnData, // only the owner or admin can update
-      delete: canAccessOwnData, // only the owner or admin can delete
+      // Only logged-in users can view care plans
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create care plans
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update care plans
+      update: ({ session }) => isLoggedIn(session),
+      // Only admins can delete care plans
+      delete: ({ session }) => isAdmin(session),
     },
     filter: {
       query: ({ session }) => {
-        if (!session?.data?.id) return false;
-        // Admins can see all, regular users see only their own
-        return isAdmin({ session }) ? true : { user: { id: { equals: session.data.id } } };
+        // Admins can see all care plans
+        if (isAdmin(session)) return true;
+
+        // Regular users can only see their own care plans
+        if (isLoggedIn(session)) {
+          return { user: { id: { equals: session.data.id } } };
+        }
+
+        // Not logged in = can't see anything
+        return false;
       },
+    },
+    item: {
+      // Users can only update their own care plans, admins can update any
+      update: ({ session, item }) => isAdminOrOwner(session, item),
+      // Only admins can delete any care plan
+      delete: ({ session }) => isAdmin(session),
+    },
+  },
+
+  hooks: {
+    resolveInput: async ({ operation, resolvedData, context }) => {
+      if (operation === 'create' && context.session?.data?.id) {
+        resolvedData.user = { connect: { id: context.session.data.id } };
+      }
+      return resolvedData;
     },
   },
 
@@ -26,7 +52,6 @@ export const CarePlan = list({
     createdAt: timestamp({ defaultValue: { kind: 'now' } }),
     updatedAt: timestamp({ defaultValue: { kind: 'now' }, db: { updatedAt: true } }),
 
-    // Relationships
     user: relationship({ ref: 'User.carePlan' }),
     questionnaires: relationship({ ref: 'Questionnaire.carePlans', many: true }),
     questionnaireResponses: relationship({ ref: 'QuestionnaireResponse.carePlan', many: true }),

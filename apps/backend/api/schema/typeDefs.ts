@@ -364,6 +364,19 @@ export const typeDefs = gql`
     notificationType: NotificationType
   }
 
+  # Questionnaire assignment
+  input AssignQuestionnaireInput {
+    questionnaireId: ID!
+    assignedToId: ID!
+    carePlanId: ID
+  }
+
+  type AssignQuestionnaireResult {
+    success: Boolean!
+    message: String!
+    assignment: JSON
+  }
+
   # Root Types
   type Mutation {
     signup(input: SignupInput!): SignupResult!
@@ -384,6 +397,7 @@ export const typeDefs = gql`
     customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
     customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
     customMarkAllNotificationsAsRead: MarkAllAsReadResult!
+    assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
   }
 
   type Query {

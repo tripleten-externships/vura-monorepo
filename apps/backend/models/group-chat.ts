@@ -1,38 +1,72 @@
 import { list } from '@keystone-6/core';
 import { relationship, text, timestamp } from '@keystone-6/core/fields';
-import { isAuthenticated, isItemAccess, isAdmin } from '../utils/access';
+import { isAdmin, isLoggedIn } from '../utils/rbac';
 
 export const GroupChat = list({
   access: {
     operation: {
-      // Anyone can read group chats they belong to
-      query: isAuthenticated,
-      // Only logged in users can create new group chats
-      create: isAuthenticated,
-      // Only the owner or admin can update group info
-      update: (args) => {
-        const { session } = args;
-        if (!session?.data?.id || !isItemAccess(args)) return false;
-        return session.data.id === args.item.owner?.id || session.data.role === 'admin';
-      },
-      // Only the owner or admin can delete a group chat
-      delete: (args) => {
-        const { session } = args;
-        if (!session?.data?.id || !isItemAccess(args)) return false;
-        return session.data.id === args.item.owner?.id || session.data.role === 'admin';
-      },
+      // Only logged-in users can query group chats
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create group chats
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update group chats
+      update: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can delete group chats
+      delete: ({ session }) => isLoggedIn(session),
     },
     filter: {
-      // Restrict which group chats users can read
       query: ({ session }) => {
-        if (!session?.data?.id) return false;
-        if (isAdmin({ session })) return true;
-        return {
-          OR: [
-            { owner: { id: { equals: session.data.id } } },
-            { members: { some: { id: { equals: session.data.id } } } },
-          ],
-        };
+        // Admins can see all group chats
+        if (isAdmin(session)) return true;
+
+        // Users can see chats where they are owner or member
+        if (isLoggedIn(session) && session?.data?.id) {
+          return {
+            OR: [
+              { owner: { id: { equals: session.data.id } } },
+              { members: { some: { id: { equals: session.data.id } } } },
+            ],
+          };
+        }
+
+        // Not logged in = can't see anything
+        return false;
+      },
+      update: ({ session }) => {
+        // Admins can update any chat
+        if (isAdmin(session)) return true;
+
+        // Only owners can update their chats
+        if (isLoggedIn(session) && session?.data?.id) {
+          return { owner: { id: { equals: session.data.id } } };
+        }
+
+        return false;
+      },
+      delete: ({ session }) => {
+        // Admins can delete any chat
+        if (isAdmin(session)) return true;
+
+        // Only owners can delete their chats
+        if (isLoggedIn(session) && session?.data?.id) {
+          return { owner: { id: { equals: session.data.id } } };
+        }
+
+        return false;
+      },
+    },
+    item: {
+      // Only owners can update their chats, admins can update any
+      update: ({ session, item }) => {
+        if (isAdmin(session)) return true;
+        if (!isLoggedIn(session) || !session?.data?.id) return false;
+        return session.data.id === item.ownerId;
+      },
+      // Only owners can delete their chats, admins can delete any
+      delete: ({ session, item }) => {
+        if (isAdmin(session)) return true;
+        if (!isLoggedIn(session) || !session?.data?.id) return false;
+        return session.data.id === item.ownerId;
       },
     },
   },
