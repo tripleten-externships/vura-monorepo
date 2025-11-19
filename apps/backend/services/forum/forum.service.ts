@@ -2,9 +2,9 @@ import { GraphQLError } from 'graphql';
 import { Context } from '../../types/context';
 import {
   CreateForumPostInput,
-  CreateBulkForumNotificationsInput,
   IForumNotificationService,
   CreateSubscribeForum,
+  ForumNotificationCreateData,
 } from './types';
 import { logger } from '../../utils/logger';
 
@@ -12,17 +12,11 @@ export class ForumNotificationService implements IForumNotificationService {
   /**
    * create and persist a single notification
    */
-  async createForumNotification(data: CreateForumPostInput, context: Context): Promise<any> {
+  async createForumNotification(data: ForumNotificationCreateData, context: Context): Promise<any> {
     try {
       // validate required fields
       if (!data.userId) {
         throw new GraphQLError('User ID is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      if (!data.forumPostType) {
-        throw new GraphQLError('ForumNotification type category is required', {
           extensions: { code: 'BAD_USER_INPUT' },
         });
       }
@@ -42,15 +36,12 @@ export class ForumNotificationService implements IForumNotificationService {
       // prepare notification data
       const notificationData: any = {
         user: { connect: { id: data.userId } },
-        type: 'FORUM',
+        type: 'FORUM_NEW_EVENT',
+        notificationType: 'FORUM',
         forumPostType: data.forumPostType,
         priority: data.priority || 'MEDIUM',
         content: data.content,
       };
-
-      if (data.actionUrl) {
-        notificationData.actionUrl = data.actionUrl;
-      }
 
       if (data.metadata) {
         notificationData.metadata = data.metadata;
@@ -95,71 +86,6 @@ export class ForumNotificationService implements IForumNotificationService {
     }
   }
 
-  /**
-   * create notifications for multiple users in batch
-   */
-  async createBulkForumNotifications(
-    data: CreateBulkForumNotificationsInput,
-    context: Context
-  ): Promise<any[]> {
-    try {
-      // validate required fields
-      if (!data.userIds || data.userIds.length === 0) {
-        throw new GraphQLError('At least one user ID is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      if (!data.forumPostType || data.forumPostType.trim() === '') {
-        throw new GraphQLError('Notification type is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      if (!data.forumPostType) {
-        throw new GraphQLError('Notification type category is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      if (!data.content || data.content.trim() === '') {
-        throw new GraphQLError('Notification content is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      // create notifications for each user
-      const notifications = await Promise.all(
-        data.userIds.map((userId) =>
-          this.createForumNotification(
-            {
-              userId,
-              type: 'FORUM',
-              forumPostType: data.forumPostType,
-              priority: data.priority,
-              content: data.content,
-              actionUrl: data.actionUrl,
-              metadata: data.metadata,
-              expiresAt: data.expiresAt,
-              scheduledFor: data.scheduledFor,
-              relatedForumPostId: data.relatedForumPostId,
-            },
-            context
-          )
-        )
-      );
-
-      return notifications;
-    } catch (error: any) {
-      console.error('Create bulk forumNotifications error:', error);
-      if (error instanceof GraphQLError) {
-        throw error;
-      }
-      throw new GraphQLError('Failed to create bulk forumNotifications', {
-        extensions: { code: 'INTERNAL_SERVER_ERROR' },
-      });
-    }
-  }
   // Create subscription event
   async createSubscription(data: CreateSubscribeForum, context: Context): Promise<any> {
     try {
@@ -177,7 +103,10 @@ export class ForumNotificationService implements IForumNotificationService {
       }
       // Check if the user is already subscribed to this topic
       const existing = await context.db.ForumSubscription.findMany({
-        where: { user: { id: data.userId }, topic: data.topic },
+        where: {
+          user: { id: { equals: data.userId } },
+          topic: { equals: data.topic },
+        },
       });
 
       if (existing.length > 0) {
@@ -189,20 +118,13 @@ export class ForumNotificationService implements IForumNotificationService {
       const subscriptionData: any = {
         user: { connect: { id: data.userId } },
         topic: data.topic,
+        content: `Subscribed to "${data.topic}"`,
       };
-
-      if (data.actionUrl) {
-        subscriptionData.actionUrl = data.actionUrl;
-      }
 
       if (data.metadata) {
         subscriptionData.metadata = data.metadata;
       }
 
-      if (data.postId) {
-        subscriptionData.postId = data.postId;
-      }
-      // Create a new forum subscription
       const subscription = await context.db.ForumSubscription.createOne({
         data: subscriptionData,
       });
@@ -238,27 +160,25 @@ export class ForumNotificationService implements IForumNotificationService {
         });
       }
 
-      const subscription = await context.db.ForumSubscription.findMany({
+      const subscriptions = await context.db.ForumSubscription.findMany({
         where: {
-          user: { id: { equals: userId } },
           topic: { equals: topic },
+          user: { id: { equals: userId } },
         },
       });
-      if (subscription.length === 0) {
+
+      if (subscriptions.length === 0) {
         throw new GraphQLError('Subscription not found', {
           extensions: { code: 'NOT_FOUND' },
         });
       }
-      // Delete the forum subscription
-      await context.db.ForumSubscription.deleteOne({
-        where: {
-          user: { id: { equals: userId } },
-          topic: { equals: topic },
-        },
+
+      const subscriptionIds = subscriptions.map((sub) => sub.id as string);
+      await context.db.ForumSubscription.deleteMany({
+        where: subscriptionIds.map((id) => ({ id })),
       });
 
       logger.info('Subscription deleted', { userId, topic });
-
       return true;
     } catch (error: any) {
       console.error('Delete subscription error:', error);

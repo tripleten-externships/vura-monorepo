@@ -11,6 +11,8 @@ export type ForumPostPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
  * input data for creating a forumPost
  */
 export interface CreateForumPostInput {
+  title: string;
+  topic: string;
   userId: string;
   type: string;
   forumPostType?: string;
@@ -35,31 +37,28 @@ export interface CreateSubscribeForum {
   metadata?: Record<string, any>;
 }
 
-/**
- * input data for creating bulk forumnotifications
- */
-export interface CreateBulkForumNotificationsInput {
-  userIds: string[];
-  forumPostType?: string;
-  priority?: ForumPostPriority;
+export interface ForumNotificationCreateData {
+  title: string;
+  topic: string;
   content: string;
-  actionUrl?: string;
+  priority?: string;
   metadata?: Record<string, any>;
+  actionUrl?: string;
   expiresAt?: Date;
   scheduledFor?: Date;
   relatedForumPostId?: string;
+  author: { connect: { id: string } };
+  userId: string;
+  type: string;
+  forumPostType?: string;
+  notificationType?: 'CARE_PLAN' | 'CHAT' | 'FORUM' | 'SYSTEM';
 }
 
 /**
  * service interface
  */
 export interface IForumNotificationService {
-  createForumNotification(data: CreateForumPostInput, context: Context): Promise<any>;
-
-  createBulkForumNotifications(
-    data: CreateBulkForumNotificationsInput,
-    context: Context
-  ): Promise<any[]>;
+  createForumNotification(data: ForumNotificationCreateData, context: Context): Promise<any>;
   createSubscription(data: CreateSubscribeForum, context: Context): Promise<any>;
   createUnSubscription(userId: string, topic: string, context: Context): Promise<boolean>;
 }

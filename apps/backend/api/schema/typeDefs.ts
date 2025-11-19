@@ -132,31 +132,16 @@ export const typeDefs = gql`
   }
 
   # Forum Post Types
-  input CustomCreateForumPostInput {
+
+  input CreateForumPostInput {
     title: String!
     topic: String!
     content: String!
-    authorName: String!
-  }
-
-  input CreateForumPostInput {
-    userId: String
-    type: String
-    notificationType: NotificationType
-    priority: NotificationPriority!
-    content: String!
-    actionUrl: String
-    metadata: JSON!
-    expiresAt: DateTime
-    scheduledFor: DateTime
-    relatedForumPostId: String
-  }
-
-  type CustomSubscribeToForumResult {
-    success: Boolean!
-    message: String!
-    subscriptionId: ID!
-    notification: ForumSubscriptionNotification!
+    priority: ForumPostPriority
+    forumPostType: ForumPostType!
+    type: String!
+    metadata: JSON
+    userId: ID!
   }
 
   type ForumSubscriptionNotification {
@@ -197,6 +182,19 @@ export const typeDefs = gql`
     TITLE_DESC
   }
 
+  enum ForumPostPriority {
+    LOW
+    MEDIUM
+    HIGH
+    URGENT
+  }
+
+  enum ForumPostType {
+    NEW_POST
+    REPLY_TO_YOUR_POST
+    REPLY_TO_SUBSCRIBED_POST
+  }
+
   type ForumPostConnection {
     edges: [ForumPostEdge!]!
     pageInfo: PageInfo!
@@ -229,6 +227,19 @@ export const typeDefs = gql`
 
   type Subscription {
     forumPostCreated: ForumPostCreatedEvent!
+    forumNotification(userId: String!): NotificationCreatedEvent!
+  }
+
+  type NotificationCreatedEvent {
+    notificationId: ID!
+    userId: ID!
+    type: String!
+    notificationType: String!
+    priority: String!
+    content: String!
+    actionUrl: String
+    metadata: JSON
+    createdAt: String!
   }
 
   type ForumSubscriptionResult {
@@ -451,7 +462,7 @@ export const typeDefs = gql`
   type Mutation {
     signup(input: SignupInput!): SignupResult!
     login(input: LoginInput!): LoginResult!
-    customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
+    customCreateForumPost(data: CreateForumPostInput!): CustomCreateForumPostResult!
     customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
     customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
     sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!

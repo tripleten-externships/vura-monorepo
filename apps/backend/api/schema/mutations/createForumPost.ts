@@ -5,13 +5,8 @@ import { pubsub, SubscriptionTopics } from '../../subscriptions/pubsub';
 import { logAuditEvent } from '../../../utils/logger';
 import { sanitizeContent } from '../../../utils/sanitizeContent';
 import { ForumPostCreatedEvent } from '../../subscriptions/events';
-
-// custom input type
-export interface CreateForumPostInput {
-  title: string;
-  topic: string;
-  content: string;
-}
+import { ForumPostPriority } from '../../../services/forum/types';
+import { CreateForumPostInput } from '../../../services/forum/types';
 
 export const customCreateForumPost = async (
   _: any,
@@ -77,16 +72,25 @@ export const customCreateForumPost = async (
 
     const post = await context.db.ForumPost.createOne({
       data: {
-        title: sanitizedTitle,
-        topic: topic,
-        content: sanitizedContent,
-        author: { connect: { id: context.session.data.id } },
+        title: data.title,
+        topic: data.topic,
+        content: data.content,
+        priority: data.priority,
+        metadata: data.metadata,
+        forumPostType: data.forumPostType,
+        author: { connect: { id: data.userId } },
       },
     });
 
     await logAuditEvent(context, 'POST_CREATED', context.session.data.id, String(post.id), {
       title: post.title,
     });
+
+    const subscribers = await context.db.ForumSubscription.findMany({
+      where: { topic: { equals: data.topic } },
+    });
+
+    const subscriberIds = subscribers.map((s) => s.userId as string);
 
     // Prepare event payload
     const eventPayload: ForumPostCreatedEvent = {
@@ -95,9 +99,9 @@ export const customCreateForumPost = async (
       topic: post.topic as string,
       title: post.title as string,
       createdAt: (post.createdAt as Date).toISOString(),
-      subscriberIds: [],
+      subscriberIds,
       content: post.content as string,
-      authorName: (post.author as any)?.name || '',
+      authorName: context.session.data.name,
     };
 
     /// Emit the forumPost via WebSockets
@@ -110,11 +114,9 @@ export const customCreateForumPost = async (
 
     // Publish the forumPost to GraphQL subscriptions
     try {
-      pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
-        forumPostCreated: eventPayload,
-      });
+      pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, eventPayload);
     } catch (eventError) {
-      console.error('Failed to publish forum post event:', eventError);
+      console.error('Failed to publish forum post created event:', eventError);
     }
 
     return {

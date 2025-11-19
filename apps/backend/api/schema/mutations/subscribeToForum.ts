@@ -24,7 +24,6 @@ export const customSubscribeToForum = async (
         postId,
         topic,
         content: `Subscribed to "${topic}"`,
-        actionUrl: postId ? `/forum/${postId}` : `/forum/topics/${topic}`,
       },
       context
     );

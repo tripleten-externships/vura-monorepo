@@ -149,4 +149,16 @@ export const Subscription = {
       };
     },
   },
+
+  forumNotification: {
+    subscribe: withFilter(
+      () => pubsub.asyncIterableIterator(SubscriptionTopics.FORUM_NOTIFICATION),
+      (payload, variables, context: Context | undefined) => {
+        if (!context) return false;
+        const userId = context.session?.data?.id;
+        if (!userId) return false;
+        return payload.userId === variables.userId && payload.userId === userId;
+      }
+    ),
+  },
 };

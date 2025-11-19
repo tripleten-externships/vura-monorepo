@@ -30,7 +30,10 @@ export const ForumPost = list({
     },
   },
   fields: {
-    type: text({
+    title: text({
+      validation: { isRequired: true },
+    }),
+    topic: text({
       validation: { isRequired: true },
     }),
     // type of forum post for notification

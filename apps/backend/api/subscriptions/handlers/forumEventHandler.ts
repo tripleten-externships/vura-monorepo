@@ -1,7 +1,7 @@
 import { Context } from '../../../types/context';
 import { pubsub, SubscriptionTopics } from '../pubsub';
 import { ForumPostCreatedEvent } from '../events';
-import { forumNotificationService } from '../../../services/forum/forum.service';
+import { forumNotificationService } from '../../../services/forum';
 import { logger } from '../../../utils/logger';
 
 function extractMentions(message: string): string[] {
@@ -20,6 +20,7 @@ function extractMentions(message: string): string[] {
  * Handle forumPost created events
  * Creates notifications for group members and mentioned users
  */
+
 export async function handleforumPostCreated(
   event: ForumPostCreatedEvent,
   context: Context
@@ -27,6 +28,8 @@ export async function handleforumPostCreated(
   try {
     // get all recipients
     const recipientIds = event.subscriberIds.filter((id) => id !== event.userId);
+    console.log('event.subscriberIds:', event.subscriberIds);
+    console.log('recipientIds:', recipientIds);
 
     if (recipientIds.length === 0) {
       logger.debug('No subscribers for forum topic', { postId: event.postId });
@@ -41,35 +44,47 @@ export async function handleforumPostCreated(
 
     // create HIGH priority notifications for mentioned users
     if (mentionedRecipients.length > 0) {
-      const mentionednotifications = await forumNotificationService.createBulkForumNotifications(
-        {
-          userIds: mentionedRecipients,
-          forumPostType: 'NEW_POST',
-          priority: 'HIGH',
-          content: `${event.authorName} mentioned you in a post about ${event.topic}`,
-          actionUrl: `/forum/${event.postId}`,
-          metadata: {
-            postId: event.postId,
+      const mentionedNotifications = [];
+
+      for (const userId of mentionedRecipients) {
+        const notification = await forumNotificationService.createForumNotification(
+          {
+            userId,
+            type: 'forum_mention',
+            notificationType: 'FORUM',
+            priority: 'HIGH',
+            title: event.title,
             topic: event.topic,
-            authorId: event.userId,
-            authorName: event.authorName,
+            author: { connect: { id: event.userId } },
+            content: `${event.authorName} mentioned you in a post about ${event.topic}`,
+            metadata: {
+              postId: event.postId,
+              topic: event.topic,
+              authorId: event.userId,
+              authorName: event.authorName,
+            },
           },
-        },
-        context
-      );
+          context
+        );
+        mentionedNotifications.push(notification);
+      }
 
       // publish notification created events for real-time updates
-      mentionednotifications.forEach((subscribe) => {
+      mentionedNotifications.forEach((subscribe) => {
         pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
           userId: subscribe.user?.id || subscribe.userId,
-          postId: event.postId,
-          topic: event.topic,
+          postId: subscribe.postId,
+          type: subscribe.type,
+          forumPostType: event.forumPostType,
+          priority: subscribe.priority,
+          content: subscribe.content,
+          topic: subscribe.topic,
           createdAt: subscribe.createdAt,
           subscriberIds: mentionedRecipients,
-          content: subscribe.content,
-          authorName: event.authorName,
+          authorName: subscribe.metadata?.authorName,
         });
       });
+
       logger.info('High priority notifications created for mentions', {
         postId: event.postId,
         count: mentionedRecipients.length,
@@ -78,36 +93,49 @@ export async function handleforumPostCreated(
 
     // create MEDIUM priority notifications for other group members
     if (regularRecipients.length > 0) {
-      const mentionednotifications = await forumNotificationService.createBulkForumNotifications(
-        {
-          userIds: regularRecipients,
-          forumPostType: 'NEW_POST',
-          priority: 'MEDIUM',
-          content: `${event.authorName} created a new post in the ${event.topic}`,
-          actionUrl: `/forum/${event.postId}`,
-          metadata: {
-            postId: event.postId,
+      const regularNotifications = [];
+
+      for (const userId of regularRecipients) {
+        const notification = await forumNotificationService.createForumNotification(
+          {
+            userId,
+            type: 'forum_post',
+            author: { connect: { id: event.userId } },
+            notificationType: 'FORUM',
+            priority: 'MEDIUM',
+            title: event.title,
             topic: event.topic,
-            authorId: event.userId,
-            authorName: event.authorName,
+            content: `${event.authorName} created a new post in the ${event.topic}`,
+            metadata: {
+              postId: event.postId,
+              topic: event.topic,
+              authorId: event.userId,
+              authorName: event.authorName,
+            },
           },
-        },
-        context
-      );
-      // publish notification created events for real-time updates
-      mentionednotifications.forEach((subscribe) => {
-        pubsub.publish(SubscriptionTopics.FORUM_POST_CREATED, {
+          context
+        );
+
+        regularNotifications.push(notification);
+      }
+
+      regularNotifications.forEach((subscribe) => {
+        pubsub.publish(SubscriptionTopics.FORUM_NOTIFICATION, {
           userId: subscribe.user?.id || subscribe.userId,
-          postId: event.postId,
-          topic: event.topic,
+          postId: subscribe.postId,
+          type: subscribe.type,
+          forumPostType: subscribe.forumPostType,
+          priority: subscribe.priority,
+          content: subscribe.content,
+          topic: subscribe.topic,
           createdAt: subscribe.createdAt,
           subscriberIds: mentionedRecipients,
-          content: subscribe.content,
-          authorName: event.authorName,
+          authorName: subscribe.metadata?.authorName,
         });
       });
+
       logger.info('New forum post notifications processed', {
-        messageId: event.postId,
+        postId: event.postId,
         mentions: mentionedRecipients.length,
         regular: regularRecipients.length,
       });

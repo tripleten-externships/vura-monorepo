@@ -20,6 +20,7 @@ export const ForumSubscription = list({
     user: relationship({ ref: 'User.forumSubscriptions', many: false }),
     forumPost: relationship({ ref: 'ForumPost.subscribers', many: false }),
     topic: text({ validation: { isRequired: false, length: { max: 50 } } }),
+    content: text(),
     subscribedAt: timestamp({ defaultValue: { kind: 'now' } }),
   },
 });
