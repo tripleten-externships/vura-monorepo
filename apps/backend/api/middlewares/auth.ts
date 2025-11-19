@@ -15,8 +15,6 @@ if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
 
 const sessionSecret =
   process.env.SESSION_SECRET?.trim() || 'thisisatemporaryfallbackkeythatisdefinitely32charslong';
-// console.log('Using session secret:', sessionSecret);
-console.log('Secret length:', sessionSecret.length);
 
 const sessionMaxAge = 60 * 60 * 24 * 30; // 30 days
 
