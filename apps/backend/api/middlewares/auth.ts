@@ -5,7 +5,7 @@ import type { Session } from '../../types/context'; // adjust path if needed
 
 type AccessArgs = {
   session?: Session;
-  item?: { id?: string; authorId?: string; userId?: string };
+  item?: { id?: string; authorId?: string; userId?: string; user?: { id?: string } };
 };
 
 // Fail fast in prod if secret missing
