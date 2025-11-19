@@ -7,6 +7,7 @@ import { customDeleteForumPost } from '../schema/mutations/deleteForumPost';
 import { customCreateGroupChat } from '../schema/mutations/createGroupChat';
 import { sendChatMessage } from '../schema/mutations/sendChatMessage';
 import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutations/questionnaire';
+import { assignQuestionnaire } from '../schema/mutations/assignQuestionnaire';
 import { updateProfile } from '../schema/mutations/updateProfile';
 import { aiChat } from '../schema/mutations/aiChat';
 import { createAiChatMessage } from '../schema/mutations/createAiChatMessage';
@@ -36,6 +37,7 @@ export const Mutation = {
   sendChatMessage: withAuth(sendChatMessage),
   saveQuestionnaireResponse: withAuth(saveQuestionnaireResponse),
   submitQuestionnaire: withAuth(submitQuestionnaire),
+  assignQuestionnaire: withAuth(assignQuestionnaire),
   updateProfile: withAuth(updateProfile),
   aiChat: withAuth(aiChat),
   typingIndicator: withAuth(typingIndicator),

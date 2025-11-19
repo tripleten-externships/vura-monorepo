@@ -13,13 +13,22 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
  * Keep DB work in the callback route in keystone.ts to avoid coupling strategy to your DB.
  */
 export default function initGoogleStrategy() {
+  const clientID = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  // Only initialize if credentials are provided
+  if (!clientID || !clientSecret) {
+    console.warn('Google OAuth credentials not found. Google authentication will be disabled.');
+    return;
+  }
+
   const callbackURL = `${process.env.BACKEND_URL || 'http://localhost:3001'}/auth/google/callback`;
 
   passport.use(
     new GoogleStrategy(
       {
-        clientID: process.env.GOOGLE_CLIENT_ID || '',
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+        clientID,
+        clientSecret,
         callbackURL,
       },
       // keep simple: pass profile through; handle DB in the callback route

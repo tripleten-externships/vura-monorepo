@@ -1463,6 +1463,7 @@ type User {
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
   notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
   notificationsCount(where: NotificationWhereInput! = {}): Int
+  isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
@@ -1498,6 +1499,7 @@ input UserWhereInput {
   forumPost: ForumPostManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
   notifications: NotificationManyRelationFilter
+  isAdmin: BooleanFilter
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
   lastUpdateDate: DateTimeNullableFilter
@@ -1556,6 +1558,7 @@ input UserOrderByInput {
   age: OrderDirection
   gender: OrderDirection
   privacyToggle: OrderDirection
+  isAdmin: OrderDirection
   createdAt: OrderDirection
   lastLoginDate: OrderDirection
   lastUpdateDate: OrderDirection
@@ -1579,6 +1582,7 @@ input UserUpdateInput {
   forumPost: ForumPostRelateToManyForUpdateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
   notifications: NotificationRelateToManyForUpdateInput
+  isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
@@ -1642,6 +1646,7 @@ input UserCreateInput {
   forumPost: ForumPostRelateToManyForCreateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
   notifications: NotificationRelateToManyForCreateInput
+  isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime

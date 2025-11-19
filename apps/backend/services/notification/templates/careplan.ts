@@ -30,7 +30,7 @@ export function carePlanProgressTemplate({
 }: CarePlanNotificationData) {
   return {
     subject: `You're ${progress}% through ${carePlanName}!`,
-    message: `Hey ${userName}, you're making great progress on "${carePlanName}". Keep it up,  you're already ${progress}% done!`,
+    message: `Hey ${userName}, you're making great progress on "${carePlanName}". Keep it up, you're already ${progress}% done!`,
     actionLabel: 'Continue Your Plan',
     actionUrl,
   };
