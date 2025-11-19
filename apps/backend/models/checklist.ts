@@ -1,5 +1,6 @@
 import { list } from '@keystone-6/core';
 import { text, relationship, float, timestamp } from '@keystone-6/core/fields';
+import { isAdmin, isLoggedIn } from '../utils/rbac';
 
 export const Checklist = list({
   fields: {
@@ -28,10 +29,14 @@ export const Checklist = list({
   },
   access: {
     operation: {
+      // Anyone can view checklists (public resource)
       query: () => true,
-      create: ({ session }) => !!session,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
+      // Only admins can create checklists
+      create: ({ session }) => isAdmin(session),
+      // Only admins can update checklists
+      update: ({ session }) => isAdmin(session),
+      // Only admins can delete checklists
+      delete: ({ session }) => isAdmin(session),
     },
   },
 });

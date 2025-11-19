@@ -9,15 +9,20 @@ import {
   integer,
   float,
 } from '@keystone-6/core/fields';
+import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 // Questionnaire Model
 export const Questionnaire = list({
   access: {
     operation: {
-      query: ({ session }) => !!session,
-      create: ({ session }) => !!session?.data?.isAdmin,
-      update: ({ session }) => !!session?.data?.isAdmin,
-      delete: ({ session }) => !!session?.data?.isAdmin,
+      // Only logged-in users can view questionnaires
+      query: ({ session }) => isLoggedIn(session),
+      // Only admins can create questionnaires
+      create: ({ session }) => isAdmin(session),
+      // Only admins can update questionnaires
+      update: ({ session }) => isAdmin(session),
+      // Only admins can delete questionnaires
+      delete: ({ session }) => isAdmin(session),
     },
   },
   fields: {
@@ -76,10 +81,14 @@ export const Questionnaire = list({
 export const Question = list({
   access: {
     operation: {
-      query: ({ session }) => !!session,
-      create: ({ session }) => !!session?.data?.isAdmin,
-      update: ({ session }) => !!session?.data?.isAdmin,
-      delete: ({ session }) => !!session?.data?.isAdmin,
+      // Only logged-in users can view questions
+      query: ({ session }) => isLoggedIn(session),
+      // Only admins can create questions
+      create: ({ session }) => isAdmin(session),
+      // Only admins can update questions
+      update: ({ session }) => isAdmin(session),
+      // Only admins can delete questions
+      delete: ({ session }) => isAdmin(session),
     },
   },
   fields: {
@@ -133,25 +142,34 @@ export const Question = list({
 export const QuestionnaireResponse = list({
   access: {
     operation: {
-      query: ({ session }) => !!session,
-      create: ({ session }) => !!session,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
+      // Only logged-in users can query responses
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create responses
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update responses
+      update: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can delete responses
+      delete: ({ session }) => isLoggedIn(session),
     },
     filter: {
-      query: ({ session }) => ({
-        user: { id: { equals: session?.data?.id } },
-      }),
+      query: ({ session }) => {
+        // Admins can see all responses
+        if (isAdmin(session)) return true;
+
+        // Users can only see their own responses
+        if (isLoggedIn(session) && session?.data?.id) {
+          return { user: { id: { equals: session.data.id } } };
+        }
+
+        // Not logged in = can't see anything
+        return false;
+      },
     },
     item: {
-      update: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session.data.isAdmin || item.userId === session.data.id;
-      },
-      delete: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session.data.isAdmin || item.userId === session.data.id;
-      },
+      // Users can update their own responses, admins can update any
+      update: ({ session, item }) => isAdminOrOwner(session, item),
+      // Users can delete their own responses, admins can delete any
+      delete: ({ session, item }) => isAdminOrOwner(session, item),
     },
   },
   fields: {
@@ -217,27 +235,38 @@ export const QuestionnaireResponse = list({
 export const QuestionResponse = list({
   access: {
     operation: {
-      query: ({ session }) => !!session,
-      create: ({ session }) => !!session,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
+      // Only logged-in users can query question responses
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create question responses
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update question responses
+      update: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can delete question responses
+      delete: ({ session }) => isLoggedIn(session),
     },
     filter: {
-      query: ({ session }) => ({
-        questionnaireResponse: {
-          user: { id: { equals: session?.data?.id } },
-        },
-      }),
+      query: ({ session }) => {
+        // Admins can see all question responses
+        if (isAdmin(session)) return true;
+
+        // Users can only see responses for their own questionnaires
+        if (isLoggedIn(session) && session?.data?.id) {
+          return {
+            questionnaireResponse: {
+              user: { id: { equals: session.data.id } },
+            },
+          };
+        }
+
+        // Not logged in = can't see anything
+        return false;
+      },
     },
     item: {
-      update: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session.data.isAdmin;
-      },
-      delete: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session.data.isAdmin;
-      },
+      // Only admins can update question responses
+      update: ({ session }) => isAdmin(session),
+      // Only admins can delete question responses
+      delete: ({ session }) => isAdmin(session),
     },
   },
   fields: {

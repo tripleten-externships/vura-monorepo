@@ -1,6 +1,10 @@
 import { pubsub, SubscriptionTopics } from '../pubsub';
 import { ChatMessageCreatedEvent } from '../events';
 import { notificationService } from '../../../services/notification';
+import {
+  newGroupMessageTemplate,
+  mentionTemplate,
+} from '../../../services/notification/templates/chat';
 import { Context } from '../../../types/context';
 import { logger } from '../../../utils/logger';
 
@@ -46,23 +50,18 @@ export async function handleChatMessageCreated(
 
     // create HIGH priority notifications for mentioned users
     if (mentionedRecipients.length > 0) {
+      const mentionNotificationData = mentionTemplate({
+        groupId: event.groupId,
+        groupName: event.groupName,
+        senderName: event.senderName,
+        message: event.message,
+        messageId: event.messageId,
+      });
+
       const notifications = await notificationService.createBulkNotifications(
         {
           userIds: mentionedRecipients,
-          type: 'chat_mention',
-          notificationType: 'CHAT',
-          priority: 'HIGH',
-          content: `${event.senderName} mentioned you in ${event.groupName}`,
-          actionUrl: `/chat/${event.groupId}`,
-          metadata: {
-            messageId: event.messageId,
-            groupId: event.groupId,
-            groupName: event.groupName,
-            senderId: event.senderId,
-            senderName: event.senderName,
-            messagePreview: event.message.substring(0, 100),
-          },
-          relatedChatId: event.groupId,
+          ...mentionNotificationData,
         },
         context
       );
@@ -100,23 +99,18 @@ export async function handleChatMessageCreated(
 
     // create MEDIUM priority notifications for other group members
     if (regularRecipients.length > 0) {
+      const messageNotificationData = newGroupMessageTemplate({
+        groupId: event.groupId,
+        groupName: event.groupName,
+        senderName: event.senderName,
+        message: event.message,
+        messageId: event.messageId,
+      });
+
       const notifications = await notificationService.createBulkNotifications(
         {
           userIds: regularRecipients,
-          type: 'chat_message',
-          notificationType: 'CHAT',
-          priority: 'MEDIUM',
-          content: `${event.senderName} sent a message in ${event.groupName}`,
-          actionUrl: `/chat/${event.groupId}`,
-          metadata: {
-            messageId: event.messageId,
-            groupId: event.groupId,
-            groupName: event.groupName,
-            senderId: event.senderId,
-            senderName: event.senderName,
-            messagePreview: event.message.substring(0, 100),
-          },
-          relatedChatId: event.groupId,
+          ...messageNotificationData,
         },
         context
       );
