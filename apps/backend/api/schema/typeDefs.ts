@@ -434,6 +434,19 @@ export const typeDefs = gql`
     message: String
     notification: ForumSubscriptionNotification
   }
+  # Questionnaire assignment
+  input AssignQuestionnaireInput {
+    questionnaireId: ID!
+    assignedToId: ID!
+    carePlanId: ID
+  }
+
+  type AssignQuestionnaireResult {
+    success: Boolean!
+    message: String!
+    assignment: JSON
+  }
+
   # Root Types
   type Mutation {
     signup(input: SignupInput!): SignupResult!
@@ -460,6 +473,7 @@ export const typeDefs = gql`
       postId: ID
     ): ForumSubscriptionResult!
     customUnsubscribeFromForum(topic: String!): ForumSubscriptionResult!
+    assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
   }
 
   type Query {

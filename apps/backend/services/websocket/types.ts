@@ -64,6 +64,7 @@ export enum SocketEvents {
   AI_MESSAGE_COMPLETE = 'ai:message:complete',
   AI_MESSAGE_ERROR = 'ai:message:error',
 
+  // User status events
   // Notification events
   NOTIFICATION_NEW = 'notification:new',
   NOTIFICATION_READ = 'notification:read',
@@ -72,6 +73,11 @@ export enum SocketEvents {
   USER_ONLINE = 'user:online',
   USER_OFFLINE = 'user:offline',
 
-  //ForumPost event
+  // ForumPost event
   NEW_FORUM_POST = 'forum:new_post',
+
+  // Care Plan events
+  CAREPLAN_CREATED = 'carePlan:created',
+  CAREPLAN_UPDATED = 'carePlan:updated',
+  CAREPLAN_DELETED = 'carePlan:deleted',
 }
