@@ -1,4 +1,4 @@
-import { pubsub, SubscriptionTopics } from '../pubsub';
+import { SubscriptionTopics } from '../pubsub';
 import { ChatMessageCreatedEvent } from '../events';
 import { notificationService } from '../../../services/notification';
 import {
@@ -7,6 +7,7 @@ import {
 } from '../../../services/notification/templates/chat';
 import { Context } from '../../../types/context';
 import { logger } from '../../../utils/logger';
+import { EventBus } from '../eventBus';
 
 /**
  * Extract user IDs mentioned in the message content
@@ -30,7 +31,8 @@ function extractMentions(message: string): string[] {
  */
 export async function handleChatMessageCreated(
   event: ChatMessageCreatedEvent,
-  context: Context
+  context: Context,
+  eventBus: EventBus
 ): Promise<void> {
   try {
     // get all recipients (exclude sender)
@@ -67,9 +69,8 @@ export async function handleChatMessageCreated(
         context
       );
 
-      // publish notification created events for real-time updates
       notifications.forEach((notification) => {
-        pubsub.publish(SubscriptionTopics.NOTIFICATION_CREATED, {
+        eventBus.publish(SubscriptionTopics.NOTIFICATION_CREATED, {
           userId: notification.user?.id || notification.userId,
           notificationId: notification.id,
           type: notification.type,
@@ -81,11 +82,10 @@ export async function handleChatMessageCreated(
           createdAt: notification.createdAt,
         });
 
-        // publish unread count changed event
         notificationService
           .getUnreadCount(notification.user?.id || notification.userId, context)
           .then((count) => {
-            pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+            eventBus.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
               userId: notification.user?.id || notification.userId,
               count,
             });
@@ -117,9 +117,8 @@ export async function handleChatMessageCreated(
         context
       );
 
-      // publish notification created events for real-time updates
       notifications.forEach((notification) => {
-        pubsub.publish(SubscriptionTopics.NOTIFICATION_CREATED, {
+        eventBus.publish(SubscriptionTopics.NOTIFICATION_CREATED, {
           userId: notification.user?.id || notification.userId,
           notificationId: notification.id,
           type: notification.type,
@@ -131,11 +130,10 @@ export async function handleChatMessageCreated(
           createdAt: notification.createdAt,
         });
 
-        // publish unread count changed event
         notificationService
           .getUnreadCount(notification.user?.id || notification.userId, context)
           .then((count) => {
-            pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+            eventBus.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
               userId: notification.user?.id || notification.userId,
               count,
             });
@@ -166,15 +164,17 @@ export async function handleChatMessageCreated(
  * Initialize chat event handlers
  * Sets up listeners for chat-related events
  */
-export function initializeChatEventHandlers(context: Context): void {
-  // subscribe to CHAT_MESSAGE_CREATED events using pubsub.subscribe
-  // this creates a listener that will be called for each event
-  pubsub.subscribe(SubscriptionTopics.CHAT_MESSAGE_CREATED, (payload: ChatMessageCreatedEvent) => {
-    // handle the event asynchronously without blocking
-    handleChatMessageCreated(payload, context).catch((error) => {
-      logger.error('Error in chat event handler', { error });
-    });
-  });
+export function initializeChatEventHandlers(context: Context, eventBus: EventBus): void {
+  // subscribe to CHAT_MESSAGE_CREATED events using the shared event bus so we have a single place
+  // to manage retries/logging. this keeps the handler detached from the underlying pubsub impl.
+  eventBus.subscribe(
+    SubscriptionTopics.CHAT_MESSAGE_CREATED,
+    (payload: ChatMessageCreatedEvent) => {
+      handleChatMessageCreated(payload, context, eventBus).catch((error) => {
+        logger.error('Error in chat event handler', { error });
+      });
+    }
+  );
 
   logger.info('Chat event handlers initialized');
 }

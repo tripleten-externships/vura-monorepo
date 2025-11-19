@@ -6,8 +6,6 @@ import { logger } from '../../utils/logger';
  * Fast, persistent, multi-instance safe alternative to Redis
  */
 
-const prisma = new PrismaClient();
-
 type NotificationType = 'CARE_PLAN' | 'CHAT' | 'FORUM' | 'SYSTEM';
 
 /**
@@ -15,6 +13,7 @@ type NotificationType = 'CARE_PLAN' | 'CHAT' | 'FORUM' | 'SYSTEM';
  * Uses MySQL's atomic operations to prevent race conditions
  */
 export async function incrementCounter(
+  prisma: PrismaClient,
   userId: string,
   notificationType: NotificationType
 ): Promise<number> {
@@ -55,6 +54,7 @@ export async function incrementCounter(
  * Ensures count never goes below zero
  */
 export async function decrementCounter(
+  prisma: PrismaClient,
   userId: string,
   notificationType: NotificationType
 ): Promise<number> {
@@ -87,7 +87,7 @@ export async function decrementCounter(
  * Get total unread count for a user across all notification types
  * Uses covering index for maximum performance
  */
-export async function getTotalUnreadCount(userId: string): Promise<number> {
+export async function getTotalUnreadCount(prisma: PrismaClient, userId: string): Promise<number> {
   try {
     const result = await prisma.$queryRaw<Array<{ total: bigint }>>`
       SELECT COALESCE(SUM(count), 0) as total
@@ -109,6 +109,7 @@ export async function getTotalUnreadCount(userId: string): Promise<number> {
  * Single index lookup - extremely fast
  */
 export async function getUnreadCountByType(
+  prisma: PrismaClient,
   userId: string,
   notificationType: NotificationType
 ): Promise<number> {
@@ -133,7 +134,7 @@ export async function getUnreadCountByType(
  * Reset all counters for a user to zero
  * Used when marking all notifications as read
  */
-export async function resetAllCounters(userId: string): Promise<void> {
+export async function resetAllCounters(prisma: PrismaClient, userId: string): Promise<void> {
   try {
     await prisma.$executeRaw`
       UPDATE NotificationCounter
@@ -153,7 +154,10 @@ export async function resetAllCounters(userId: string): Promise<void> {
  * Initialize or sync counters from actual notification counts
  * Useful for recovering from inconsistencies or initial setup
  */
-export async function syncCountersFromNotifications(userId: string): Promise<void> {
+export async function syncCountersFromNotifications(
+  prisma: PrismaClient,
+  userId: string
+): Promise<void> {
   try {
     // Get actual counts from notifications table
     const actualCounts = await prisma.$queryRaw<Array<{ notificationType: string; count: bigint }>>`
@@ -192,7 +196,10 @@ export async function syncCountersFromNotifications(userId: string): Promise<voi
  * Clean up stale counters (optional maintenance function)
  * Remove counters that haven't been updated in a long time and are zero
  */
-export async function cleanupStaleCounters(daysOld: number = 90): Promise<number> {
+export async function cleanupStaleCounters(
+  prisma: PrismaClient,
+  daysOld: number = 90
+): Promise<number> {
   try {
     const result = await prisma.$executeRaw`
       DELETE FROM NotificationCounter

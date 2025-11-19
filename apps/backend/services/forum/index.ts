@@ -1,2 +1,2 @@
-export { ForumNotificationService, forumNotificationService } from './forum.service';
+export { ForumService } from './forum.service';
 export * from './types';

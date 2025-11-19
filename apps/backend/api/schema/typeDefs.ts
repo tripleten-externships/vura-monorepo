@@ -141,7 +141,6 @@ export const typeDefs = gql`
     forumPostType: ForumPostType!
     type: String!
     metadata: JSON
-    userId: ID!
   }
 
   type ForumSubscriptionNotification {

@@ -127,10 +127,14 @@ export class NotificationService implements INotificationService {
       // increment unread counters in database cache and publish events
       try {
         // Increment counter for this notification type
-        await incrementCounter(data.userId, notification.notificationType as NotificationType);
+        await incrementCounter(
+          context.prisma,
+          data.userId,
+          notification.notificationType as NotificationType
+        );
 
         // Get total count across all types
-        const totalCount = await getTotalUnreadCount(data.userId);
+        const totalCount = await getTotalUnreadCount(context.prisma, data.userId);
 
         // publish unread count changed
         pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
@@ -282,10 +286,14 @@ export class NotificationService implements INotificationService {
       if (notification.read === false) {
         try {
           // Decrement counter for this notification type
-          await decrementCounter(userId, notification.notificationType as NotificationType);
+          await decrementCounter(
+            context.prisma,
+            userId,
+            notification.notificationType as NotificationType
+          );
 
           // Get new total count across all types
-          const newTotal = await getTotalUnreadCount(userId);
+          const newTotal = await getTotalUnreadCount(context.prisma, userId);
 
           pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
             userId,
@@ -341,7 +349,7 @@ export class NotificationService implements INotificationService {
 
       // reset all counters to zero and publish
       try {
-        await resetAllCounters(userId);
+        await resetAllCounters(context.prisma, userId);
 
         pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
           userId,
@@ -433,7 +441,7 @@ export class NotificationService implements INotificationService {
       }
 
       // Get count from database cache (fast with proper indexing)
-      const count = await getTotalUnreadCount(userId);
+      const count = await getTotalUnreadCount(context.prisma, userId);
       return count;
     } catch (error: any) {
       console.error('Get unread count error:', error);
@@ -469,7 +477,7 @@ export class NotificationService implements INotificationService {
       }
 
       // Get count from database cache (fast with proper indexing)
-      const count = await getUnreadCountByType(userId, type);
+      const count = await getUnreadCountByType(context.prisma, userId, type);
       return count;
     } catch (error: any) {
       console.error('Get unread count by type error:', error);

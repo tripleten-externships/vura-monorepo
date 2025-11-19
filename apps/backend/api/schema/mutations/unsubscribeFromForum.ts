@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
-import { forumNotificationService } from '../../../services/forum/forum.service';
+import { ForumService } from '../../../services/forum';
+import { getEventBus } from '../../subscriptions/eventBus';
 
 // resolver function to unsubscribe from forum topic
 export const customUnsubscribeFromForum = async (
@@ -15,17 +16,8 @@ export const customUnsubscribeFromForum = async (
         extensions: { code: 'UNAUTHENTICATED' },
       });
     }
-    // unsubscribe the user from a forum topic
-    const result = await forumNotificationService.createUnSubscription(
-      context.session.data.id,
-      topic,
-      context
-    );
-
-    return {
-      success: result,
-      message: 'Unsubscribed successfully',
-    };
+    const forumService = new ForumService({ context, eventBus: getEventBus() });
+    return forumService.unsubscribeFromTopic(context.session.data.id, topic);
   } catch (error: any) {
     console.error('Unsubscribe from forum mutation error:', error);
     if (error instanceof GraphQLError) {
