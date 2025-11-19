@@ -124,6 +124,11 @@ export class WebSocketService {
 
     logger.info(`User ${userId} joined room ${roomId}`);
   }
+  // check if user is in group (public so it can be used in notification.service)
+  public isUserInGroup(userId: string, groupId: string): boolean {
+    const usersInGroup = this.groupUsers.get(groupId); // look up users in group
+    return usersInGroup?.has(userId) ?? false; // Look up group > if it exists check if this user is in it > if group doesn’t exist user is not in it > return false
+  }
 
   private leaveRoom(socket: AuthenticatedSocket, groupId: string, userId: string) {
     const roomId = `group:${groupId}`;

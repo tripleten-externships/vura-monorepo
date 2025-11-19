@@ -53,6 +53,7 @@ export async function handleChatMessageCreated(
       const mentionNotificationData = mentionTemplate({
         groupId: event.groupId,
         groupName: event.groupName,
+        senderId: event.senderId,
         senderName: event.senderName,
         message: event.message,
         messageId: event.messageId,
@@ -102,6 +103,7 @@ export async function handleChatMessageCreated(
       const messageNotificationData = newGroupMessageTemplate({
         groupId: event.groupId,
         groupName: event.groupName,
+        senderId: event.senderId,
         senderName: event.senderName,
         message: event.message,
         messageId: event.messageId,

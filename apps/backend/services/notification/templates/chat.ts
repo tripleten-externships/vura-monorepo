@@ -4,6 +4,7 @@ import { CreateNotificationInput, NotificationType, NotificationPriority } from 
 export interface ChatTemplateInput {
   groupId: string;
   groupName: string;
+  senderId: string;
   senderName: string;
   message: string;
   messageId: string;
@@ -37,6 +38,7 @@ export function newGroupMessageTemplate(input: ChatTemplateInput): ChatNotificat
     metadata: {
       groupId: input.groupId,
       messageId: input.messageId,
+      senderId: input.senderId,
       senderName: input.senderName,
       groupName: input.groupName,
       messagePreview: preview,
@@ -61,6 +63,7 @@ export function mentionTemplate(input: ChatTemplateInput): ChatNotificationTempl
     metadata: {
       groupId: input.groupId,
       messageId: input.messageId,
+      senderId: input.senderId,
       senderName: input.senderName,
       groupName: input.groupName,
       messagePreview: preview,

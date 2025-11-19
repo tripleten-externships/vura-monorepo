@@ -17,6 +17,7 @@ import {
   resetAllCounters,
 } from '../cache/db-cache';
 import { pubsub, SubscriptionTopics } from '../../api/subscriptions/pubsub';
+import { getWebSocketService } from '../websocket';
 
 export class NotificationService implements INotificationService {
   /**
@@ -58,7 +59,6 @@ export class NotificationService implements INotificationService {
         user: { connect: { id: data.userId } },
       };
 
-      // add optional fields
       if (data.actionUrl) {
         notificationData.actionUrl = data.actionUrl;
       }
@@ -90,6 +90,25 @@ export class NotificationService implements INotificationService {
         notificationData.relatedForumPost = {
           connect: { id: data.relatedForumPostId },
         };
+      }
+
+      // skip notification if user is already in the chat (actively viewing)
+      if (data.notificationType === 'CHAT' && data.metadata?.groupId) {
+        try {
+          const websocketService = getWebSocketService();
+          const userInGroup = websocketService.isUserInGroup(data.userId, data.metadata.groupId);
+
+          if (userInGroup) {
+            logger.info('User already in chat, skipping notification', {
+              userId: data.userId,
+              groupId: data.metadata.groupId,
+            });
+            return null;
+          }
+        } catch (error) {
+          // if WebSocket service isn't initialized, continue with notification creation
+          logger.warn('WebSocket service not available for presence check', { error });
+        }
       }
 
       // create notification
