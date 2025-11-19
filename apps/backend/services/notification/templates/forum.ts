@@ -1,84 +1,124 @@
-// apps/backend/services/notification/templates/forum.ts
+import { CreateNotificationInput, NotificationType, NotificationPriority } from '../types';
 
-// This defines a TypeScript type named ForumNotificationContext.
-// It specifies the shape of the data each template will receive
-
-type ForumNotificationContext = {
+/**
+ * Input data for forum notification templates
+ */
+export interface ForumTemplateInput {
+  postId: string;
   postTitle: string;
   postAuthor: string;
   topicTitle: string;
   excerpt: string;
-  postUrl: string;
-};
+  actionUrl: string;
+}
 
-//  This creates and exports a constant named forumTemplates.
-//  It’s an object that holds multiple template-generating functions.
-// This is a function that takes a ForumNotificationContext object.
-// It destructures the input for readability.
-// It returns an object with subject and body for the notification
+/**
+ * Return type for forum notification templates (omitting userId as it's provided separately)
+ */
+type ForumNotificationTemplate = Omit<CreateNotificationInput, 'userId'>;
 
-export const forumTemplates = {
-  newPostInSubscribedTopic: ({
-    postTitle,
-    postAuthor,
-    topicTitle,
-    excerpt,
-    postUrl,
-  }: ForumNotificationContext) => ({
-    // The subject line includes the topic title.
-    subject: `New post in topic you're following: "${topicTitle}"`,
+/**
+ * Creates a preview of the post excerpt with truncation
+ */
+function createExcerpt(content: string, maxLength: number = 100): string {
+  if (content.length <= maxLength) {
+    return content;
+  }
+  return `${content.slice(0, maxLength)}...`;
+}
 
-    // The body provides details about the new post.
-    // The body text is trimmed to remove extra whitespace.
-    body: `
-${postAuthor} just posted in "${topicTitle}":
+/**
+ * Template for new posts in subscribed topics
+ */
+export function newPostInSubscribedTopicTemplate(
+  input: ForumTemplateInput
+): ForumNotificationTemplate {
+  const excerpt = createExcerpt(input.excerpt, 100);
 
-"${postTitle}"
+  return {
+    type: 'forum_new_post',
+    notificationType: 'FORUM' as NotificationType,
+    priority: 'MEDIUM' as NotificationPriority,
+    content: `${input.postAuthor} posted in "${input.topicTitle}": ${input.postTitle}`,
+    actionUrl: input.actionUrl,
+    metadata: {
+      postId: input.postId,
+      postTitle: input.postTitle,
+      postAuthor: input.postAuthor,
+      topicTitle: input.topicTitle,
+      excerpt,
+      event: 'new_post_in_subscribed_topic',
+    },
+    relatedForumPostId: input.postId,
+  };
+}
 
-${excerpt}
+/**
+ * Template for replies to user's own posts
+ */
+export function replyToYourPostTemplate(input: ForumTemplateInput): ForumNotificationTemplate {
+  const excerpt = createExcerpt(input.excerpt, 100);
 
-Read more: ${postUrl}
+  return {
+    type: 'forum_reply_to_your_post',
+    notificationType: 'FORUM' as NotificationType,
+    priority: 'HIGH' as NotificationPriority,
+    content: `${input.postAuthor} replied to your post in "${input.topicTitle}"`,
+    actionUrl: input.actionUrl,
+    metadata: {
+      postId: input.postId,
+      postTitle: input.postTitle,
+      postAuthor: input.postAuthor,
+      topicTitle: input.topicTitle,
+      excerpt,
+      event: 'reply_to_your_post',
+      isDirectReply: true,
+    },
+    relatedForumPostId: input.postId,
+  };
+}
 
-    `.trim(),
-  }),
+/**
+ * Template for replies to subscribed posts
+ */
+export function replyToSubscribedPostTemplate(
+  input: ForumTemplateInput
+): ForumNotificationTemplate {
+  const excerpt = createExcerpt(input.excerpt, 100);
 
-  // This template is for notifying users about replies to their own posts.
-  replyToYourPost: ({
-    postTitle,
-    postAuthor,
-    topicTitle,
-    excerpt,
-    postUrl,
-  }: ForumNotificationContext) => ({
-    subject: `${postAuthor} replied to your post in "${topicTitle}"`,
-    body: `
-You received a reply to your post:
+  return {
+    type: 'forum_reply_to_subscribed',
+    notificationType: 'FORUM' as NotificationType,
+    priority: 'MEDIUM' as NotificationPriority,
+    content: `${input.postAuthor} replied in "${input.topicTitle}"`,
+    actionUrl: input.actionUrl,
+    metadata: {
+      postId: input.postId,
+      postTitle: input.postTitle,
+      postAuthor: input.postAuthor,
+      topicTitle: input.topicTitle,
+      excerpt,
+      event: 'reply_to_subscribed_post',
+    },
+    relatedForumPostId: input.postId,
+  };
+}
 
-"${postTitle}" — by ${postAuthor}
-
-"${excerpt}"
-
-View the reply: ${postUrl}
-    `.trim(),
-  }),
-
-  // This template is for notifying users about replies to posts they are subscribed to.
-  replyToSubscribedPost: ({
-    postTitle,
-    postAuthor,
-    topicTitle,
-    excerpt,
-    postUrl,
-  }: ForumNotificationContext) => ({
-    subject: `New reply in a thread you're subscribed to: "${topicTitle}"`,
-    body: `
-${postAuthor} replied in "${topicTitle}":
-
-"${postTitle}"
-
-"${excerpt}"
-
-Join the discussion: ${postUrl}
-    `.trim(),
-  }),
-};
+/**
+ * Helper function to get the appropriate forum notification template
+ */
+export function getForumNotificationTemplate(
+  type: 'new_post' | 'reply_to_your_post' | 'reply_to_subscribed',
+  data: ForumTemplateInput
+): ForumNotificationTemplate {
+  switch (type) {
+    case 'new_post':
+      return newPostInSubscribedTopicTemplate(data);
+    case 'reply_to_your_post':
+      return replyToYourPostTemplate(data);
+    case 'reply_to_subscribed':
+      return replyToSubscribedPostTemplate(data);
+    default:
+      throw new Error(`Unknown forum notification type: ${type}`);
+  }
+}
