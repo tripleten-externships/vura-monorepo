@@ -254,6 +254,10 @@ model User {
   gender                 String?
   privacyToggle          Boolean                 @default(true)
   messages               ChatMessage[]           @relation("ChatMessage_sender")
+  isAdmin                Boolean                 @default(false)
+  createdAt              DateTime?               @default(now())
+  lastLoginDate          DateTime?               @default(now())
+  lastUpdateDate         DateTime?               @updatedAt
   carePlan               CarePlan[]              @relation("CarePlan_user")
   aiChatSessions         AiChatSession[]         @relation("AiChatSession_user")
   parents                Parent[]                @relation("Parent_user")

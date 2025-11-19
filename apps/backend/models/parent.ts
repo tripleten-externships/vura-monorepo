@@ -1,21 +1,38 @@
 import { list } from '@keystone-6/core';
 import { text, integer, relationship, json, timestamp } from '@keystone-6/core/fields';
-import { isAuthenticated, canAccessOwnData, isAdmin } from '../utils/access'; // use your centralized helpers
+import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 export const Parent = list({
   access: {
     operation: {
-      query: isAuthenticated, // only signed in users can query
-      create: isAuthenticated, // only signed in users can create
-      update: canAccessOwnData, // only owner or admin can update
-      delete: canAccessOwnData, // only owner or admin can delete
+      // Anyone can query parent data (consider restricting this later)
+      query: () => true,
+      // Only logged-in users can create parents
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update parents
+      update: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can delete parents
+      delete: ({ session }) => isLoggedIn(session),
     },
     filter: {
       query: ({ session }) => {
-        if (!session?.data?.id) return false;
-        // Admins can see all, users only see their linked parents
-        return isAdmin({ session }) ? true : { user: { id: { equals: session.data.id } } };
+        // Admins can see all parents
+        if (isAdmin(session)) return true;
+
+        // Users can see their own parents
+        if (isLoggedIn(session) && session?.data?.id) {
+          return { user: { id: { equals: session.data.id } } };
+        }
+
+        // Not logged in = can't see anything
+        return false;
       },
+    },
+    item: {
+      // Users can update their own parents, admins can update any
+      update: ({ session, item }) => isAdminOrOwner(session, item),
+      // Users can delete their own parents, admins can delete any
+      delete: ({ session, item }) => isAdminOrOwner(session, item),
     },
   },
 

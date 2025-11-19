@@ -1,28 +1,32 @@
 import { list } from '@keystone-6/core';
 import { text, timestamp, relationship } from '@keystone-6/core/fields';
+import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 export const ForumPost = list({
   access: {
     operation: {
-      query: ({ session }) => !!session,
-      create: ({ session }) => !!session,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
+      // Only logged-in users can view forum posts
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create forum posts
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update forum posts
+      update: ({ session }) => isLoggedIn(session),
+      // Only admins can delete any post, or users can delete their own
+      delete: ({ session }) => isLoggedIn(session),
     },
     filter: {
-      // only logged-in user can see posts
-      query: ({ session }) => !!session?.data?.id,
+      // Only logged-in users can see posts
+      query: ({ session }) => {
+        if (!isLoggedIn(session)) return false;
+        // All logged-in users can see all posts
+        return true;
+      },
     },
     item: {
-      //only logged-in users can update and delete their own posts
-      update: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session?.data?.id === item.authorId;
-      },
-      delete: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session?.data?.id === item.authorId;
-      },
+      // Users can update their own posts, admins can update any
+      update: ({ session, item }) => isAdminOrOwner(session, item),
+      // Users can delete their own posts, admins can delete any
+      delete: ({ session, item }) => isAdminOrOwner(session, item),
     },
   },
   fields: {

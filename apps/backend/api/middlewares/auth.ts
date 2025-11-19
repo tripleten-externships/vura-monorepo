@@ -3,6 +3,11 @@ import { createAuth } from '@keystone-6/auth';
 import { statelessSessions } from '@keystone-6/core/session';
 import type { Session } from '../../types/context'; // adjust path if needed
 
+type AccessArgs = {
+  session?: Session;
+  item?: { id?: string; authorId?: string; userId?: string };
+};
+
 // Fail fast in prod if secret missing
 if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
   throw new Error('SESSION_SECRET must be set in production');
@@ -10,8 +15,6 @@ if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
 
 const sessionSecret =
   process.env.SESSION_SECRET?.trim() || 'thisisatemporaryfallbackkeythatisdefinitely32charslong';
-console.log('Using session secret:', sessionSecret);
-console.log('Secret length:', sessionSecret.length);
 
 const sessionMaxAge = 60 * 60 * 24 * 30; // 30 days
 
@@ -33,8 +36,6 @@ const session = statelessSessions({
   path: '/', // makes cookie available to all routes
 });
 
-export { withAuth, session };
-
 // ---------- Guards ----------
 export const requireAuth = (session: Session) => {
   if (!session?.data) throw new Error('Authentication required');
@@ -47,12 +48,7 @@ export const requireRole = (session: Session, role: 'admin' | 'user') => {
   return session;
 };
 
-type AccessArgs = {
-  session?: Session;
-  item?: any;
-};
-
-export const isAuthenticated = ({ session }: AccessArgs): boolean => !!session?.data?.id;
+export const isAuthenticated = ({ session }: AccessArgs): boolean => !!session?.data;
 
 export const isAdmin = ({ session }: AccessArgs): boolean =>
   session?.data?.role === 'admin' || session?.data?.isAdmin === true;
@@ -67,3 +63,5 @@ export const canAccessOwnData = ({ session, item }: AccessArgs): boolean => {
 
   return itemOwnerId === session.data.id;
 };
+
+export { withAuth, session };
