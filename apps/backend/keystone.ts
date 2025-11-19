@@ -5,6 +5,7 @@ dotenv.config({ path: path.resolve(process.cwd(), 'apps/backend/.env') });
 
 import { config } from '@keystone-6/core';
 import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
+import initGoogleStrategy from './google-strategy';
 import { withAuth, session } from './api/middlewares/auth';
 
 import * as Models from './models';
@@ -14,11 +15,14 @@ import { Subscription } from './api/resolvers/Subscription';
 import { DateTime, JSON } from './api/resolvers/scalars';
 import { typeDefs } from './api/schema/typeDefs';
 import { chatRoutes } from './routes/chat';
+import { authRoutes } from './routes/auth';
 
 import { initWebSocketService } from './services/websocket';
 import { createSubscriptionServer } from './api/subscriptions/server';
 import { initializeEventHandlers } from './api/subscriptions/handlers';
 import { aiService } from './services/ai/ai.service';
+
+initGoogleStrategy();
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -38,7 +42,10 @@ export default withAuth(
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
       },
-      extendExpressApp: (app) => {
+      extendExpressApp: (app, commonContext) => {
+        // Register authentication routes (OAuth)
+        authRoutes(app, () => Promise.resolve(commonContext));
+        // Register chat routes
         chatRoutes(app);
       },
       extendHttpServer(server, context) {

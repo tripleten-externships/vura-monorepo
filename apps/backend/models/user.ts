@@ -60,7 +60,6 @@ export const User = list({
         rejectCommon: true,
       },
     }),
-
     role: select({
       options: [
         { label: 'User', value: 'user' },
