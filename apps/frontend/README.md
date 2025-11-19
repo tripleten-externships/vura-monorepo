@@ -159,15 +159,15 @@ The debugging configuration sets `NODE_ENV=development` automatically, which ena
 - Hot reloading
 - Source maps
 
-## React Native for Web + Expo Setup
+## React Native + Vite Setup
 
-This project has been configured to support both web and mobile platforms using React Native for Web and Expo.
+This project has been configured to support both web and mobile platforms using React Native (via React Native CLI) and Vite for the web bundle.
 
 ### Project Structure
 
-- `app/` - Expo Router pages (shared between web and mobile)
-- `src/` - Shared business logic, hooks, and utilities
-- `assets/` - App icons and splash screens
+- `src/` - Shared business logic, hooks, navigation, and utilities
+- `src/navigation/` - Platform-specific router adapters (React Router web & native)
+- `src/screens/` - Feature screens used across platforms
 
 ### Available Scripts
 
@@ -179,28 +179,20 @@ npm run build        # Build for web deployment
 npm run preview      # Preview web build
 ```
 
-#### Mobile Development
+#### Mobile Development (React Native CLI)
 
 ```bash
-npm run expo:start           # Start Expo development server
-npm run expo:start:web       # Start Expo with web support
-npm run expo:start:ios       # Start Expo with iOS simulator
-npm run expo:start:android   # Start Expo with Android emulator
-```
-
-#### Mobile Builds
-
-```bash
-npm run expo:build:ios       # Build iOS app
-npm run expo:build:android   # Build Android app
+npm run native:start         # Start Metro bundler
+npm run native:ios           # Run iOS app via React Native CLI
+npm run native:android       # Run Android app via React Native CLI
 ```
 
 ## Key Points
 
-1. **React Native Components**: Converted React components to use React Native primitives (`View`, `Text`, `TouchableOpacity`, etc.)
-2. **Navigation**: Replaced React Router with Expo Router for cross-platform navigation
-3. **Storage**: Replaced `localStorage` with `AsyncStorage` for cross-platform compatibility
-4. **Configuration**: Added Metro bundler, Babel, and TypeScript configurations for React Native
+1. **React Native Components**: Shared UI is built with React Native primitives (`View`, `Text`, `TouchableOpacity`, etc.)
+2. **Navigation**: A single React Router configuration powers both web (`BrowserRouter`) and native (`NativeRouter`) targets.
+3. **Storage**: Tokens are stored via an abstraction that uses `localStorage` on web and secure/async storage on native.
+4. **Configuration**: Metro, Babel, and TypeScript configs are aligned with the React Native CLI toolchain.
 
 ### Deployment
 
@@ -210,13 +202,13 @@ npm run expo:build:android   # Build Android app
 
 To deploy to app stores, you'll need to:
 
-1. Set up Expo Application Services (EAS) account
-2. Configure build profiles in `eas.json`
-3. Update CI/CD pipeline to include mobile builds
+1. Install the required native build tooling (Xcode for iOS, Android Studio/SDK for Android)
+2. Use `npx react-native run-ios` / `run-android` or the provided npm scripts for building locally
+3. Configure your CI/CD pipeline to run `npm run native:*` commands or integrate with EAS / AppCenter as needed
 
 ### Notes
 
 - The app uses React Native for Web to render React Native components in the browser
-- All business logic (GraphQL, authentication, etc.) remains in the `src/` directory
-- The `app/` directory contains the UI components that work on both platforms
+- All business logic (GraphQL, authentication, etc.) lives inside `src/`
+- Navigation is centralized under `src/navigation/` for both platforms
 - Your existing AWS infrastructure will continue to serve the web version

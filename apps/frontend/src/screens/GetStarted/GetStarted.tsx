@@ -1,88 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { useMutation } from '@apollo/client/react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Bell } from '../../components/NotificationBell/NotificationBell';
-import { Emoji } from '../../components/Emoji/Emoji';
-import { PostInput } from '../../components/PostInput/PostInput';
 import { InputField } from '../../components/InputField/InputField';
-import { WebSocketTest } from '../../components/WebSocketTest';
-import { BottomNavBar } from '../../components/BottomNavBar';
 import { useNavigation } from '../../hooks/useNavigation';
-import { AUTH_TOKEN } from '../../store/apolloClient';
-import { USER_LOGIN } from '../../graphql/mutations';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function GetStartedPage() {
   const navigation = useNavigation();
-  const [login, { loading }] = useMutation(USER_LOGIN);
+  const { login, loading, currentUser, error } = useAuth({
+    onLoginSuccess: () => {
+      Alert.alert('Success', 'Login successful');
+      navigation.push('/');
+    },
+  });
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // debug effect to monitor isLoggedIn state
-  useEffect(() => {
-    console.log('isLoggedIn state changed: ', isLoggedIn);
-  }, [isLoggedIn]);
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   const handleLogin = async () => {
     try {
-      console.log('Attempting login with: ', { email, password });
-
-      const { data } = await login({
-        variables: { email, password },
-      });
-
-      console.log('Login response: ', data);
-
-      if (!data) {
-        console.error('No data returned');
-        Alert.alert('Error', 'Authentication failed');
-        return;
-      }
-
-      const auth = data.authenticateUserWithPassword;
-      console.log('Auth data: ', auth);
-
-      if (!auth) {
-        console.error('No auth data returned');
-        Alert.alert('Error', 'Authentication failed');
-        return;
-      }
-
-      // check the __typename to determine success or failure
-      if (auth.__typename === 'UserAuthenticationWithPasswordSuccess') {
-        console.log('Login successful: ', auth.item);
-        // store the token
-        await AsyncStorage.setItem(AUTH_TOKEN, auth.sessionToken);
-        console.log('Token stored in AsyncStorage: ', auth.sessionToken);
-        setIsLoggedIn(true);
-        navigation.push('/profile');
-        Alert.alert('Success', `Logged in as ${auth.item.name || auth.item.email}`);
-      } else if (auth.__typename === 'UserAuthenticationWithPasswordFailure') {
-        console.error('Login failed: ', auth.message);
-        Alert.alert('Login Failed', auth.message);
-      } else {
-        console.error('Unknown auth response format: ', auth);
-        Alert.alert('Error', 'Unknown authentication response format');
-      }
+      setHasAttempted(true);
+      await login({ email, password });
     } catch (error) {
-      console.error('Login error: ', error);
       Alert.alert('Error', 'Failed to login. Please try again.');
     }
   };
+
+  useEffect(() => {
+    if (currentUser) {
+      navigation.push('/');
+    }
+  }, [currentUser, navigation]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Vura by Betterhunt</Text>
       <Text style={styles.subtitle}>Please log in to continue</Text>
 
-      {/* Debug info */}
-      <Text style={{ color: isLoggedIn ? 'green' : 'red', fontWeight: 'bold', marginBottom: 10 }}>
-        Login Status: {isLoggedIn ? 'Logged In' : 'Not Logged In'}
-      </Text>
+      {hasAttempted && error ? <Text style={styles.errorText}>{error.message}</Text> : null}
 
-      {/* Login form */}
       <InputField
         placeholder="Email"
         placeholderTextColor="rgba(54,54,54,0.5)"
@@ -117,9 +73,7 @@ export default function GetStartedPage() {
         }}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>
-          {loading ? 'Logging in...' : isLoggedIn ? 'Refresh Login' : 'Login'}
-        </Text>
+        <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -183,5 +137,9 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  errorText: {
+    color: '#b00020',
+    marginTop: 8,
   },
 });

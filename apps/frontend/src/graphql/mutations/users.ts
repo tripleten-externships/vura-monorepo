@@ -9,6 +9,9 @@ export const USER_LOGIN = gql(`
           id
           name
           email
+          avatarUrl
+          isAdmin
+          privacyToggle
         }
       }
       ... on UserAuthenticationWithPasswordFailure {
@@ -19,6 +22,7 @@ export const USER_LOGIN = gql(`
 `);
 
 export const USER_LOGOUT = gql(`
-  mutation Mutation { 
+  mutation Mutation {
     endSession
-  }`);
+  }
+`);
