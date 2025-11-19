@@ -32,6 +32,7 @@ export interface AiChatMessagePayload {
 }
 
 export interface ForumPostPayload {
+  postId: string;
   userId: string;
   title: string;
   topic: string;

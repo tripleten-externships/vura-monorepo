@@ -14,7 +14,7 @@ export const User = list({
   access: {
     operation: {
       // Anyone can view users (you might want to restrict this later)
-      query: ({ session }) => isAdmin(session),
+      query: ({ session }) => isLoggedIn(session),
       // Anyone can create a user (for registration)
       create: () => true,
       // Only logged-in users can update

@@ -1,8 +1,3 @@
-import { Context } from '../../types/context';
-
-/**
- * forum types based on the model
- */
 export type ForumPostType = 'NEW_POST' | 'REPLY_TO_YOUR_POST' | 'REPLY_TO_SUBSCRIBED_POST';
 
 export type ForumPostPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
@@ -13,52 +8,51 @@ export type ForumPostPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export interface CreateForumPostInput {
   title: string;
   topic: string;
-  userId: string;
-  type: string;
-  forumPostType?: string;
+  forumPostType?: ForumPostType;
   priority?: ForumPostPriority;
   content: string;
-  actionUrl?: string;
   metadata?: Record<string, any>;
-  expiresAt?: Date;
-  scheduledFor?: Date;
-  relatedForumPostId?: string;
 }
 
 export interface CreateSubscribeForum {
   userId: string;
-  type: string;
   authorName: string;
-  postId: string;
-  priority?: string;
-  content: string;
-  actionUrl?: string;
   topic: string;
   metadata?: Record<string, any>;
+  postId?: string;
 }
 
+export interface ListForumPostsInput {
+  first?: number;
+  after?: string;
+  topic?: string;
+  authorId?: string;
+  searchTerm?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+  orderBy?:
+    | 'CREATED_AT_ASC'
+    | 'CREATED_AT_DESC'
+    | 'UPDATED_AT_ASC'
+    | 'UPDATED_AT_DESC'
+    | 'TITLE_ASC'
+    | 'TITLE_DESC';
+}
+
+import { NotificationPriority } from '../notification/types';
+
 export interface ForumNotificationCreateData {
-  title: string;
-  topic: string;
+  title?: string;
+  topic?: string;
   content: string;
-  priority?: string;
+  priority?: NotificationPriority;
   metadata?: Record<string, any>;
   actionUrl?: string;
   expiresAt?: Date;
   scheduledFor?: Date;
   relatedForumPostId?: string;
-  author: { connect: { id: string } };
   userId: string;
   type: string;
   forumPostType?: string;
   notificationType?: 'CARE_PLAN' | 'CHAT' | 'FORUM' | 'SYSTEM';
-}
-
-/**
- * service interface
- */
-export interface IForumNotificationService {
-  createForumNotification(data: ForumNotificationCreateData, context: Context): Promise<any>;
-  createSubscription(data: CreateSubscribeForum, context: Context): Promise<any>;
-  createUnSubscription(userId: string, topic: string, context: Context): Promise<boolean>;
 }

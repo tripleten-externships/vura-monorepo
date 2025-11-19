@@ -46,19 +46,29 @@ export class WebSocketService {
           socket.handshake.auth?.token ||
           (socket.handshake.headers.authorization as string)?.replace('Bearer ', '');
 
-        if (!token) {
-          socket.emit('authentication:error', 'Missing token');
+        let resolvedUser: { id: string; email?: string } | null = null;
+
+        if (token) {
+          const decoded = verifyToken(token);
+          if (decoded && typeof decoded !== 'string') {
+            resolvedUser = { id: decoded.id as string, email: decoded.email as string };
+          }
+        }
+
+        if (!resolvedUser) {
+          const sessionCookie = this.extractSessionCookie(socket);
+          if (sessionCookie) {
+            resolvedUser = await this.resolveSessionFromCookie(sessionCookie);
+          }
+        }
+
+        if (!resolvedUser) {
+          socket.emit('authentication:error', 'Missing or invalid credentials');
           return next(new Error('Missing authentication token'));
         }
 
-        const decoded = verifyToken(token);
-        if (!decoded || typeof decoded === 'string') {
-          socket.emit('authentication:error', 'Invalid or expired token');
-          return next(new Error('Invalid or expired token'));
-        }
-
-        socket.userId = decoded.id;
-        socket.username = decoded.email;
+        socket.userId = resolvedUser.id;
+        socket.username = resolvedUser.email;
 
         logger.info(`Socket authenticated for user ${socket.userId}`);
         socket.emit('authentication:success', { userId: socket.userId });
@@ -200,5 +210,47 @@ export class WebSocketService {
    */
   public getIO(): SocketIOServer {
     return this.io;
+  }
+
+  private extractSessionCookie(socket: AuthenticatedSocket): string | null {
+    const cookieHeader = socket.handshake.headers.cookie;
+    if (!cookieHeader) {
+      return null;
+    }
+    const cookies = cookieHeader.split(';').map((chunk) => chunk.trim());
+    for (const cookie of cookies) {
+      if (cookie.startsWith('keystonejs-session=')) {
+        return cookie.split('=')[1] || null;
+      }
+    }
+    return null;
+  }
+
+  private async resolveSessionFromCookie(
+    sessionToken: string
+  ): Promise<{ id: string; email?: string } | null> {
+    try {
+      const baseContext = await this.contextProvider();
+      if (typeof (baseContext as any).withRequest !== 'function') {
+        return null;
+      }
+      const fakeReq = {
+        headers: {
+          cookie: `keystonejs-session=${sessionToken}`,
+        },
+      } as any;
+      const fakeRes = {} as any;
+      const scopedContext = await (baseContext as any).withRequest(fakeReq, fakeRes);
+      if (scopedContext.session?.data?.id) {
+        return {
+          id: scopedContext.session.data.id,
+          email: scopedContext.session.data.email,
+        };
+      }
+      return null;
+    } catch (error) {
+      logger.error('failed to resolve session from cookie', { error });
+      return null;
+    }
   }
 }

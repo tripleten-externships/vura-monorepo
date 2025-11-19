@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
-import { forumNotificationService } from '../../../services/forum/forum.service';
+import { ForumService } from '../../../services/forum';
+import { getEventBus } from '../../subscriptions/eventBus';
 
 // resolver function to subscribe to forum topic
 export const customSubscribeToForum = async (
@@ -15,23 +16,13 @@ export const customSubscribeToForum = async (
         extensions: { code: 'UNAUTHENTICATED' },
       });
     }
-    // subscribe the user to a forum topic
-    const notification = await forumNotificationService.createSubscription(
-      {
-        userId: context.session.data.id,
-        type: 'FORUM',
-        authorName,
-        postId,
-        topic,
-        content: `Subscribed to "${topic}"`,
-      },
-      context
-    );
-
-    return {
-      notification,
-      message: 'Subscribed successfully',
-    };
+    const forumService = new ForumService({ context, eventBus: getEventBus() });
+    return forumService.subscribeToTopic({
+      userId: context.session.data.id,
+      authorName,
+      postId,
+      topic,
+    });
   } catch (error: any) {
     console.error('Subscribe to forum mutation error:', error);
     if (error instanceof GraphQLError) {

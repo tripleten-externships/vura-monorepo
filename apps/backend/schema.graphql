@@ -1911,6 +1911,7 @@ input CreateInitialUserInput {
   email: String
   password: String
   role: String
+  isAdmin: Boolean
 }
 
 type Query {
@@ -2225,7 +2226,6 @@ input CreateForumPostInput {
   forumPostType: ForumPostType!
   type: String!
   metadata: JSON
-  userId: ID!
 }
 
 type ForumSubscriptionNotification {

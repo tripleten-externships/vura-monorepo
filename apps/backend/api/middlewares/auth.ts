@@ -22,9 +22,9 @@ const { withAuth } = createAuth({
   listKey: 'User',
   identityField: 'email',
   secretField: 'password',
-  sessionData: 'id name email role',
+  sessionData: 'id name email role isAdmin',
   initFirstItem: {
-    fields: ['name', 'email', 'password', 'role'],
+    fields: ['name', 'email', 'password', 'role', 'isAdmin'],
   },
 });
 

@@ -36,7 +36,7 @@ async function main() {
     for (const user of users) {
       try {
         console.log(`Syncing counters for: ${user.email || user.id}`);
-        await syncCountersFromNotifications(user.id);
+        await syncCountersFromNotifications(prisma, user.id);
         successCount++;
         console.log(` Success\n`);
       } catch (error) {

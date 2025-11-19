@@ -5,7 +5,7 @@ dotenv.config({ path: path.resolve(process.cwd(), 'apps/backend/.env') });
 
 import { config } from '@keystone-6/core';
 import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
-import initGoogleStrategy from './google-strategy';
+// import initGoogleStrategy from './google-strategy';
 import { withAuth, session } from './api/middlewares/auth';
 
 import * as Models from './models';
@@ -18,11 +18,15 @@ import { chatRoutes } from './routes/chat';
 import { authRoutes } from './routes/auth';
 
 import { initWebSocketService } from './services/websocket';
+import { ForumPostCreatedEvent } from './api/subscriptions/events';
 import { createSubscriptionServer } from './api/subscriptions/server';
 import { initializeEventHandlers } from './api/subscriptions/handlers';
+import { initEventBus } from './api/subscriptions/eventBus';
+import { SubscriptionTopics } from './api/subscriptions/pubsub';
+import { logger } from './utils/logger';
 import { aiService } from './services/ai/ai.service';
 
-initGoogleStrategy();
+// initGoogleStrategy();
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -46,7 +50,7 @@ export default withAuth(
         // Register authentication routes (OAuth)
         authRoutes(app, () => Promise.resolve(commonContext));
         // Register chat routes
-        app.use('/chat', chatRoutes); // all endpoints now live under /chat/*
+        chatRoutes(app, () => Promise.resolve(commonContext));
       },
 
       extendHttpServer(server, context) {
@@ -54,10 +58,30 @@ export default withAuth(
         aiService.initializeWithPrisma(context.prisma);
 
         // Initialize WebSocket service for chat
-        initWebSocketService({
+        const websocketService = initWebSocketService({
           httpServer: server,
           context: () => Promise.resolve(context),
         });
+
+        const eventBus = initEventBus();
+        eventBus.addFanOut<ForumPostCreatedEvent>(
+          SubscriptionTopics.FORUM_POST_CREATED,
+          (payload) => {
+            try {
+              websocketService.emitNewForumPost({
+                userId: payload.userId,
+                postId: payload.postId,
+                title: payload.title,
+                topic: payload.topic,
+                content: payload.content,
+                authorName: payload.authorName,
+                createdAt: payload.createdAt,
+              });
+            } catch (error) {
+              logger.error('failed to fan out forum post to websocket', { error });
+            }
+          }
+        );
 
         // Initialize GraphQL subscription server
         createSubscriptionServer({
@@ -65,13 +89,15 @@ export default withAuth(
           context: () => Promise.resolve(context),
         });
 
-        initializeEventHandlers(context);
+        initializeEventHandlers(context, eventBus);
       },
     },
     ui: {
-      // Only allow admin users to access the admin UI
+      // give access if the user has either the admin role or the legacy isAdmin flag
       isAccessAllowed: (context) => {
-        return context.session?.data?.isAdmin === true;
+        const roleIsAdmin = context.session?.data?.role === 'admin';
+        const flagIsAdmin = context.session?.data?.isAdmin === true;
+        return Boolean(roleIsAdmin || flagIsAdmin);
       },
       basePath: '/admin/ui',
     },
