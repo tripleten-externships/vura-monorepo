@@ -547,5 +547,4 @@ export class NotificationService implements INotificationService {
   }
 }
 
-// export singleton instance
 export const notificationService = new NotificationService();

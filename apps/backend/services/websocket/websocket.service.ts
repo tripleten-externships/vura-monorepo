@@ -6,6 +6,7 @@ import {
   SocketEvents,
   ChatMessagePayload,
   AiChatMessagePayload,
+  ForumPostPayload,
 } from './types';
 import { logger } from '../../utils/logger';
 import jwt from 'jsonwebtoken';
@@ -182,6 +183,16 @@ export class WebSocketService {
     }
   }
 
+  // emit a new forum post for all users
+  public emitNewForumPost(post: ForumPostPayload) {
+    const roomId = `forum:${post.topic}`;
+    this.io.to(roomId).emit(SocketEvents.NEW_FORUM_POST, post);
+    logger.info(`Emitted new forum post to room ${roomId}`);
+  }
+
+  /**
+   * get the socket.io server instance
+   */
   public getIO(): SocketIOServer {
     return this.io;
   }

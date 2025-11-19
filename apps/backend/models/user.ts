@@ -95,8 +95,10 @@ export const User = list({
       ref: 'QuestionnaireResponse.user',
       many: true,
     }),
-    notifications: relationship({ ref: 'Notification.user', many: true }),
-
+    notifications: relationship({
+      ref: 'Notification.user',
+      many: true,
+    }),
     // Metadata
 
     // Only admins can view/modify admin status
@@ -119,6 +121,10 @@ export const User = list({
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
       ui: { description: 'Automatically updates on record change' },
+    }),
+    forumSubscriptions: relationship({
+      ref: 'ForumSubscription.user',
+      many: true,
     }),
   },
 

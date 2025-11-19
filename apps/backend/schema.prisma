@@ -92,17 +92,35 @@ model Checklist {
 }
 
 model ForumPost {
-  id                                 String         @id @default(uuid())
-  title                              String         @default("")
-  topic                              String         @default("")
-  content                            String         @default("")
-  createdAt                          DateTime?      @default(now())
-  updatedAt                          DateTime?      @default(now())
-  author                             User?          @relation("ForumPost_author", fields: [authorId], references: [id])
-  authorId                           String?        @map("author")
-  from_Notification_relatedForumPost Notification[] @relation("Notification_relatedForumPost")
+  id                                 String              @id @default(uuid())
+  title                              String              @default("")
+  topic                              String              @default("")
+  content                            String              @default("")
+  forumPostType                      String
+  priority                           String              @default("MEDIUM")
+  metadata                           Json?               @default("{}")
+  createdAt                          DateTime?           @default(now())
+  updatedAt                          DateTime?           @updatedAt
+  subscribers                        ForumSubscription[] @relation("ForumSubscription_forumPost")
+  author                             User?               @relation("ForumPost_author", fields: [authorId], references: [id])
+  authorId                           String?             @map("author")
+  from_Notification_relatedForumPost Notification[]      @relation("Notification_relatedForumPost")
 
   @@index([authorId])
+}
+
+model ForumSubscription {
+  id           String     @id @default(uuid())
+  user         User?      @relation("ForumSubscription_user", fields: [userId], references: [id])
+  userId       String?    @map("user")
+  forumPost    ForumPost? @relation("ForumSubscription_forumPost", fields: [forumPostId], references: [id])
+  forumPostId  String?    @map("forumPost")
+  topic        String     @default("")
+  content      String     @default("")
+  subscribedAt DateTime?  @default(now())
+
+  @@index([userId])
+  @@index([forumPostId])
 }
 
 model GroupChat {
@@ -266,6 +284,7 @@ model User {
   createdAt              DateTime?               @default(now())
   lastLoginDate          DateTime?               @default(now())
   lastUpdateDate         DateTime?               @updatedAt
+  forumSubscriptions     ForumSubscription[]     @relation("ForumSubscription_user")
 }
 
 enum AiChatSessionStatusType {

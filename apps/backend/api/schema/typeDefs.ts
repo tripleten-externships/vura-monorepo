@@ -132,10 +132,23 @@ export const typeDefs = gql`
   }
 
   # Forum Post Types
-  input CustomCreateForumPostInput {
+
+  input CreateForumPostInput {
     title: String!
     topic: String!
     content: String!
+    priority: ForumPostPriority
+    forumPostType: ForumPostType!
+    type: String!
+    metadata: JSON
+    userId: ID!
+  }
+
+  type ForumSubscriptionNotification {
+    id: ID!
+    topic: String!
+    content: String!
+    actionUrl: String!
   }
 
   type CustomCreateForumPostResult {
@@ -169,6 +182,19 @@ export const typeDefs = gql`
     TITLE_DESC
   }
 
+  enum ForumPostPriority {
+    LOW
+    MEDIUM
+    HIGH
+    URGENT
+  }
+
+  enum ForumPostType {
+    NEW_POST
+    REPLY_TO_YOUR_POST
+    REPLY_TO_SUBSCRIBED_POST
+  }
+
   type ForumPostConnection {
     edges: [ForumPostEdge!]!
     pageInfo: PageInfo!
@@ -188,6 +214,27 @@ export const typeDefs = gql`
     createdAt: DateTime!
     updatedAt: DateTime
     author: UserProfile
+  }
+
+  type ForumPostCreatedEvent {
+    postId: ID!
+    topic: String!
+    content: String!
+    authorName: String!
+    subscriberIds: [ID!]!
+    createdAt: String!
+  }
+
+  type NotificationCreatedEvent {
+    notificationId: ID!
+    userId: ID!
+    type: String!
+    notificationType: String!
+    priority: String!
+    content: String!
+    actionUrl: String
+    metadata: JSON
+    createdAt: String!
   }
 
   # Group Chat Types
@@ -364,6 +411,20 @@ export const typeDefs = gql`
     notificationType: NotificationType
   }
 
+  type ForumSubscriptionResult {
+    success: Boolean!
+    message: String
+    subscriptionId: ID
+    notification: ForumSubscriptionNotification
+  }
+
+  type ForumSubscriptionNotification {
+    id: ID!
+    topic: String
+    content: String
+    actionUrl: String
+  }
+
   # Questionnaire assignment
   input AssignQuestionnaireInput {
     questionnaireId: ID!
@@ -381,7 +442,7 @@ export const typeDefs = gql`
   type Mutation {
     signup(input: SignupInput!): SignupResult!
     login(input: LoginInput!): LoginResult!
-    customCreateForumPost(data: CustomCreateForumPostInput!): CustomCreateForumPostResult!
+    customCreateForumPost(data: CreateForumPostInput!): CustomCreateForumPostResult!
     customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
     customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
     sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
@@ -397,6 +458,12 @@ export const typeDefs = gql`
     customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
     customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
     customMarkAllNotificationsAsRead: MarkAllAsReadResult!
+    customSubscribeToForum(
+      authorName: String!
+      topic: String!
+      postId: ID
+    ): ForumSubscriptionResult!
+    customUnsubscribeFromForum(topic: String!): ForumSubscriptionResult!
     assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
   }
 
@@ -443,5 +510,12 @@ export const typeDefs = gql`
 
     # Subscribe to unread count changes for a specific user
     unreadCountChanged(userId: ID!): UnreadCountResult!
+
+    # Subscribe to forum post created events
+    forumPostCreated: ForumPostCreatedEvent!
+
+    # Subscribe to forum notifications for a specific user
+    forumNotification(userId: String!): NotificationCreatedEvent!
   }
 `;
+//

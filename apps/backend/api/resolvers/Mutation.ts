@@ -16,6 +16,8 @@ import { updateUserStatus } from '../schema/mutations/userStatus';
 import { customCreateNotification } from '../schema/mutations/createNotification';
 import { customMarkNotificationAsRead } from '../schema/mutations/markNotificationAsRead';
 import { customMarkAllNotificationsAsRead } from '../schema/mutations/markAllNotificationsAsRead';
+import { customSubscribeToForum } from '../schema/mutations/subscribeToForum';
+import { customUnsubscribeFromForum } from '../schema/mutations/unsubscribeFromForum';
 
 const withAuth = (resolver: Function) => (root: any, args: any, context: any, info: any) => {
   requireAuth(context.session);
@@ -46,4 +48,6 @@ export const Mutation = {
   customCreateNotification: withAuth(customCreateNotification),
   customMarkNotificationAsRead: withAuth(customMarkNotificationAsRead),
   customMarkAllNotificationsAsRead: withAuth(customMarkAllNotificationsAsRead),
+  customSubscribeToForum: withAuth(customSubscribeToForum),
+  customUnsubscribeFromForum: withAuth(customUnsubscribeFromForum),
 };

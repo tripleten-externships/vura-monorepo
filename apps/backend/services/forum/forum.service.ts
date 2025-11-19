@@ -1,0 +1,196 @@
+import { GraphQLError } from 'graphql';
+import { Context } from '../../types/context';
+import {
+  CreateForumPostInput,
+  IForumNotificationService,
+  CreateSubscribeForum,
+  ForumNotificationCreateData,
+} from './types';
+import { logger } from '../../utils/logger';
+
+export class ForumNotificationService implements IForumNotificationService {
+  /**
+   * create and persist a single notification
+   */
+  async createForumNotification(data: ForumNotificationCreateData, context: Context): Promise<any> {
+    try {
+      // validate required fields
+      if (!data.userId) {
+        throw new GraphQLError('User ID is required', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+
+      if (!data.type || data.type.trim() === '') {
+        throw new GraphQLError('ForumNotification sub-type is required', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+
+      if (!data.content || data.content.trim() === '') {
+        throw new GraphQLError('Notification content is required', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+
+      // prepare notification data
+      const notificationData: any = {
+        user: { connect: { id: data.userId } },
+        type: 'FORUM_NEW_EVENT',
+        notificationType: 'FORUM',
+        forumPostType: data.forumPostType,
+        priority: data.priority || 'MEDIUM',
+        content: data.content,
+      };
+
+      if (data.metadata) {
+        notificationData.metadata = data.metadata;
+      }
+
+      if (data.expiresAt) {
+        notificationData.expiresAt = data.expiresAt;
+      }
+
+      if (data.scheduledFor) {
+        notificationData.scheduledFor = data.scheduledFor;
+      }
+
+      if (data.relatedForumPostId) {
+        notificationData.relatedForumPost = {
+          connect: { id: data.relatedForumPostId },
+        };
+      }
+
+      // create notification
+      const notification = await context.db.Notification.createOne({
+        data: notificationData,
+      });
+
+      // log notification creation
+      logger.info('forumNotification created', {
+        notificationId: notification.id,
+        userId: data.userId,
+        type: data.type,
+        ForumPostType: data.forumPostType,
+      });
+
+      return notification;
+    } catch (error: any) {
+      console.error('Create forumNotification error:', error);
+      if (error instanceof GraphQLError) {
+        throw error;
+      }
+      throw new GraphQLError('Failed to create forumNotification', {
+        extensions: { code: 'INTERNAL_SERVER_ERROR' },
+      });
+    }
+  }
+
+  // Create subscription event
+  async createSubscription(data: CreateSubscribeForum, context: Context): Promise<any> {
+    try {
+      // validate required fields
+      if (!data.userId) {
+        throw new GraphQLError('User ID is required', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+
+      if (!data.topic || data.topic.trim() === '') {
+        throw new GraphQLError('Topic is required', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+      // Check if the user is already subscribed to this topic
+      const existing = await context.db.ForumSubscription.findMany({
+        where: {
+          user: { id: { equals: data.userId } },
+          topic: { equals: data.topic },
+        },
+      });
+
+      if (existing.length > 0) {
+        throw new GraphQLError('Already subscribed to this topic', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+
+      const subscriptionData: any = {
+        user: { connect: { id: data.userId } },
+        topic: data.topic,
+        content: `Subscribed to "${data.topic}"`,
+      };
+
+      if (data.metadata) {
+        subscriptionData.metadata = data.metadata;
+      }
+
+      const subscription = await context.db.ForumSubscription.createOne({
+        data: subscriptionData,
+      });
+
+      logger.info('forum subscription created', {
+        userId: data.userId,
+        topic: data.topic,
+      });
+
+      return subscription;
+    } catch (error: any) {
+      console.error('Create subscription error:', error);
+      if (error instanceof GraphQLError) {
+        throw error;
+      }
+      throw new GraphQLError('Failed to create subscription', {
+        extensions: { code: 'INTERNAL_SERVER_ERROR' },
+      });
+    }
+  }
+  // Create unsubscription event
+  async createUnSubscription(userId: string, topic: string, context: Context): Promise<boolean> {
+    try {
+      if (!userId) {
+        throw new GraphQLError('userID is required', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+
+      if (!topic) {
+        throw new GraphQLError('topic is required', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+
+      const subscriptions = await context.db.ForumSubscription.findMany({
+        where: {
+          topic: { equals: topic },
+          user: { id: { equals: userId } },
+        },
+      });
+
+      if (subscriptions.length === 0) {
+        throw new GraphQLError('Subscription not found', {
+          extensions: { code: 'NOT_FOUND' },
+        });
+      }
+
+      const subscriptionIds = subscriptions.map((sub) => sub.id as string);
+      await context.db.ForumSubscription.deleteMany({
+        where: subscriptionIds.map((id) => ({ id })),
+      });
+
+      logger.info('Subscription deleted', { userId, topic });
+      return true;
+    } catch (error: any) {
+      console.error('Delete subscription error:', error);
+      if (error instanceof GraphQLError) {
+        throw error;
+      }
+      throw new GraphQLError('Failed to delete subscription', {
+        extensions: { code: 'INTERNAL_SERVER_ERROR' },
+      });
+    }
+  }
+}
+
+// export singleton instance
+export const forumNotificationService = new ForumNotificationService();

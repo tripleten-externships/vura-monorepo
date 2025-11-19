@@ -1,5 +1,5 @@
 import { list } from '@keystone-6/core';
-import { text, timestamp, relationship } from '@keystone-6/core/fields';
+import { text, checkbox, timestamp, relationship, select, json } from '@keystone-6/core/fields';
 import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 export const ForumPost = list({
@@ -30,7 +30,6 @@ export const ForumPost = list({
     },
   },
   fields: {
-    //forumpost content
     title: text({
       validation: { isRequired: true, length: { max: 30 } },
     }),
@@ -43,45 +42,46 @@ export const ForumPost = list({
         displayMode: 'textarea',
       },
     }),
-    //timestamp
+    // type of forum post for notification
+    forumPostType: select({
+      options: [
+        { label: 'New Post', value: 'NEW_POST' },
+        { label: 'Reply to Your Post', value: 'REPLY_TO_YOUR_POST' },
+        { label: 'Reply to Subscribed Post', value: 'REPLY_TO_SUBSCRIBED_POST' },
+      ],
+      validation: { isRequired: true },
+      db: { isNullable: false },
+    }),
+    priority: select({
+      options: [
+        { label: 'Low', value: 'LOW' },
+        { label: 'Medium', value: 'MEDIUM' },
+        { label: 'High', value: 'HIGH' },
+        { label: 'Urgent', value: 'URGENT' },
+      ],
+      defaultValue: 'MEDIUM',
+      validation: { isRequired: true },
+      db: { isNullable: false },
+    }),
+    metadata: json({
+      defaultValue: {},
+    }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    //timestamp
     updatedAt: timestamp({
-      defaultValue: { kind: 'now' },
+      db: { updatedAt: true },
     }),
-    //relationship
-    author: relationship({
-      ref: 'User.forumPost',
-      many: false,
+    subscribers: relationship({
+      ref: 'ForumSubscription.forumPost',
+      many: true,
       ui: {
         displayMode: 'select',
       },
     }),
-  },
-  hooks: {
-    //Automatically connect the author to the logged-in user and get their user ID.
-    resolveInput: async ({ resolvedData, context }) => {
-      if (context.session?.data?.id) {
-        return {
-          ...resolvedData,
-          author: { connect: { id: context.session.data.id } },
-        };
-      }
-      return resolvedData;
-    },
-    // Automatically update the time when a post is updated.
-    beforeOperation: async ({ operation, resolvedData }) => {
-      if (operation === 'update') {
-        resolvedData.updatedAt = new Date();
-      }
-    },
-    // Automatically delete when a post is deleted.
-    afterOperation: async ({ operation, item }) => {
-      if (operation === 'delete') {
-        console.log('Deleted item:', item);
-      }
-    },
+    author: relationship({
+      ref: 'User.forumPost',
+      many: false,
+    }),
   },
 });
