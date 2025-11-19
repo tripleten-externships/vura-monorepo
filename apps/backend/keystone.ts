@@ -1,9 +1,13 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), 'apps/backend/.env') });
 
 import { config } from '@keystone-6/core';
 import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
-import { withAuth, session } from './auth';
+import initGoogleStrategy from './google-strategy';
+import { withAuth, session } from './api/middlewares/auth';
+
 import * as Models from './models';
 import { Query } from './api/resolvers/Query';
 import { Mutation } from './api/resolvers/Mutation';
@@ -11,10 +15,14 @@ import { Subscription } from './api/resolvers/Subscription';
 import { DateTime, JSON } from './api/resolvers/scalars';
 import { typeDefs } from './api/schema/typeDefs';
 import { chatRoutes } from './routes/chat';
+import { authRoutes } from './routes/auth';
 
 import { initWebSocketService } from './services/websocket';
 import { createSubscriptionServer } from './api/subscriptions/server';
 import { initializeEventHandlers } from './api/subscriptions/handlers';
+import { aiService } from './services/ai/ai.service';
+
+initGoogleStrategy();
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -34,10 +42,17 @@ export default withAuth(
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
       },
-      extendExpressApp: (app) => {
-        chatRoutes(app);
+      extendExpressApp: (app, commonContext) => {
+        // Register authentication routes (OAuth)
+        authRoutes(app, () => Promise.resolve(commonContext));
+        // Register chat routes
+        app.use('/chat', chatRoutes); // all endpoints now live under /chat/*
       },
+
       extendHttpServer(server, context) {
+        // Initialize AI service with Prisma for database persistence
+        aiService.initializeWithPrisma(context.prisma);
+
         // Initialize WebSocket service for chat
         initWebSocketService({
           httpServer: server,
@@ -54,7 +69,10 @@ export default withAuth(
       },
     },
     ui: {
-      isAccessAllowed: (context) => context.session !== undefined,
+      // Only allow admin users to access the admin UI
+      isAccessAllowed: (context) => {
+        return context.session?.data?.isAdmin === true;
+      },
       basePath: '/admin/ui',
     },
     db: {

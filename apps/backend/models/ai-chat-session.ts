@@ -1,30 +1,39 @@
 import { list } from '@keystone-6/core';
 import type { Lists } from '.keystone/types';
 import { text, select, json, timestamp, relationship } from '@keystone-6/core/fields';
+import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 export const AiChatSession = list({
   access: {
     operation: {
-      query: ({ session }) => !!session,
-      create: ({ session }) => !!session,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
+      // Only logged-in users can query AI chat sessions
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create AI chat sessions
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update AI chat sessions
+      update: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can delete AI chat sessions
+      delete: ({ session }) => isLoggedIn(session),
     },
     filter: {
-      query: ({ session }) => ({
-        user: { id: { equals: session?.data?.id } },
-      }),
+      query: ({ session }) => {
+        // Admins can see all AI chat sessions
+        if (isAdmin(session)) return true;
+
+        // Regular users can only see their own sessions
+        if (isLoggedIn(session) && session?.data?.id) {
+          return { user: { id: { equals: session.data.id } } };
+        }
+
+        // Not logged in = can't see anything
+        return false;
+      },
     },
     item: {
-      // admin can update/delete any session, or user can update/delete their own session
-      update: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session.data.isAdmin || item.userId === session.data.id;
-      },
-      delete: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session.data.isAdmin || item.userId === session.data.id;
-      },
+      // Users can update their own sessions, admins can update any
+      update: ({ session, item }) => isAdminOrOwner(session, item),
+      // Users can delete their own sessions, admins can delete any
+      delete: ({ session, item }) => isAdminOrOwner(session, item),
     },
   },
   fields: {

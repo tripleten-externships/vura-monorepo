@@ -9,46 +9,43 @@ import {
   integer,
   float,
 } from '@keystone-6/core/fields';
+import { isAdmin, isLoggedIn } from '../utils/rbac';
 
 export const AiMessage = list({
   access: {
     operation: {
-      query: ({ session }) => !!session,
-      create: ({ session }) => !!session,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
+      // Only logged-in users can query AI messages
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create AI messages
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update AI messages
+      update: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can delete AI messages
+      delete: ({ session }) => isLoggedIn(session),
     },
     filter: {
       query: ({ session }) => {
-        if (!session?.data?.id) return false;
+        // Admins can see all messages
+        if (isAdmin(session)) return true;
 
-        // admin can see all messages, users can only see messages from their own sessions
-        if (session.data.isAdmin) return true;
+        // Users can only see messages from their own sessions
+        if (isLoggedIn(session) && session?.data?.id) {
+          return {
+            session: {
+              user: { id: { equals: session.data.id } },
+            },
+          };
+        }
 
-        return {
-          session: {
-            user: { id: { equals: session.data.id } },
-          },
-        };
+        // Not logged in = can't see anything
+        return false;
       },
     },
     item: {
-      // admin can update/delete any message, or user can update/delete messages from their own sessions
-      // for non-admin users, check if the message belongs to their session
-      // this would require a database query in a real implementation
-      // conservative approach - only allow admin updates/deletes for now
-      update: ({ session, item, context }) => {
-        if (!session?.data?.id) return false;
-        if (session.data.isAdmin) return true;
-
-        return false;
-      },
-      delete: ({ session, item, context }) => {
-        if (!session?.data?.id) return false;
-        if (session.data.isAdmin) return true;
-
-        return false;
-      },
+      // Conservative approach - only admins can update/delete AI messages
+      // Users viewing their own messages are handled by filter.query
+      update: ({ session }) => isAdmin(session),
+      delete: ({ session }) => isAdmin(session),
     },
   },
   fields: {

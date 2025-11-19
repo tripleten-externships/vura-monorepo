@@ -9,7 +9,14 @@ import {
   NotificationType,
 } from './types';
 import { logger } from '../../utils/logger';
-// import { WebSocketService } from '../websocket';
+import {
+  incrementCounter,
+  decrementCounter,
+  getTotalUnreadCount,
+  getUnreadCountByType,
+  resetAllCounters,
+} from '../cache/db-cache';
+import { pubsub, SubscriptionTopics } from '../../api/subscriptions/pubsub';
 
 export class NotificationService implements INotificationService {
   /**
@@ -117,6 +124,36 @@ export class NotificationService implements INotificationService {
         notificationType: data.notificationType,
       });
 
+      // increment unread counters in database cache and publish events
+      try {
+        // Increment counter for this notification type
+        await incrementCounter(data.userId, notification.notificationType as NotificationType);
+
+        // Get total count across all types
+        const totalCount = await getTotalUnreadCount(data.userId);
+
+        // publish unread count changed
+        pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+          userId: data.userId,
+          count: totalCount,
+        });
+
+        // publish notification created
+        pubsub.publish(SubscriptionTopics.NOTIFICATION_CREATED, {
+          userId: data.userId,
+          notificationId: notification.id,
+          type: notification.type,
+          notificationType: notification.notificationType,
+          priority: notification.priority,
+          content: notification.content,
+          actionUrl: notification.actionUrl,
+          metadata: notification.metadata,
+          createdAt: notification.createdAt,
+        });
+      } catch (e) {
+        logger.error('Counter increment/publish failed after createNotification', { error: e });
+      }
+
       return notification;
     } catch (error: any) {
       console.error('Create notification error:', error);
@@ -138,11 +175,11 @@ export class NotificationService implements INotificationService {
   } // I think these should be inside curly braces of createNotification, but there is an error when I do that
 
   // handle batch notifications
-  public batchNotifications() {
-    let buffer = []; // store incoming notifications
+  public batchNotifications(context: Context) {
+    let buffer: CreateNotificationInput[] = []; // store incoming notifications
     let batching = false; // prevents multiple loops from running
 
-    function onIncomingMessage(msg) {
+    function onIncomingMessage(msg: CreateNotificationInput) {
       buffer.push(msg);
 
       if (!batching) {
@@ -170,7 +207,7 @@ export class NotificationService implements INotificationService {
       batching = false;
     }
 
-    function sendBatch() {
+    async function sendBatch() {
       if (buffer.length === 0) {
         return; // nothing to send
       }
@@ -179,7 +216,9 @@ export class NotificationService implements INotificationService {
       buffer = []; // clear buffer
 
       try {
-        await context.db.createBulkNotifications(batch);
+        await Promise.all(
+          batch.map((notification) => context.db.Notification.createOne({ data: notification }))
+        );
       } catch (err) {
         console.error('Error sending notification batch:', err);
       }
@@ -302,6 +341,24 @@ export class NotificationService implements INotificationService {
         userId,
       });
 
+      // decrement unread counters if it was previously unread, and publish
+      if (notification.read === false) {
+        try {
+          // Decrement counter for this notification type
+          await decrementCounter(userId, notification.notificationType as NotificationType);
+
+          // Get new total count across all types
+          const newTotal = await getTotalUnreadCount(userId);
+
+          pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+            userId,
+            count: newTotal,
+          });
+        } catch (e) {
+          logger.error('Counter decrement/publish failed after markAsRead', { error: e });
+        }
+      }
+
       return updatedNotification;
     } catch (error: any) {
       console.error('Mark as read error:', error);
@@ -327,33 +384,35 @@ export class NotificationService implements INotificationService {
       }
 
       // get all unread notifications for the user first
-      const unreadNotifications = await context.db.Notification.findMany({
+      const unreadNotifications = await context.prisma.notification.updateMany({
         where: {
           user: { id: { equals: userId } },
           read: { equals: false },
         },
+        data: {
+          read: true,
+          readAt: new Date(),
+        },
       });
-
-      // update each notification individually
-      await Promise.all(
-        unreadNotifications.map((notification) =>
-          context.db.Notification.updateOne({
-            where: { id: String(notification.id) },
-            data: {
-              read: true,
-              readAt: new Date(),
-            },
-          })
-        )
-      );
-
-      const count = unreadNotifications.length;
+      const count = unreadNotifications.count;
 
       // log bulk read action
       logger.info('All notifications marked as read', {
         userId,
         count,
       });
+
+      // reset all counters to zero and publish
+      try {
+        await resetAllCounters(userId);
+
+        pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+          userId,
+          count: 0,
+        });
+      } catch (e) {
+        logger.error('Counter reset/publish failed after markAllAsRead', { error: e });
+      }
 
       return count;
     } catch (error: any) {
@@ -436,14 +495,8 @@ export class NotificationService implements INotificationService {
         });
       }
 
-      // count unread notifications
-      const count = await context.db.Notification.count({
-        where: {
-          user: { id: { equals: userId } },
-          read: { equals: false },
-        },
-      });
-
+      // Get count from database cache (fast with proper indexing)
+      const count = await getTotalUnreadCount(userId);
       return count;
     } catch (error: any) {
       console.error('Get unread count error:', error);
@@ -478,15 +531,8 @@ export class NotificationService implements INotificationService {
         });
       }
 
-      // count unread notifications by type
-      const count = await context.db.Notification.count({
-        where: {
-          user: { id: { equals: userId } },
-          notificationType: { equals: type },
-          read: { equals: false },
-        },
-      });
-
+      // Get count from database cache (fast with proper indexing)
+      const count = await getUnreadCountByType(userId, type);
       return count;
     } catch (error: any) {
       console.error('Get unread count by type error:', error);
@@ -583,5 +629,4 @@ export class NotificationService implements INotificationService {
   }
 }
 
-// export singleton instance
 export const notificationService = new NotificationService();

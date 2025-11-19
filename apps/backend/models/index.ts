@@ -10,3 +10,4 @@ export * from './group-chat';
 export * from './forum-post';
 export * from './notification';
 export * from './questionnaire-models';
+export * from './forum-subscription';
