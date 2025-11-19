@@ -15,7 +15,6 @@ import { Subscription } from './api/resolvers/Subscription';
 import { DateTime, JSON } from './api/resolvers/scalars';
 import { typeDefs } from './api/schema/typeDefs';
 import { chatRoutes } from './routes/chat';
-import { authRoutes } from './routes/auth';
 
 import { initWebSocketService } from './services/websocket';
 import { createSubscriptionServer } from './api/subscriptions/server';
@@ -42,9 +41,8 @@ export default withAuth(
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
       },
-      extendExpressApp: (app, commonContext) => {
+      extendExpressApp: (app) => {
         chatRoutes(app);
-        authRoutes(app, commonContext);
       },
       extendHttpServer(server, context) {
         // Initialize AI service with Prisma for database persistence
