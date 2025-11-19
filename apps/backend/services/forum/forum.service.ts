@@ -21,12 +21,6 @@ export class ForumNotificationService implements IForumNotificationService {
         });
       }
 
-      // if (!data.forumPostType) {
-      //   throw new GraphQLError('ForumNotification type category is required', {
-      //     extensions: { code: 'BAD_USER_INPUT' },
-      //   });
-      // }
-
       if (!data.type || data.type.trim() === '') {
         throw new GraphQLError('ForumNotification sub-type is required', {
           extensions: { code: 'BAD_USER_INPUT' },
