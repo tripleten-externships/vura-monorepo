@@ -9,7 +9,13 @@ import {
   NotificationType,
 } from './types';
 import { logger } from '../../utils/logger';
-import { getRedisClient, getUnreadKey } from '../cache/redis';
+import {
+  incrementCounter,
+  decrementCounter,
+  getTotalUnreadCount,
+  getUnreadCountByType,
+  resetAllCounters,
+} from '../cache/db-cache';
 import { pubsub, SubscriptionTopics } from '../../api/subscriptions/pubsub';
 
 export class NotificationService implements INotificationService {
@@ -99,27 +105,19 @@ export class NotificationService implements INotificationService {
         notificationType: data.notificationType,
       });
 
-      // increment unread counters in Redis and publish events
+      // increment unread counters in database cache and publish events
       try {
-        const redis = getRedisClient();
-        const key = getUnreadKey(data.userId);
-        const results = await redis
-          .multi()
-          .hincrby(key, 'total', 1)
-          .hincrby(key, String(notification.notificationType), 1)
-          .exec();
-        const newTotal =
-          Array.isArray(results) && results[0] && results[0][1] != null
-            ? Number(results[0][1])
-            : undefined;
+        // Increment counter for this notification type
+        await incrementCounter(data.userId, notification.notificationType as NotificationType);
 
-        // publish unread count changed (single total count)
-        if (newTotal != null) {
-          pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
-            userId: data.userId,
-            count: newTotal,
-          });
-        }
+        // Get total count across all types
+        const totalCount = await getTotalUnreadCount(data.userId);
+
+        // publish unread count changed
+        pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+          userId: data.userId,
+          count: totalCount,
+        });
 
         // publish notification created
         pubsub.publish(SubscriptionTopics.NOTIFICATION_CREATED, {
@@ -134,7 +132,7 @@ export class NotificationService implements INotificationService {
           createdAt: notification.createdAt,
         });
       } catch (e) {
-        console.error('Redis increment/publish failed after createNotification:', e);
+        logger.error('Counter increment/publish failed after createNotification', { error: e });
       }
 
       return notification;
@@ -262,28 +260,21 @@ export class NotificationService implements INotificationService {
       });
 
       // decrement unread counters if it was previously unread, and publish
-      try {
-        if (notification.read === false) {
-          const redis = getRedisClient();
-          const key = getUnreadKey(userId);
-          const results = await redis
-            .multi()
-            .hincrby(key, 'total', -1)
-            .hincrby(key, String(notification.notificationType), -1)
-            .exec();
-          const newTotal =
-            Array.isArray(results) && results[0] && results[0][1] != null
-              ? Number(results[0][1])
-              : undefined;
-          if (newTotal != null) {
-            pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
-              userId,
-              count: newTotal,
-            });
-          }
+      if (notification.read === false) {
+        try {
+          // Decrement counter for this notification type
+          await decrementCounter(userId, notification.notificationType as NotificationType);
+
+          // Get new total count across all types
+          const newTotal = await getTotalUnreadCount(userId);
+
+          pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+            userId,
+            count: newTotal,
+          });
+        } catch (e) {
+          logger.error('Counter decrement/publish failed after markAsRead', { error: e });
         }
-      } catch (e) {
-        console.error('Redis decrement/publish failed after markAsRead:', e);
       }
 
       return updatedNotification;
@@ -329,21 +320,16 @@ export class NotificationService implements INotificationService {
         count,
       });
 
-      // reset Redis counters to zero and publish
+      // reset all counters to zero and publish
       try {
-        const redis = getRedisClient();
-        const key = getUnreadKey(userId);
-        const TYPES = ['CARE_PLAN', 'CHAT', 'FORUM', 'SYSTEM'];
-        const multi = redis.multi();
-        multi.hset(key, 'total', 0);
-        TYPES.forEach((t) => multi.hset(key, t, 0));
-        await multi.exec();
+        await resetAllCounters(userId);
+
         pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
           userId,
           count: 0,
         });
       } catch (e) {
-        console.error('Redis reset/publish failed after markAllAsRead:', e);
+        logger.error('Counter reset/publish failed after markAllAsRead', { error: e });
       }
 
       return count;
@@ -427,16 +413,9 @@ export class NotificationService implements INotificationService {
         });
       }
 
-      // Redis-only read for unread total
-      const redis = getRedisClient();
-      const key = getUnreadKey(userId);
-      const value = await redis.hget(key, 'total');
-      if (value === null) {
-        throw new GraphQLError('Unread count cache miss', {
-          extensions: { code: 'CACHE_MISS' },
-        });
-      }
-      return parseInt(value, 10) || 0;
+      // Get count from database cache (fast with proper indexing)
+      const count = await getTotalUnreadCount(userId);
+      return count;
     } catch (error: any) {
       console.error('Get unread count error:', error);
       if (error instanceof GraphQLError) {
@@ -470,16 +449,9 @@ export class NotificationService implements INotificationService {
         });
       }
 
-      // Redis-only read for unread by type
-      const redis = getRedisClient();
-      const key = getUnreadKey(userId);
-      const value = await redis.hget(key, String(type));
-      if (value === null) {
-        throw new GraphQLError('Unread count by type cache miss', {
-          extensions: { code: 'CACHE_MISS' },
-        });
-      }
-      return parseInt(value, 10) || 0;
+      // Get count from database cache (fast with proper indexing)
+      const count = await getUnreadCountByType(userId, type);
+      return count;
     } catch (error: any) {
       console.error('Get unread count by type error:', error);
       if (error instanceof GraphQLError) {
