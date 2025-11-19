@@ -19,7 +19,7 @@ export const MESSAGE_SENT_SUBSCRIPTION = gql`
 
 // Subscribe to typing indicators in a specific group
 export const TYPING_INDICATOR_SUBSCRIPTION = gql`
-  subscription TypingIndicator($groupId: ID!) {
+  subscription TypingIndicatorSubscription($groupId: ID!) {
     typingIndicator(groupId: $groupId) {
       userId
       username

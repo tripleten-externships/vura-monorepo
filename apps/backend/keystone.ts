@@ -32,6 +32,10 @@ const dbUrl =
   process.env.DATABASE_URL ||
   `mysql://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:3306/${process.env.DB_NAME}`;
 
+const defaultCorsOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+const corsOrigins =
+  process.env.ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()) || defaultCorsOrigins;
+
 export default withAuth(
   config({
     server: {
@@ -42,7 +46,7 @@ export default withAuth(
           ? 80
           : 3001,
       cors: {
-        origin: '*',
+        origin: corsOrigins,
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
       },

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 interface SubLinkProps {
   text: string; //Text shown inside the sublink
@@ -12,7 +11,7 @@ export default function SubLink({ text, onPress }: SubLinkProps) {
     <TouchableOpacity style={styles.container} activeOpacity={0.8} onPress={onPress}>
       <View style={styles.textWrapper}>
         <Text style={styles.text}>{text}</Text>
-        <Ionicons name="arrow-forward-outline" size={16} color="#36363680" />
+        <Text style={styles.arrow}>›</Text>
       </View>
     </TouchableOpacity>
   );
@@ -42,5 +41,9 @@ const styles = StyleSheet.create({
     color: '#36363680',
     letterSpacing: 0,
     marginRight: 4,
+  },
+  arrow: {
+    fontSize: 16,
+    color: '#36363680',
   },
 });

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '../../hooks/useNavigation';
 
 //Props expected by the ForumCard component
 interface ForumCardProps {
@@ -21,14 +20,13 @@ export default function ForumCard({
   author,
   timeAgo,
 }: ForumCardProps) {
-  //Allows navigation to anoher screen when the card is pressed
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
 
   return (
     <TouchableOpacity //makes the entire card cickable
       style={styles.card}
       activeOpacity={0.8}
-      onPress={() => navigation.navigate('ForumPost', { postId: id })}
+      onPress={() => navigation.push(`/community?post=${id}`)}
     >
       {/* Post title and preview text of the forum post */}
       <Text style={styles.title}>{title}</Text>
@@ -37,7 +35,9 @@ export default function ForumCard({
       {/* Footer: comment icon and count, author name, and post time */}
       <View style={styles.footer}>
         <View style={styles.commentRow}>
-          <Ionicons name="chatbubble-outline" size={16} color="#666" />
+          <Text style={styles.commentIcon} accessibilityLabel="comments">
+            💬
+          </Text>
           <Text style={styles.commentText}>{commentsCount}</Text>
         </View>
 
@@ -82,6 +82,9 @@ const styles = StyleSheet.create({
   commentRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  commentIcon: {
+    fontSize: 16,
   },
   commentText: {
     marginLeft: 4,

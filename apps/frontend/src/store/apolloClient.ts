@@ -3,43 +3,58 @@ import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { clearStoredToken, getStoredToken, setStoredToken } from '../services/storage';
 
-export const AUTH_TOKEN = '__drops_token';
-const apiBaseUrl = typeof VITE_API_URL !== 'undefined' ? VITE_API_URL : 'http://localhost:3001';
-const wsPrefix = typeof VITE_API_URL !== 'undefined' && VITE_API_URL ? 'wss' : 'ws';
+const DEFAULT_API_URL = 'http://localhost:3001';
 
-export const httpLink = new HttpLink({ uri: `${apiBaseUrl.replace(/\/$/, '')}/api/graphql` });
+const resolveApiUrl = (rawUrl: string): URL => {
+  try {
+    return new URL(rawUrl);
+  } catch {
+    return new URL(DEFAULT_API_URL);
+  }
+};
 
-const authLink = setContext(async (operation, { headers }) => {
-  const token = await AsyncStorage.getItem(AUTH_TOKEN);
+const apiUrlString =
+  typeof VITE_API_URL !== 'undefined' && VITE_API_URL ? VITE_API_URL : DEFAULT_API_URL;
+const apiUrl = resolveApiUrl(apiUrlString);
+const httpEndpoint = `${apiUrl.origin.replace(/\/$/, '')}/api/graphql`;
+const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsSubscriptionsUrl = `${wsProtocol}//${apiUrl.host}/graphql/subscriptions`;
+
+export const httpLink = new HttpLink({
+  uri: httpEndpoint,
+  credentials: 'include',
+});
+
+const authLink = setContext(async (_, { headers }) => {
+  const token = await getStoredToken();
   return {
     headers: {
       ...headers,
-      authorization: token || null,
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
     },
   };
 });
 
-// Create WebSocket link for subscriptions
 const createWebSocketLink = async () => {
-  const token = await AsyncStorage.getItem(AUTH_TOKEN);
+  const token = await getStoredToken();
 
   return new GraphQLWsLink(
     createClient({
-      url: `${wsPrefix}://${apiBaseUrl.replace(/^https?:\/\/|\/$/g, '')}/graphql/subscriptions`,
-      connectionParams: {
-        Authorization: token || '',
-      },
+      url: wsSubscriptionsUrl,
+      connectionParams: token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : undefined,
     })
   );
 };
 
-// Function to create the split link
 const createSplitLink = async () => {
   const wsLink = await createWebSocketLink();
 
-  // Split links based on operation type
   return split(
     ({ query }) => {
       const definition = getMainDefinition(query);
@@ -50,46 +65,38 @@ const createSplitLink = async () => {
   );
 };
 
-// Initialize with HTTP link first
-const link = authLink.concat(httpLink);
-
-// Create Apollo Client
 export const client = new ApolloClient({
-  link,
+  link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 });
 
-// Update the link with subscription support when ready
-createSplitLink().then((splitLink) => {
-  client.setLink(splitLink);
-});
+createSplitLink().then((splitLink) => client.setLink(splitLink));
 
-export async function setGraphqlHeaders(_token: string | undefined) {
-  const token = _token ?? (await AsyncStorage.getItem(AUTH_TOKEN));
+export async function setGraphqlHeaders(token?: string) {
+  if (typeof token === 'string') {
+    await setStoredToken(token);
+  } else if (token === undefined) {
+    await clearStoredToken();
+  }
 
-  // Update auth link
-  const newAuthLink = setContext((operation, { headers }) => {
-    return {
-      headers: {
-        ...headers,
-        authorization: token || null,
-      },
-    };
-  });
+  const resolvedToken = token ?? (await getStoredToken());
 
-  // Create new split link with updated auth
+  const refreshedAuthLink = setContext(async (_, { headers }) => ({
+    headers: {
+      ...headers,
+      ...(resolvedToken ? { authorization: `Bearer ${resolvedToken}` } : {}),
+    },
+  }));
+
   const wsLink = await createWebSocketLink();
-
-  // Create new split link
-  const newLink = split(
+  const splitLink = split(
     ({ query }) => {
       const definition = getMainDefinition(query);
       return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
     },
     wsLink,
-    newAuthLink.concat(httpLink)
+    refreshedAuthLink.concat(httpLink)
   );
 
-  // Update client link
-  client.setLink(newLink);
+  client.setLink(splitLink);
 }
