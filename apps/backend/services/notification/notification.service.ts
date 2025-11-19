@@ -17,6 +17,7 @@ import {
   resetAllCounters,
 } from '../cache/db-cache';
 import { pubsub, SubscriptionTopics } from '../../api/subscriptions/pubsub';
+import { getWebSocketService } from '../websocket';
 
 export class NotificationService implements INotificationService {
   /**
@@ -47,18 +48,6 @@ export class NotificationService implements INotificationService {
         throw new GraphQLError('Notification content is required', {
           extensions: { code: 'BAD_USER_INPUT' },
         });
-      }
-
-      // Skip if user is muted or blocked
-      const isMuted = await this.isUserMuted(
-        data.userId,
-        data.metadata?.senderId,
-        data.metadata?.groupId
-      );
-      const isBlocked = await this.isUserBlocked(data.userId, data.metadata?.senderId); // isUserBlocked and isUserMuted
-
-      if (isMuted || isBlocked) {
-        return null; // Do not send notification
       }
 
       // prepare notification data
@@ -103,15 +92,26 @@ export class NotificationService implements INotificationService {
         };
       }
 
-      // determine if user is already in chat - if true do not send notifications
-      // const userInGroup = websocketService.isUserInGroup(
-      //   targetUserId,
-      //   groupId
-      // );
+      // skip notification if user is already in the chat (actively viewing)
+      if (data.notificationType === 'CHAT' && data.metadata?.groupId) {
+        try {
+          const websocketService = getWebSocketService();
+          const userInGroup = websocketService.isUserInGroup(data.userId, data.metadata.groupId);
+
+          if (userInGroup) {
+            logger.info('User already in chat, skipping notification', {
+              userId: data.userId,
+              groupId: data.metadata.groupId,
+            });
+            return null;
+          }
+        } catch (error) {
+          // if WebSocket service isn't initialized, continue with notification creation
+          logger.warn('WebSocket service not available for presence check', { error });
+        }
+      }
 
       // create notification
-      // if(!userInGroup) {} --supposed to wrap await
-
       const notification = await context.db.Notification.createOne({
         data: notificationData,
       });
@@ -165,68 +165,6 @@ export class NotificationService implements INotificationService {
       });
     }
   }
-  // AI helped with this - I am not sure where blocked/muted preferences are currently in the code
-  async isUserMuted(userId: string, senderId: string, groupId: string): Promise<boolean> {
-    return false;
-  }
-
-  async isUserBlocked(userId: string, senderId: string): Promise<boolean> {
-    return false;
-  } // I think these should be inside curly braces of createNotification, but there is an error when I do that
-
-  // handle batch notifications
-  public batchNotifications(context: Context) {
-    let buffer: CreateNotificationInput[] = []; // store incoming notifications
-    let batching = false; // prevents multiple loops from running
-
-    function onIncomingMessage(msg: CreateNotificationInput) {
-      buffer.push(msg);
-
-      if (!batching) {
-        batching = true;
-        startBatchingLoop();
-      }
-    }
-
-    async function startBatchingLoop() {
-      const batchStartTime = Date.now();
-      const max_iterations = 500; // arbitrary #
-
-      for (let i = 0; i < max_iterations; i++) {
-        if (Date.now() - batchStartTime >= 30000) {
-          // stop if 30 seconds (arbitrary) passes
-          sendBatch();
-          batching = false;
-          return;
-        }
-
-        await new Promise((res) => setTimeout(res, 50)); // pausing to make sure loop doesn't pass too quickly
-      }
-
-      sendBatch();
-      batching = false;
-    }
-
-    async function sendBatch() {
-      if (buffer.length === 0) {
-        return; // nothing to send
-      }
-
-      const batch = buffer;
-      buffer = []; // clear buffer
-
-      try {
-        await Promise.all(
-          batch.map((notification) => context.db.Notification.createOne({ data: notification }))
-        );
-      } catch (err) {
-        console.error('Error sending notification batch:', err);
-      }
-    }
-
-    // return function used when a new message arrives
-    return onIncomingMessage;
-  }
 
   /**
    * create notifications for multiple users in batch
@@ -262,7 +200,6 @@ export class NotificationService implements INotificationService {
       }
 
       // create notifications for each user
-      // only notify user if the are not in chat by checking online status
       const notifications = await Promise.all(
         data.userIds.map((userId) =>
           this.createNotification(
