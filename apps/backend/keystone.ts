@@ -46,8 +46,9 @@ export default withAuth(
         // Register authentication routes (OAuth)
         authRoutes(app, () => Promise.resolve(commonContext));
         // Register chat routes
-        chatRoutes(app);
+        app.use('/chat', chatRoutes); // all endpoints now live under /chat/*
       },
+
       extendHttpServer(server, context) {
         // Initialize AI service with Prisma for database persistence
         aiService.initializeWithPrisma(context.prisma);

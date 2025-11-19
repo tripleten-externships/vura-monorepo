@@ -85,6 +85,19 @@ export const User = list({
     }),
     privacyToggle: checkbox({ defaultValue: true }), //relationship to chat messages
     messages: relationship({ ref: 'ChatMessage.sender', many: true }),
+    carePlan: relationship({ ref: 'CarePlan.user', many: true }),
+    aiChatSessions: relationship({ ref: 'AiChatSession.user', many: true }),
+    parents: relationship({ ref: 'Parent.user', many: true }),
+    ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
+    memberChats: relationship({ ref: 'GroupChat.members', many: true }),
+    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
+    questionnaireResponses: relationship({
+      ref: 'QuestionnaireResponse.user',
+      many: true,
+    }),
+    notifications: relationship({ ref: 'Notification.user', many: true }),
+
+    // Metadata
 
     // Only admins can view/modify admin status
     isAdmin: checkbox({
@@ -106,20 +119,6 @@ export const User = list({
     lastUpdateDate: timestamp({
       db: { updatedAt: true },
       ui: { description: 'Automatically updates on record change' },
-    }),
-    carePlan: relationship({ ref: 'CarePlan.user', many: true }),
-    aiChatSessions: relationship({ ref: 'AiChatSession.user', many: true }),
-    parents: relationship({ ref: 'Parent.user', many: true }),
-    ownedChats: relationship({ ref: 'GroupChat.owner', many: true }),
-    memberChats: relationship({ ref: 'GroupChat.members', many: true }),
-    forumPost: relationship({ ref: 'ForumPost.author', many: true }),
-    questionnaireResponses: relationship({
-      ref: 'QuestionnaireResponse.user',
-      many: true,
-    }),
-    notifications: relationship({
-      ref: 'Notification.user',
-      many: true,
     }),
   },
 

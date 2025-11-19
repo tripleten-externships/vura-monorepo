@@ -40,14 +40,23 @@ export const Parent = list({
 
   fields: {
     name: text({ validation: { isRequired: true } }),
-    age: integer({ validation: { isRequired: true } }),
+
+    age: integer({
+      validation: { isRequired: true, min: 0 },
+    }),
+
     relationship: text({ validation: { isRequired: true } }),
+
     healthConditions: json(),
 
-    createdAt: timestamp({ defaultValue: { kind: 'now' } }),
-    updatedAt: timestamp({ db: { updatedAt: true } }),
+    createdAt: timestamp({
+      defaultValue: { kind: 'now' },
+    }),
 
-    // Relationship back to the User
+    updatedAt: timestamp({
+      db: { updatedAt: true },
+    }),
+
     user: relationship({
       ref: 'User.parents',
       many: false,

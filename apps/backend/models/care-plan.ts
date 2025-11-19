@@ -36,6 +36,15 @@ export const CarePlan = list({
     },
   },
 
+  hooks: {
+    resolveInput: async ({ operation, resolvedData, context }) => {
+      if (operation === 'create' && context.session?.data?.id) {
+        resolvedData.user = { connect: { id: context.session.data.id } };
+      }
+      return resolvedData;
+    },
+  },
+
   fields: {
     name: text({ validation: { isRequired: true } }),
     progressScore: float(),

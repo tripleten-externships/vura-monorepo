@@ -31,6 +31,9 @@ const { withAuth } = createAuth({
 const session = statelessSessions({
   maxAge: sessionMaxAge,
   secret: sessionSecret,
+  secure: false, // allow cookies over http://
+  sameSite: 'lax', // allows localhost cookie sharing
+  path: '/', // makes cookie available to all routes
 });
 
 // ---------- Guards ----------
@@ -47,16 +50,18 @@ export const requireRole = (session: Session, role: 'admin' | 'user') => {
 
 export const isAuthenticated = ({ session }: AccessArgs): boolean => !!session?.data;
 
-export const isAdmin = ({ session }: AccessArgs): boolean => session?.data?.role === 'admin';
+export const isAdmin = ({ session }: AccessArgs): boolean =>
+  session?.data?.role === 'admin' || session?.data?.isAdmin === true;
 
 export const canAccessOwnData = ({ session, item }: AccessArgs): boolean => {
-  if (!session?.data) return false;
-  if (session.data.role === 'admin') return true;
-  return (
-    item?.id === session.data.id ||
-    item?.authorId === session.data.id ||
-    item?.userId === session.data.id
-  );
+  if (!session?.data?.id) return false;
+  if (session.data.role === 'admin' || session.data.isAdmin) return true;
+
+  // Handle both flat and nested user relationship cases
+  const itemUserId = item?.userId || item?.user?.id;
+  const itemOwnerId = itemUserId || item?.authorId || item?.id;
+
+  return itemOwnerId === session.data.id;
 };
 
 export { withAuth, session };
