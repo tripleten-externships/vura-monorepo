@@ -72,13 +72,13 @@ export const customCreateForumPost = async (
 
     const post = await context.db.ForumPost.createOne({
       data: {
-        title: data.title,
+        title: sanitizedTitle,
         topic: data.topic,
-        content: data.content,
-        priority: data.priority,
-        metadata: data.metadata,
+        content: sanitizedContent,
+        priority: data.priority || 'MEDIUM',
+        metadata: data.metadata || {},
         forumPostType: data.forumPostType,
-        author: { connect: { id: data.userId } },
+        author: { connect: { id: context.session.data.id } },
       },
     });
 
@@ -126,6 +126,12 @@ export const customCreateForumPost = async (
   } catch (error: any) {
     console.error('Create post error:', error);
 
+    // Re-throw GraphQL errors to preserve validation messages
+    if (error instanceof GraphQLError) {
+      throw error;
+    }
+
+    // Throw generic error for unexpected failures
     throw new GraphQLError('Failed to create post', {
       extensions: { code: 'INTERNAL_SERVER_ERROR' },
     });

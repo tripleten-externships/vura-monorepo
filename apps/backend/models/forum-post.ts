@@ -31,10 +31,16 @@ export const ForumPost = list({
   },
   fields: {
     title: text({
-      validation: { isRequired: true },
+      validation: { isRequired: true, length: { max: 30 } },
     }),
     topic: text({
-      validation: { isRequired: true },
+      validation: { isRequired: true, length: { max: 50 } },
+    }),
+    content: text({
+      validation: { isRequired: true, length: { min: 10, max: 5000 } },
+      ui: {
+        displayMode: 'textarea',
+      },
     }),
     // type of forum post for notification
     forumPostType: select({
@@ -57,26 +63,14 @@ export const ForumPost = list({
       validation: { isRequired: true },
       db: { isNullable: false },
     }),
-    content: text({
-      validation: { isRequired: true },
-    }),
-    actionUrl: text({
-      validation: { isRequired: false },
-    }),
     metadata: json({
       defaultValue: {},
     }),
-    read: checkbox({ defaultValue: false }),
-    readAt: timestamp(),
-    expiresAt: timestamp(),
-    scheduledFor: timestamp(),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    // relationship between forum posts and their notifications
-    notifications: relationship({
-      ref: 'Notification.notifications',
-      many: true,
+    updatedAt: timestamp({
+      db: { updatedAt: true },
     }),
     subscribers: relationship({
       ref: 'ForumSubscription.forumPost',

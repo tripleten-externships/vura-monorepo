@@ -60,10 +60,6 @@ export const Notification = list({
       ref: 'ForumPost',
       many: false,
     }),
-    notifications: relationship({
-      ref: 'ForumPost.notifications',
-      many: true,
-    }),
   },
   access: {
     operation: {

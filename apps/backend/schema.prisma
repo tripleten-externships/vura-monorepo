@@ -93,18 +93,14 @@ model Checklist {
 
 model ForumPost {
   id                                 String              @id @default(uuid())
-  type                               String              @default("")
+  title                              String              @default("")
+  topic                              String              @default("")
+  content                            String              @default("")
   forumPostType                      String
   priority                           String              @default("MEDIUM")
-  content                            String              @default("")
-  actionUrl                          String              @default("")
   metadata                           Json?               @default("{}")
-  read                               Boolean             @default(false)
-  readAt                             DateTime?
-  expiresAt                          DateTime?
-  scheduledFor                       DateTime?
   createdAt                          DateTime?           @default(now())
-  notifications                      Notification[]      @relation("ForumPost_notifications")
+  updatedAt                          DateTime?           @updatedAt
   subscribers                        ForumSubscription[] @relation("ForumSubscription_forumPost")
   author                             User?               @relation("ForumPost_author", fields: [authorId], references: [id])
   authorId                           String?             @map("author")
@@ -120,6 +116,7 @@ model ForumSubscription {
   forumPost    ForumPost? @relation("ForumSubscription_forumPost", fields: [forumPostId], references: [id])
   forumPostId  String?    @map("forumPost")
   topic        String     @default("")
+  content      String     @default("")
   subscribedAt DateTime?  @default(now())
 
   @@index([userId])
@@ -141,27 +138,26 @@ model GroupChat {
 }
 
 model Notification {
-  id                 String      @id @default(uuid())
-  type               String      @default("")
+  id                 String     @id @default(uuid())
+  type               String     @default("")
   notificationType   String
-  priority           String      @default("MEDIUM")
-  content            String      @default("")
-  actionUrl          String      @default("")
-  metadata           Json?       @default("{}")
-  read               Boolean     @default(false)
+  priority           String     @default("MEDIUM")
+  content            String     @default("")
+  actionUrl          String     @default("")
+  metadata           Json?      @default("{}")
+  read               Boolean    @default(false)
   readAt             DateTime?
   expiresAt          DateTime?
   scheduledFor       DateTime?
-  createdAt          DateTime?   @default(now())
-  user               User?       @relation("Notification_user", fields: [userId], references: [id])
-  userId             String?     @map("user")
-  relatedCarePlan    CarePlan?   @relation("Notification_relatedCarePlan", fields: [relatedCarePlanId], references: [id])
-  relatedCarePlanId  String?     @map("relatedCarePlan")
-  relatedChat        GroupChat?  @relation("Notification_relatedChat", fields: [relatedChatId], references: [id])
-  relatedChatId      String?     @map("relatedChat")
-  relatedForumPost   ForumPost?  @relation("Notification_relatedForumPost", fields: [relatedForumPostId], references: [id])
-  relatedForumPostId String?     @map("relatedForumPost")
-  notifications      ForumPost[] @relation("ForumPost_notifications")
+  createdAt          DateTime?  @default(now())
+  user               User?      @relation("Notification_user", fields: [userId], references: [id])
+  userId             String?    @map("user")
+  relatedCarePlan    CarePlan?  @relation("Notification_relatedCarePlan", fields: [relatedCarePlanId], references: [id])
+  relatedCarePlanId  String?    @map("relatedCarePlan")
+  relatedChat        GroupChat? @relation("Notification_relatedChat", fields: [relatedChatId], references: [id])
+  relatedChatId      String?    @map("relatedChat")
+  relatedForumPost   ForumPost? @relation("Notification_relatedForumPost", fields: [relatedForumPostId], references: [id])
+  relatedForumPostId String?    @map("relatedForumPost")
 
   @@index([userId])
   @@index([relatedCarePlanId])

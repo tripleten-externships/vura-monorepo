@@ -225,11 +225,6 @@ export const typeDefs = gql`
     createdAt: String!
   }
 
-  type Subscription {
-    forumPostCreated: ForumPostCreatedEvent!
-    forumNotification(userId: String!): NotificationCreatedEvent!
-  }
-
   type NotificationCreatedEvent {
     notificationId: ID!
     userId: ID!
@@ -240,19 +235,6 @@ export const typeDefs = gql`
     actionUrl: String
     metadata: JSON
     createdAt: String!
-  }
-
-  type ForumSubscriptionResult {
-    success: Boolean!
-    message: String
-    subscriptionId: ID
-    notification: ForumSubscriptionNotification
-  }
-  type ForumSubscriptionNotification {
-    id: ID!
-    topic: String
-    content: String
-    actionUrl: String
   }
 
   # Group Chat Types
@@ -433,7 +415,9 @@ export const typeDefs = gql`
     success: Boolean!
     message: String
     subscriptionId: ID
+    notification: ForumSubscriptionNotification
   }
+
   type ForumSubscriptionNotification {
     id: ID!
     topic: String
@@ -441,10 +425,6 @@ export const typeDefs = gql`
     actionUrl: String
   }
 
-  type ForumSubscriptionResult {
-    message: String
-    notification: ForumSubscriptionNotification
-  }
   # Questionnaire assignment
   input AssignQuestionnaireInput {
     questionnaireId: ID!
@@ -530,6 +510,12 @@ export const typeDefs = gql`
 
     # Subscribe to unread count changes for a specific user
     unreadCountChanged(userId: ID!): UnreadCountResult!
+
+    # Subscribe to forum post created events
+    forumPostCreated: ForumPostCreatedEvent!
+
+    # Subscribe to forum notifications for a specific user
+    forumNotification(userId: String!): NotificationCreatedEvent!
   }
 `;
 //

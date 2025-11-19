@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
 import { forumNotificationService } from '../../../services/forum/forum.service';
 
-// resolver function to unscribeFromForum
+// resolver function to unsubscribe from forum topic
 export const customUnsubscribeFromForum = async (
   _: any,
   { topic }: { topic: string },
@@ -27,11 +27,11 @@ export const customUnsubscribeFromForum = async (
       message: 'Unsubscribed successfully',
     };
   } catch (error: any) {
-    console.error('UnSubcribedforumpost mutation error:', error);
+    console.error('Unsubscribe from forum mutation error:', error);
     if (error instanceof GraphQLError) {
       throw error;
     }
-    throw new GraphQLError('Failed to unsubscribed', {
+    throw new GraphQLError('Failed to unsubscribe from forum topic', {
       extensions: { code: 'INTERNAL_SERVER_ERROR' },
     });
   }
