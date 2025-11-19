@@ -2,6 +2,7 @@
 import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
 import bcrypt from 'bcryptjs';
+import { generateToken } from '../../../utils/jwt';
 
 export interface LoginInput {
   email: string;
@@ -17,13 +18,11 @@ const maxNumberLogin = 5;
 // Created a function to check for maximum login attempts
 function checkLoginAttempts(email: string) {
   if (loginAttempts[email] >= maxNumberLogin) {
-    throw new GraphQLError('Too many login attempts. Please try again later', {
-      extensions: { code: 'TOO_MANY_REQUESTS' },
-    });
+    throw new GraphQLError('Too many login attempts. Please try again later');
   }
 }
 
-export const login = async (_: any, { input }: { input: LoginInput }, context: Context) => {
+export const login = async (root: any, { input }: { input: LoginInput }, context: Context) => {
   const { email, password } = input;
 
   // If there is no login record, create one.
@@ -33,9 +32,7 @@ export const login = async (_: any, { input }: { input: LoginInput }, context: C
   if (!email || !password) {
     loginAttempts[email]++;
     checkLoginAttempts(email);
-    throw new GraphQLError('Email and password are required', {
-      extensions: { code: 'BAD_USER_INPUT' },
-    });
+    throw new GraphQLError('Email and password are required');
   }
 
   // Check if user doesn't exist
@@ -45,9 +42,7 @@ export const login = async (_: any, { input }: { input: LoginInput }, context: C
   if (!user) {
     loginAttempts[email]++;
     checkLoginAttempts(email);
-    throw new GraphQLError('Account not found', {
-      extensions: { code: 'UNAUTHENTICATED' },
-    });
+    throw new GraphQLError('Account not found');
   }
 
   // Check for incorrect credentials
@@ -55,21 +50,23 @@ export const login = async (_: any, { input }: { input: LoginInput }, context: C
   if (!isMatch) {
     loginAttempts[email]++;
     checkLoginAttempts(email);
-    throw new GraphQLError('Invalid password', {
-      extensions: { code: 'UNAUTHENTICATED' },
-    });
+    throw new GraphQLError('invalid password');
   }
 
   // When login is successful or after reaching max attempts, reset count to 0.
   loginAttempts[email] = 0;
 
-  try {
-    const sessionData = await context.sessionStrategy?.start({
-      data: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin },
-      context,
-    });
+  // try {
+  //   const sessionData = await context.sessionStrategy?.start({
+  //     data: { email: user.email },
+  //     context,
+  //   });
 
-    // update last login date
+  try {
+    // Generate JWT token here
+    const token = generateToken(user);
+
+    // Optionally update last login date
     await context.prisma.user.update({
       where: { id: user.id },
       data: { lastLoginDate: new Date() },
@@ -89,12 +86,10 @@ export const login = async (_: any, { input }: { input: LoginInput }, context: C
         lastLoginDate: user.lastLoginDate,
         lastUpdateDate: user.lastUpdateDate,
       },
-      token: sessionData,
+      token,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Login error:', error);
-    throw new GraphQLError('Login failed', {
-      extensions: { code: 'INTERNAL_SERVER_ERROR' },
-    });
+    throw new GraphQLError('Login Failed');
   }
 };

@@ -640,11 +640,11 @@ type GroupChat {
   groupName: String
   messages(where: ChatMessageWhereInput! = {}, orderBy: [ChatMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChatMessageWhereUniqueInput): [ChatMessage!]
   messagesCount(where: ChatMessageWhereInput! = {}): Int
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: User
   members(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   membersCount(where: UserWhereInput! = {}): Int
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input GroupChatWhereUniqueInput {
@@ -658,10 +658,10 @@ input GroupChatWhereInput {
   id: IDFilter
   groupName: StringFilter
   messages: ChatMessageManyRelationFilter
-  createdAt: DateTimeNullableFilter
-  updatedAt: DateTimeNullableFilter
   owner: UserWhereInput
   members: UserManyRelationFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
 }
 
 input ChatMessageManyRelationFilter {
@@ -686,10 +686,10 @@ input GroupChatOrderByInput {
 input GroupChatUpdateInput {
   groupName: String
   messages: ChatMessageRelateToManyForUpdateInput
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: UserRelateToOneForUpdateInput
   members: UserRelateToManyForUpdateInput
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input ChatMessageRelateToManyForUpdateInput {
@@ -714,10 +714,10 @@ input GroupChatUpdateArgs {
 input GroupChatCreateInput {
   groupName: String
   messages: ChatMessageRelateToManyForCreateInput
-  createdAt: DateTime
-  updatedAt: DateTime
   owner: UserRelateToOneForCreateInput
   members: UserRelateToManyForCreateInput
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 input ChatMessageRelateToManyForCreateInput {
@@ -861,9 +861,9 @@ type Parent {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: User
 }
 
@@ -879,8 +879,8 @@ input ParentWhereInput {
   name: StringFilter
   age: IntFilter
   relationship: StringFilter
-  created_at: DateTimeNullableFilter
-  updated_at: DateTimeNullableFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
   user: UserWhereInput
 }
 
@@ -900,17 +900,17 @@ input ParentOrderByInput {
   name: OrderDirection
   age: OrderDirection
   relationship: OrderDirection
-  created_at: OrderDirection
-  updated_at: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
 }
 
 input ParentUpdateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForUpdateInput
 }
 
@@ -923,9 +923,9 @@ input ParentCreateInput {
   name: String
   age: Int
   relationship: String
-  health_conditions: JSON
-  created_at: DateTime
-  updated_at: DateTime
+  healthConditions: JSON
+  createdAt: DateTime
+  updatedAt: DateTime
   user: UserRelateToOneForCreateInput
 }
 
@@ -1440,16 +1440,13 @@ type User {
   name: String
   email: String
   password: PasswordState
+  role: String
   avatarUrl: String
   age: Int
   gender: String
   privacyToggle: Boolean
   messages(where: ChatMessageWhereInput! = {}, orderBy: [ChatMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChatMessageWhereUniqueInput): [ChatMessage!]
   messagesCount(where: ChatMessageWhereInput! = {}): Int
-  isAdmin: Boolean
-  createdAt: DateTime
-  lastLoginDate: DateTime
-  lastUpdateDate: DateTime
   carePlan(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
   carePlanCount(where: CarePlanWhereInput! = {}): Int
   aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
@@ -1466,6 +1463,10 @@ type User {
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
   notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
   notificationsCount(where: NotificationWhereInput! = {}): Int
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
 
 type PasswordState {
@@ -1484,15 +1485,12 @@ input UserWhereInput {
   id: IDFilter
   name: StringFilter
   email: StringFilter
+  role: StringNullableFilter
   avatarUrl: StringFilter
   age: IntNullableFilter
   gender: StringNullableFilter
   privacyToggle: BooleanFilter
   messages: ChatMessageManyRelationFilter
-  isAdmin: BooleanFilter
-  createdAt: DateTimeNullableFilter
-  lastLoginDate: DateTimeNullableFilter
-  lastUpdateDate: DateTimeNullableFilter
   carePlan: CarePlanManyRelationFilter
   aiChatSessions: AiChatSessionManyRelationFilter
   parents: ParentManyRelationFilter
@@ -1501,6 +1499,10 @@ input UserWhereInput {
   forumPost: ForumPostManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
   notifications: NotificationManyRelationFilter
+  isAdmin: BooleanFilter
+  createdAt: DateTimeNullableFilter
+  lastLoginDate: DateTimeNullableFilter
+  lastUpdateDate: DateTimeNullableFilter
 }
 
 input StringNullableFilter {
@@ -1551,6 +1553,7 @@ input UserOrderByInput {
   id: OrderDirection
   name: OrderDirection
   email: OrderDirection
+  role: OrderDirection
   avatarUrl: OrderDirection
   age: OrderDirection
   gender: OrderDirection
@@ -1565,15 +1568,12 @@ input UserUpdateInput {
   name: String
   email: String
   password: String
+  role: String
   avatarUrl: String
   age: Int
   gender: String
   privacyToggle: Boolean
   messages: ChatMessageRelateToManyForUpdateInput
-  isAdmin: Boolean
-  createdAt: DateTime
-  lastLoginDate: DateTime
-  lastUpdateDate: DateTime
   carePlan: CarePlanRelateToManyForUpdateInput
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
   parents: ParentRelateToManyForUpdateInput
@@ -1582,6 +1582,10 @@ input UserUpdateInput {
   forumPost: ForumPostRelateToManyForUpdateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
   notifications: NotificationRelateToManyForUpdateInput
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -1628,15 +1632,12 @@ input UserCreateInput {
   name: String
   email: String
   password: String
+  role: String
   avatarUrl: String
   age: Int
   gender: String
   privacyToggle: Boolean
   messages: ChatMessageRelateToManyForCreateInput
-  isAdmin: Boolean
-  createdAt: DateTime
-  lastLoginDate: DateTime
-  lastUpdateDate: DateTime
   carePlan: CarePlanRelateToManyForCreateInput
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
   parents: ParentRelateToManyForCreateInput
@@ -1645,6 +1646,10 @@ input UserCreateInput {
   forumPost: ForumPostRelateToManyForCreateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
   notifications: NotificationRelateToManyForCreateInput
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -1779,11 +1784,13 @@ type Mutation {
   submitQuestionnaire(input: SubmitQuestionnaireInput!): SubmitQuestionnaireResult!
   updateProfile(input: UpdateProfileInput!): UpdateProfileResponse
   aiChat(input: AiChatInput!): AiChatResponse!
+  createAiChatMessage(input: CreateAiChatMessageInput!): CreateAiChatMessageResult!
   typingIndicator(input: TypingIndicatorInput!): SuccessResponse!
   updateUserStatus(input: UserStatusInput!): SuccessResponse!
   customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
   customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
   customMarkAllNotificationsAsRead: MarkAllAsReadResult!
+  assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -1801,6 +1808,7 @@ input CreateInitialUserInput {
   name: String
   email: String
   password: String
+  role: String
 }
 
 type Query {
@@ -2209,6 +2217,18 @@ type AiChatResponse {
   metadata: JSON
 }
 
+input CreateAiChatMessageInput {
+  sessionId: ID
+  prompt: String!
+}
+
+type CreateAiChatMessageResult {
+  success: Boolean!
+  message: String
+  error: String
+  sessionId: ID
+}
+
 input UpdateProfileInput {
   name: String
   email: String
@@ -2313,6 +2333,18 @@ type NotificationsResult {
 type UnreadCountResult {
   count: Int!
   notificationType: NotificationType
+}
+
+input AssignQuestionnaireInput {
+  questionnaireId: ID!
+  assignedToId: ID!
+  carePlanId: ID
+}
+
+type AssignQuestionnaireResult {
+  success: Boolean!
+  message: String!
+  assignment: JSON
 }
 
 type TypingIndicatorPayload {
