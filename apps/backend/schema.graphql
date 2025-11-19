@@ -1447,10 +1447,6 @@ type User {
   privacyToggle: Boolean
   messages(where: ChatMessageWhereInput! = {}, orderBy: [ChatMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ChatMessageWhereUniqueInput): [ChatMessage!]
   messagesCount(where: ChatMessageWhereInput! = {}): Int
-  isAdmin: Boolean
-  createdAt: DateTime
-  lastLoginDate: DateTime
-  lastUpdateDate: DateTime
   carePlan(where: CarePlanWhereInput! = {}, orderBy: [CarePlanOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CarePlanWhereUniqueInput): [CarePlan!]
   carePlanCount(where: CarePlanWhereInput! = {}): Int
   aiChatSessions(where: AiChatSessionWhereInput! = {}, orderBy: [AiChatSessionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AiChatSessionWhereUniqueInput): [AiChatSession!]
@@ -1467,6 +1463,10 @@ type User {
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
   notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
   notificationsCount(where: NotificationWhereInput! = {}): Int
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
 
 type PasswordState {
@@ -1491,10 +1491,6 @@ input UserWhereInput {
   gender: StringNullableFilter
   privacyToggle: BooleanFilter
   messages: ChatMessageManyRelationFilter
-  isAdmin: BooleanFilter
-  createdAt: DateTimeNullableFilter
-  lastLoginDate: DateTimeNullableFilter
-  lastUpdateDate: DateTimeNullableFilter
   carePlan: CarePlanManyRelationFilter
   aiChatSessions: AiChatSessionManyRelationFilter
   parents: ParentManyRelationFilter
@@ -1503,6 +1499,10 @@ input UserWhereInput {
   forumPost: ForumPostManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
   notifications: NotificationManyRelationFilter
+  isAdmin: BooleanFilter
+  createdAt: DateTimeNullableFilter
+  lastLoginDate: DateTimeNullableFilter
+  lastUpdateDate: DateTimeNullableFilter
 }
 
 input StringNullableFilter {
@@ -1574,10 +1574,6 @@ input UserUpdateInput {
   gender: String
   privacyToggle: Boolean
   messages: ChatMessageRelateToManyForUpdateInput
-  isAdmin: Boolean
-  createdAt: DateTime
-  lastLoginDate: DateTime
-  lastUpdateDate: DateTime
   carePlan: CarePlanRelateToManyForUpdateInput
   aiChatSessions: AiChatSessionRelateToManyForUpdateInput
   parents: ParentRelateToManyForUpdateInput
@@ -1586,6 +1582,10 @@ input UserUpdateInput {
   forumPost: ForumPostRelateToManyForUpdateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
   notifications: NotificationRelateToManyForUpdateInput
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -1638,10 +1638,6 @@ input UserCreateInput {
   gender: String
   privacyToggle: Boolean
   messages: ChatMessageRelateToManyForCreateInput
-  isAdmin: Boolean
-  createdAt: DateTime
-  lastLoginDate: DateTime
-  lastUpdateDate: DateTime
   carePlan: CarePlanRelateToManyForCreateInput
   aiChatSessions: AiChatSessionRelateToManyForCreateInput
   parents: ParentRelateToManyForCreateInput
@@ -1650,6 +1646,10 @@ input UserCreateInput {
   forumPost: ForumPostRelateToManyForCreateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
   notifications: NotificationRelateToManyForCreateInput
+  isAdmin: Boolean
+  createdAt: DateTime
+  lastLoginDate: DateTime
+  lastUpdateDate: DateTime
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -1790,6 +1790,7 @@ type Mutation {
   customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
   customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
   customMarkAllNotificationsAsRead: MarkAllAsReadResult!
+  assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -2332,6 +2333,18 @@ type NotificationsResult {
 type UnreadCountResult {
   count: Int!
   notificationType: NotificationType
+}
+
+input AssignQuestionnaireInput {
+  questionnaireId: ID!
+  assignedToId: ID!
+  carePlanId: ID
+}
+
+type AssignQuestionnaireResult {
+  success: Boolean!
+  message: String!
+  assignment: JSON
 }
 
 type TypingIndicatorPayload {
