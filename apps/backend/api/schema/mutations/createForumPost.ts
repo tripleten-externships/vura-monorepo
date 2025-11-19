@@ -101,7 +101,7 @@ export const customCreateForumPost = async (
       createdAt: (post.createdAt as Date).toISOString(),
       subscriberIds,
       content: post.content as string,
-      authorName: (post.author as any)?.name || '',
+      authorName: context.session.data.name,
     };
 
     /// Emit the forumPost via WebSockets

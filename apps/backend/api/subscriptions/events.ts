@@ -42,4 +42,6 @@ export interface ForumPostCreatedEvent {
   subscriberIds: string[];
   content: string;
   authorName: string;
+  type?: string;
+  forumPostType?: 'NEW_POST' | 'REPLY_TO_YOUR_POST' | 'REPLY_TO_SUBSCRIBED_POST';
 }

@@ -2,7 +2,6 @@ import { GraphQLError } from 'graphql';
 import { Context } from '../../types/context';
 import {
   CreateForumPostInput,
-  CreateBulkForumNotificationsInput,
   IForumNotificationService,
   CreateSubscribeForum,
   ForumNotificationCreateData,
@@ -22,11 +21,11 @@ export class ForumNotificationService implements IForumNotificationService {
         });
       }
 
-      if (!data.forumPostType) {
-        throw new GraphQLError('ForumNotification type category is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
+      // if (!data.forumPostType) {
+      //   throw new GraphQLError('ForumNotification type category is required', {
+      //     extensions: { code: 'BAD_USER_INPUT' },
+      //   });
+      // }
 
       if (!data.type || data.type.trim() === '') {
         throw new GraphQLError('ForumNotification sub-type is required', {
@@ -43,7 +42,8 @@ export class ForumNotificationService implements IForumNotificationService {
       // prepare notification data
       const notificationData: any = {
         user: { connect: { id: data.userId } },
-        type: 'FORUM',
+        type: 'FORUM_NEW_EVENT',
+        notificationType: 'FORUM',
         forumPostType: data.forumPostType,
         priority: data.priority || 'MEDIUM',
         content: data.content,
@@ -92,74 +92,6 @@ export class ForumNotificationService implements IForumNotificationService {
     }
   }
 
-  /**
-   * create notifications for multiple users in batch
-   */
-  async createBulkForumNotifications(
-    data: CreateBulkForumNotificationsInput,
-    context: Context
-  ): Promise<any[]> {
-    try {
-      // validate required fields
-      if (!data.userIds || data.userIds.length === 0) {
-        throw new GraphQLError('At least one user ID is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      if (!data.forumPostType || data.forumPostType.trim() === '') {
-        throw new GraphQLError('Notification type is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      if (!data.forumPostType) {
-        throw new GraphQLError('Notification type category is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      if (!data.content || data.content.trim() === '') {
-        throw new GraphQLError('Notification content is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        });
-      }
-
-      interface ForumNotificationCreateData extends CreateForumPostInput {
-        author: { connect: { id: string } };
-      }
-
-      // create notifications for each user
-      const notifications = await Promise.all(
-        data.userIds.map((userId) =>
-          this.createForumNotification(
-            {
-              title: data.title,
-              topic: data.topic,
-              content: data.content,
-              priority: data.priority,
-              metadata: data.metadata,
-              expiresAt: data.expiresAt,
-              scheduledFor: data.scheduledFor,
-              relatedForumPostId: data.relatedForumPostId,
-              author: { connect: { id: context.session.data.id } },
-            } as ForumNotificationCreateData,
-            context
-          )
-        )
-      );
-
-      return notifications;
-    } catch (error: any) {
-      console.error('Create bulk forumNotifications error:', error);
-      if (error instanceof GraphQLError) {
-        throw error;
-      }
-      throw new GraphQLError('Failed to create bulk forumNotifications', {
-        extensions: { code: 'INTERNAL_SERVER_ERROR' },
-      });
-    }
-  }
   // Create subscription event
   async createSubscription(data: CreateSubscribeForum, context: Context): Promise<any> {
     try {

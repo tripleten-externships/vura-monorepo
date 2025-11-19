@@ -51,23 +51,7 @@ export interface ForumNotificationCreateData {
   userId: string;
   type: string;
   forumPostType?: string;
-}
-
-/**
- * input data for creating bulk forumnotifications
- */
-export interface CreateBulkForumNotificationsInput {
-  userIds: string[];
-  forumPostType?: string;
-  priority?: ForumPostPriority;
-  content: string;
-  actionUrl?: string;
-  metadata?: Record<string, any>;
-  expiresAt?: Date;
-  scheduledFor?: Date;
-  relatedForumPostId?: string;
-  title: string;
-  topic: string;
+  notificationType?: 'CARE_PLAN' | 'CHAT' | 'FORUM' | 'SYSTEM';
 }
 
 /**
@@ -75,11 +59,6 @@ export interface CreateBulkForumNotificationsInput {
  */
 export interface IForumNotificationService {
   createForumNotification(data: ForumNotificationCreateData, context: Context): Promise<any>;
-
-  createBulkForumNotifications(
-    data: CreateBulkForumNotificationsInput,
-    context: Context
-  ): Promise<any[]>;
   createSubscription(data: CreateSubscribeForum, context: Context): Promise<any>;
   createUnSubscription(userId: string, topic: string, context: Context): Promise<boolean>;
 }
