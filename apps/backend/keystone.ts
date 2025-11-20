@@ -5,6 +5,7 @@ dotenv.config({ path: path.resolve(process.cwd(), 'apps/backend/.env') });
 
 import { config } from '@keystone-6/core';
 import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
+import { constraintDirective, constraintDirectiveTypeDefs } from 'graphql-constraint-directive';
 // import initGoogleStrategy from './google-strategy';
 import { withAuth, session } from './api/middlewares/auth';
 
@@ -35,6 +36,7 @@ const dbUrl =
 const defaultCorsOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
 const corsOrigins =
   process.env.ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()) || defaultCorsOrigins;
+const applyConstraintDirective = constraintDirective();
 
 export default withAuth(
   config({
@@ -121,7 +123,7 @@ export default withAuth(
       extendGraphqlSchema: (schema) => {
         // Merge Keystone's generated schema with custom executable schema.
         const customSchema = makeExecutableSchema({
-          typeDefs,
+          typeDefs: [constraintDirectiveTypeDefs, typeDefs],
           resolvers: {
             DateTime,
             JSON,
@@ -130,8 +132,9 @@ export default withAuth(
             Subscription,
           },
         });
+        const constrainedSchema = applyConstraintDirective(customSchema);
         return mergeSchemas({
-          schemas: [schema, customSchema],
+          schemas: [schema, constrainedSchema],
         });
       },
     },

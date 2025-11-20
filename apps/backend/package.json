@@ -23,6 +23,7 @@
     "@keystone-6/auth": "^8.1.0",
     "@keystone-6/core": "^6.5.1",
     "@keystone-6/fields-document": "^9.1.1",
+    "graphql-constraint-directive": "^5.4.3",
     "@prisma/debug": "^6.13.0",
     "@prisma/generator-helper": "^6.13.0",
     "dotenv": "^17.2.1",
