@@ -8,22 +8,22 @@ export const typeDefs = gql`
 
   # Questionnaire Input Types
   input SaveQuestionnaireResponseInput {
-    questionnaireId: ID!
-    carePlanId: ID
-    checklistId: ID
+    questionnaireId: ID! @constraint(minLength: 1)
+    carePlanId: ID @constraint(minLength: 1)
+    checklistId: ID @constraint(minLength: 1)
     responses: [QuestionResponseInput!]!
     isDraft: Boolean
   }
 
   input QuestionResponseInput {
-    questionId: ID!
+    questionId: ID! @constraint(minLength: 1)
     answer: JSON!
-    confidence: Int
-    notes: String
+    confidence: Int @constraint(min: 1, max: 5)
+    notes: String @constraint(maxLength: 2000)
   }
 
   input SubmitQuestionnaireInput {
-    questionnaireResponseId: ID!
+    questionnaireResponseId: ID! @constraint(minLength: 1)
     updateCarePlanProgress: Boolean
   }
 
@@ -46,17 +46,17 @@ export const typeDefs = gql`
 
   # Authentication Types
   input SignupInput {
-    name: String!
-    email: String!
-    password: String!
-    age: Int
-    gender: String
-    avatarUrl: String
+    name: String! @constraint(minLength: 2, maxLength: 120)
+    email: String! @constraint(format: "email")
+    password: String! @constraint(minLength: 8, maxLength: 128)
+    age: Int @constraint(min: 13, max: 120)
+    gender: String @constraint(maxLength: 50)
+    avatarUrl: String @constraint(format: "uri")
   }
 
   input LoginInput {
-    email: String!
-    password: String!
+    email: String! @constraint(format: "email")
+    password: String! @constraint(minLength: 8, maxLength: 128)
   }
 
   type SignupResult {
@@ -86,10 +86,10 @@ export const typeDefs = gql`
 
   # Resources Types
   input GetResourcesInput {
-    first: Int
-    after: String
-    checklistId: ID
-    searchTerm: String
+    first: Int @constraint(min: 1, max: 100)
+    after: String @constraint(minLength: 1, maxLength: 256)
+    checklistId: ID @constraint(minLength: 1)
+    searchTerm: String @constraint(maxLength: 120)
     orderBy: ResourceOrderBy
   }
 
@@ -134,12 +134,12 @@ export const typeDefs = gql`
   # Forum Post Types
 
   input CreateForumPostInput {
-    title: String!
-    topic: String!
-    content: String!
+    title: String! @constraint(minLength: 3, maxLength: 140)
+    topic: String! @constraint(minLength: 2, maxLength: 60)
+    content: String! @constraint(minLength: 3, maxLength: 5000)
     priority: ForumPostPriority
     forumPostType: ForumPostType!
-    type: String!
+    type: String! @constraint(maxLength: 50)
     metadata: JSON
   }
 
@@ -162,11 +162,11 @@ export const typeDefs = gql`
   }
 
   input GetForumPostsInput {
-    first: Int
-    after: String
-    topic: String
-    authorId: ID
-    searchTerm: String
+    first: Int @constraint(min: 1, max: 50)
+    after: String @constraint(minLength: 1, maxLength: 256)
+    topic: String @constraint(maxLength: 60)
+    authorId: ID @constraint(minLength: 1)
+    searchTerm: String @constraint(maxLength: 120)
     dateFrom: DateTime
     dateTo: DateTime
     orderBy: ForumPostOrderBy
@@ -238,7 +238,7 @@ export const typeDefs = gql`
 
   # Group Chat Types
   input CreateGroupChatInput {
-    groupName: String!
+    groupName: String! @constraint(minLength: 3, maxLength: 80)
     memberIds: [ID!]!
   }
 
@@ -249,8 +249,8 @@ export const typeDefs = gql`
   }
 
   input SendChatMessageInput {
-    groupId: String!
-    message: String!
+    groupId: String! @constraint(minLength: 1)
+    message: String! @constraint(minLength: 1, maxLength: 2000)
   }
 
   type SendChatMessageResult {
@@ -269,15 +269,15 @@ export const typeDefs = gql`
 
   # AI Chat Types
   input AiChatMessageInput {
-    role: String!
-    content: String!
+    role: String! @constraint(pattern: "^(user|assistant|system|tool)$")
+    content: String! @constraint(minLength: 1, maxLength: 4000)
   }
 
   input AiChatInput {
     messages: [AiChatMessageInput!]!
-    systemPrompt: String
+    systemPrompt: String @constraint(maxLength: 2000)
     temperature: Float
-    provider: String
+    provider: String @constraint(maxLength: 40)
   }
 
   type AiChatResponse {
@@ -288,8 +288,8 @@ export const typeDefs = gql`
 
   # Single AI chat message create (persist & return session id)
   input CreateAiChatMessageInput {
-    sessionId: ID
-    prompt: String!
+    sessionId: ID @constraint(minLength: 1)
+    prompt: String! @constraint(minLength: 1, maxLength: 4000)
   }
 
   type CreateAiChatMessageResult {
@@ -301,12 +301,12 @@ export const typeDefs = gql`
 
   # Profile Management
   input UpdateProfileInput {
-    name: String
-    email: String
-    age: Int
-    gender: String
-    avatarUrl: String
-    currentPassword: String
+    name: String @constraint(minLength: 2, maxLength: 120)
+    email: String @constraint(format: "email")
+    age: Int @constraint(min: 13, max: 120)
+    gender: String @constraint(maxLength: 50)
+    avatarUrl: String @constraint(format: "uri")
+    currentPassword: String @constraint(minLength: 8, maxLength: 128)
   }
 
   type UpdateProfileResponse {
@@ -324,13 +324,13 @@ export const typeDefs = gql`
 
   # Typing indicator input
   input TypingIndicatorInput {
-    groupId: ID!
+    groupId: ID! @constraint(minLength: 1)
     isTyping: Boolean!
   }
 
   # User status input
   input UserStatusInput {
-    status: String!
+    status: String! @constraint(maxLength: 32)
   }
 
   # Notification Types
@@ -349,24 +349,24 @@ export const typeDefs = gql`
   }
 
   input CreateNotificationInput {
-    userId: ID!
-    type: String!
+    userId: ID! @constraint(minLength: 1)
+    type: String! @constraint(maxLength: 50)
     notificationType: NotificationType!
     priority: NotificationPriority
-    content: String!
-    actionUrl: String
+    content: String! @constraint(minLength: 1, maxLength: 500)
+    actionUrl: String @constraint(format: "uri")
     metadata: JSON
-    relatedCarePlanId: ID
-    relatedChatId: ID
-    relatedForumPostId: ID
+    relatedCarePlanId: ID @constraint(minLength: 1)
+    relatedChatId: ID @constraint(minLength: 1)
+    relatedForumPostId: ID @constraint(minLength: 1)
   }
 
   input GetNotificationsInput {
     read: Boolean
     notificationType: NotificationType
     priority: NotificationPriority
-    take: Int
-    skip: Int
+    take: Int @constraint(min: 1, max: 50)
+    skip: Int @constraint(min: 0, max: 200)
   }
 
   type NotificationDetails {
@@ -426,9 +426,9 @@ export const typeDefs = gql`
 
   # Questionnaire assignment
   input AssignQuestionnaireInput {
-    questionnaireId: ID!
-    assignedToId: ID!
-    carePlanId: ID
+    questionnaireId: ID! @constraint(minLength: 1)
+    assignedToId: ID! @constraint(minLength: 1)
+    carePlanId: ID @constraint(minLength: 1)
   }
 
   type AssignQuestionnaireResult {
