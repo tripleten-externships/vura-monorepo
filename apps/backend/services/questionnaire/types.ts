@@ -1,5 +1,3 @@
-import { QuestionnaireAssignment } from '@prisma/client';
-
 export interface QuestionResponseInput {
   questionId: string;
   answer: any;
@@ -42,12 +40,16 @@ export interface AssignQuestionnaireInput {
   carePlanId?: string;
 }
 
+export interface QuestionnaireAssignmentPayload {
+  id: string;
+  questionnaire?: any;
+  assignedTo?: any;
+  carePlan?: any;
+  [key: string]: any;
+}
+
 export interface AssignQuestionnaireResult {
   success: boolean;
   message: string;
-  assignment: QuestionnaireAssignment & {
-    questionnaire?: any;
-    assignedTo?: any;
-    carePlan?: any;
-  };
+  assignment: QuestionnaireAssignmentPayload;
 }
