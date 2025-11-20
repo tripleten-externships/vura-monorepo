@@ -287,7 +287,7 @@ export class QuestionnaireService extends BaseService {
               },
             })
             .then(() => completionPercentage)
-            .catch((error) => {
+            .catch((error: unknown) => {
               console.error('Failed to update checklist completion:', error);
               return undefined;
             })
