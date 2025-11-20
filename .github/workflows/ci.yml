@@ -52,7 +52,7 @@ jobs:
         run: cd apps/frontend && npm run compile
 
       - name: Run linting
-        run: cd ../../ && npm run lint
+        run: npm run lint
 
       - name: Run type checking
         run: npm run type-check
