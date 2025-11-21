@@ -2,6 +2,10 @@ import { ApolloClient } from '@apollo/client';
 import { makeAutoObservable } from 'mobx';
 import { client } from './apolloClient';
 import { UIStore } from './uiStore';
+import { ResourceStore } from './resourceStore';
+import { ForumStore } from './forumStore';
+import { NotificationStore } from './notificationStore';
+import { AiStore } from './aiStore';
 
 /**
  * Root store that manages all MobX stores and provides access to Apollo Client
@@ -13,12 +17,20 @@ export class RootStore {
 
   // Individual stores
   public uiStore: UIStore;
+  public resourceStore: ResourceStore;
+  public forumStore: ForumStore;
+  public notificationStore: NotificationStore;
+  public aiStore: AiStore;
 
   constructor(apolloClient = client) {
     this.apolloClient = apolloClient;
 
     // Initialize stores directly
     this.uiStore = new UIStore(this);
+    this.resourceStore = new ResourceStore(this);
+    this.forumStore = new ForumStore(this);
+    this.notificationStore = new NotificationStore(this);
+    this.aiStore = new AiStore(this);
 
     makeAutoObservable(this, {
       apolloClient: false, // Don't make Apollo Client observable
@@ -33,6 +45,10 @@ export class RootStore {
     if (this.uiStore) {
       this.uiStore.reset();
     }
+    this.resourceStore.reset();
+    this.forumStore.reset();
+    this.notificationStore.reset();
+    this.aiStore.reset();
     // Clear Apollo Client cache
     this.apolloClient.clearStore();
   }

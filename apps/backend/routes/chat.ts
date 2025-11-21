@@ -1,17 +1,30 @@
-import { Express, Request, Response } from 'express';
+import express, { Express, Request, Response } from 'express';
+import bodyParser from 'body-parser';
 import { aiService } from '../services/ai';
 import { ChatMessage } from '../services/ai/types';
-import bodyParser from 'body-parser';
 import { getWebSocketService } from '../services/websocket';
+import type { KeystoneContext } from '@keystone-6/core/types';
 
-export function chatRoutes(app: Express) {
-  app.use('/api/chat', bodyParser.json({ limit: '4mb' }));
-  app.post('/api/chat', async (req: Request, res: Response) => {
+/**
+ * registers chat routes with auth validation so only authenticated keystone sessions can hit the
+ * ai endpoints. we resolve the request-specific context via withRequest to pick up the session.
+ */
+export function chatRoutes(app: Express, contextProvider: () => Promise<KeystoneContext>) {
+  const router = express.Router();
+
+  router.use(bodyParser.json({ limit: '4mb' }));
+
+  router.post('/api', async (req: Request, res: Response) => {
     if (!req.body) {
       return res.status(400).json({ error: 'Request body is required' });
     }
 
-    const { messages, systemPrompt, temperature, provider, sessionId, userId } = req.body;
+    const scopedContext = await createRequestContext(contextProvider, req, res);
+    if (!scopedContext.session?.data?.id) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { messages, systemPrompt, temperature, provider, sessionId } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'Messages array is required' });
@@ -23,6 +36,7 @@ export function chatRoutes(app: Express) {
     })) as ChatMessage[];
 
     const isStreaming = req.headers['accept'] === 'text/event-stream';
+    const userId = scopedContext.session.data.id;
 
     if (isStreaming) {
       res.writeHead(200, {
@@ -32,8 +46,7 @@ export function chatRoutes(app: Express) {
       });
 
       try {
-        // check if we have a valid session ID and user ID for WebSocket streaming
-        const useWebSockets = sessionId && userId;
+        const useWebSockets = Boolean(sessionId);
 
         for await (const chunk of aiService.streamChat(typedMessages, {
           systemPrompt,
@@ -54,8 +67,7 @@ export function chatRoutes(app: Express) {
     }
 
     try {
-      // check if we have a valid session ID and user ID for WebSocket streaming
-      const useWebSockets = sessionId && userId;
+      const useWebSockets = Boolean(sessionId);
 
       const response = await aiService.chat(typedMessages, {
         systemPrompt,
@@ -78,4 +90,18 @@ export function chatRoutes(app: Express) {
       });
     }
   });
+
+  app.use('/chat', router);
+}
+
+async function createRequestContext(
+  contextProvider: () => Promise<KeystoneContext>,
+  req: Request,
+  res: Response
+) {
+  const baseContext = await contextProvider();
+  if (typeof (baseContext as any).withRequest === 'function') {
+    return (baseContext as any).withRequest(req, res);
+  }
+  return baseContext;
 }

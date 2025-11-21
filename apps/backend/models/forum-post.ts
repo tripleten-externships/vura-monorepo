@@ -1,32 +1,35 @@
 import { list } from '@keystone-6/core';
-import { text, timestamp, relationship } from '@keystone-6/core/fields';
+import { text, checkbox, timestamp, relationship, select, json } from '@keystone-6/core/fields';
+import { isAdmin, isLoggedIn, isAdminOrOwner } from '../utils/rbac';
 
 export const ForumPost = list({
   access: {
     operation: {
-      query: ({ session }) => !!session,
-      create: ({ session }) => !!session,
-      update: ({ session }) => !!session,
-      delete: ({ session }) => !!session,
+      // Only logged-in users can view forum posts
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create forum posts
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update forum posts
+      update: ({ session }) => isLoggedIn(session),
+      // Only admins can delete any post, or users can delete their own
+      delete: ({ session }) => isLoggedIn(session),
     },
     filter: {
-      // only logged-in user can see posts
-      query: ({ session }) => !!session?.data?.id,
+      // Only logged-in users can see posts
+      query: ({ session }) => {
+        if (!isLoggedIn(session)) return false;
+        // All logged-in users can see all posts
+        return true;
+      },
     },
     item: {
-      //only logged-in users can update and delete their own posts
-      update: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session?.data?.id === item.authorId;
-      },
-      delete: ({ session, item }) => {
-        if (!session?.data?.id) return false;
-        return session?.data?.id === item.authorId;
-      },
+      // Users can update their own posts, admins can update any
+      update: ({ session, item }) => isAdminOrOwner(session, item),
+      // Users can delete their own posts, admins can delete any
+      delete: ({ session, item }) => isAdminOrOwner(session, item),
     },
   },
   fields: {
-    //forumpost content
     title: text({
       validation: { isRequired: true, length: { max: 30 } },
     }),
@@ -39,45 +42,46 @@ export const ForumPost = list({
         displayMode: 'textarea',
       },
     }),
-    //timestamp
+    // type of forum post for notification
+    forumPostType: select({
+      options: [
+        { label: 'New Post', value: 'NEW_POST' },
+        { label: 'Reply to Your Post', value: 'REPLY_TO_YOUR_POST' },
+        { label: 'Reply to Subscribed Post', value: 'REPLY_TO_SUBSCRIBED_POST' },
+      ],
+      validation: { isRequired: true },
+      db: { isNullable: false },
+    }),
+    priority: select({
+      options: [
+        { label: 'Low', value: 'LOW' },
+        { label: 'Medium', value: 'MEDIUM' },
+        { label: 'High', value: 'HIGH' },
+        { label: 'Urgent', value: 'URGENT' },
+      ],
+      defaultValue: 'MEDIUM',
+      validation: { isRequired: true },
+      db: { isNullable: false },
+    }),
+    metadata: json({
+      defaultValue: {},
+    }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
     }),
-    //timestamp
     updatedAt: timestamp({
-      defaultValue: { kind: 'now' },
+      db: { updatedAt: true },
     }),
-    //relationship
-    author: relationship({
-      ref: 'User.forumPost',
-      many: false,
+    subscribers: relationship({
+      ref: 'ForumSubscription.forumPost',
+      many: true,
       ui: {
         displayMode: 'select',
       },
     }),
-  },
-  hooks: {
-    //Automatically connect the author to the logged-in user and get their user ID.
-    resolveInput: async ({ resolvedData, context }) => {
-      if (context.session?.data?.id) {
-        return {
-          ...resolvedData,
-          author: { connect: { id: context.session.data.id } },
-        };
-      }
-      return resolvedData;
-    },
-    // Automatically update the time when a post is updated.
-    beforeOperation: async ({ operation, resolvedData }) => {
-      if (operation === 'update') {
-        resolvedData.updatedAt = new Date();
-      }
-    },
-    // Automatically delete when a post is deleted.
-    afterOperation: async ({ operation, item }) => {
-      if (operation === 'delete') {
-        console.log('Deleted item:', item);
-      }
-    },
+    author: relationship({
+      ref: 'User.forumPost',
+      many: false,
+    }),
   },
 });

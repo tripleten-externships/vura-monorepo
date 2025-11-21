@@ -1,2 +1,2 @@
-// export * from './types';
-// export * from './forum.service';
+export { ForumService } from './forum.service';
+export * from './types';

@@ -7,8 +7,7 @@ import {
   AiChatComplete,
 } from '../services/websocket';
 import { useAuth } from './useAuth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AUTH_TOKEN } from '../store/apolloClient';
+import { getStoredToken } from '../services/storage';
 
 interface WebSocketHookResult {
   isConnected: boolean;
@@ -33,15 +32,11 @@ export function useWebSocket(): WebSocketHookResult {
   useEffect(() => {
     if (!currentUser) return;
 
-    // Get auth token from storage
-    AsyncStorage.getItem(AUTH_TOKEN).then((token) => {
+    getStoredToken().then((token) => {
       if (!token) return;
-
       websocketService
         .connect(token)
-        .then(() => {
-          setIsConnected(true);
-        })
+        .then(() => setIsConnected(true))
         .catch((error) => {
           console.error('Failed to connect to WebSocket:', error);
           setIsConnected(false);

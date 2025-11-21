@@ -1,6 +1,8 @@
 import { Context } from '../../../types/context';
 import { initializeChatEventHandlers } from './chatEventHandler';
+import { initializeForumPostEventHandlers } from './forumEventHandler';
 import { logger } from '../../../utils/logger';
+import { EventBus } from '../eventBus';
 
 /**
  * Initialize all event handlers for the pub/sub system
@@ -12,12 +14,13 @@ import { logger } from '../../../utils/logger';
  * - Async processing: Events are processed asynchronously
  * - Resilience: Handler failures don't affect the main flow
  */
-export function initializeEventHandlers(context: Context): void {
+export function initializeEventHandlers(context: Context, eventBus: EventBus): void {
   logger.info('Initializing event handlers...');
 
   try {
     // initialize chat event handlers (notifications for messages, mentions, etc)
-    initializeChatEventHandlers(context);
+    initializeChatEventHandlers(context, eventBus);
+    initializeForumPostEventHandlers(context, eventBus);
 
     // future handlers can be added here:
     // initializeForumEventHandlers(context);

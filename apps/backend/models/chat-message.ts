@@ -1,6 +1,6 @@
 import { list } from '@keystone-6/core';
 import { text, relationship, timestamp } from '@keystone-6/core/fields';
-import { isItemAccess, isAuthenticated, isAdmin } from '../utils/access';
+import { isAdmin, isLoggedIn } from '../utils/rbac';
 
 export const ChatMessage = list({
   fields: {
@@ -18,19 +18,27 @@ export const ChatMessage = list({
 
   access: {
     operation: {
-      query: () => true, // Everyone can read chat messages
-      create: isAuthenticated, // Only signed in users can send messages
-      update: (args) => {
-        const { session } = args;
-        if (!session?.data?.id || !isItemAccess(args)) return false;
-        // Allow update if sender owns message or is admin
-        return session.data.id === args.item.sender?.id || session.data.role === 'admin';
+      // Logged-in users can query chat messages (filtered by group membership)
+      query: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can create chat messages
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update messages
+      update: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can delete messages
+      delete: ({ session }) => isLoggedIn(session),
+    },
+    item: {
+      // Users can only update their own messages, admins can update any
+      update: ({ session, item }) => {
+        if (isAdmin(session)) return true;
+        if (!isLoggedIn(session) || !session?.data?.id) return false;
+        return session.data.id === item.senderId;
       },
-      delete: (args) => {
-        const { session } = args;
-        if (!session?.data?.id || !isItemAccess(args)) return false;
-        // Allow delete if sender owns message or is admin
-        return session.data.id === args.item.sender?.id || session.data.role === 'admin';
+      // Users can only delete their own messages, admins can delete any
+      delete: ({ session, item }) => {
+        if (isAdmin(session)) return true;
+        if (!isLoggedIn(session) || !session?.data?.id) return false;
+        return session.data.id === item.senderId;
       },
     },
   },

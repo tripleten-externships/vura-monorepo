@@ -44,6 +44,11 @@ export const useUIStore = () => {
   return store.uiStore;
 };
 
+export const useResourceStore = () => useStore().resourceStore;
+export const useForumStore = () => useStore().forumStore;
+export const useNotificationStore = () => useStore().notificationStore;
+export const useAiStore = () => useStore().aiStore;
+
 /**
  * Hook to access the Apollo Client from the store
  * Useful when weneed direct access to Apollo Client methods
