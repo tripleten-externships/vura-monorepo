@@ -7,11 +7,15 @@ import { BottomNavBar } from '../../components/BottomNavBar';
 import { useAuth } from '../../hooks/useAuth';
 import { Text, View, StyleSheet, Pressable, Image } from 'react-native';
 import { useQuery } from '@apollo/client/react';
+import * as ImagePicker from 'expo-image-picker';
 
 const ProfileScreen = () => {
   const { currentUser } = useAuth({});
+
   const { data, loading, error } = useQuery<GetUserProfileQuery>(GET_USER_PROFILE);
+
   const [privacyToggle, setPrivacyToggle] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // at first it will be null and then a string once image is selected
 
   const profile = data?.userProfile;
 
@@ -26,16 +30,39 @@ const ProfileScreen = () => {
     return <Text>Error loading profile</Text>;
   }
 
+  const pickImageAsync = async () => {
+    // requesting permission to access camera roll
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('We need permission to access your camera roll to upload a new avatar image.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3], //this is what google recomended, but not sure how to calculate for our needs
+      quality: 1, //highest quality option
+    });
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri); // saving image to state - uri = local file path = assets[0] (there is only one image to choose from)
+    } else {
+      alert('You did not select any image.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Profile</Text>
       <View>
-        <Avatar size="lg"></Avatar>
-
-        <Image
-          source={require('../../../assets/pencil_icon.png')}
-          style={styles.headerPencilIcon}
-        />
+        <View stye={styles.headerAvatarContainer}>
+          <Avatar size="lg"></Avatar>
+          <Pressable onPress={pickImageAsync}>
+            <Image
+              source={require('../../../assets/pencil_icon.png')}
+              style={styles.headerPencilIcon}
+            />
+          </Pressable>
+        </View>
         <Text style={styles.headerName}>{profile?.name}</Text>
         <Text style={styles.headerEmail}>{profile?.email}</Text>
       </View>
@@ -122,6 +149,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: '#363636',
   },
+  headerAvatarContainer: {},
+  headerPencilIcon: {
+    height: 16,
+    width: 16,
+  },
   headerName: {
     fontSize: 20,
     lineHeight: 1.2,
@@ -133,10 +165,7 @@ const styles = StyleSheet.create({
     color: '#363636',
     opacity: 0.5,
   },
-  headerPencilIcon: {
-    height: 16,
-    width: 16,
-  },
+
   toggleContainer: {
     backgroundColor: '#F6F4FA',
     borderRadius: 20,
