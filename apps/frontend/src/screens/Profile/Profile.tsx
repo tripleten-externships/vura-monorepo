@@ -11,7 +11,8 @@ import {
   TextInput,
 } from 'react-native';
 import { UPDATE_PROFILE } from '../../../src/graphql/mutations/index';
-import { useMutation } from '@apollo/client';
+import { DELETE_ACCOUNT } from '../../../src/graphql/mutations/index';
+import { useMutation } from '@apollo/client/react';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { observer } from 'mobx-react-lite';
 import { BottomNavBar } from '../../components/BottomNavBar';
@@ -22,9 +23,6 @@ import avatar from '../../../assets/profile.png';
 import pen from '../../../assets/pen.png';
 
 const ProfileScreen = observer(() => {
-  const { currentUser } = useAuth({});
-  const notificationStore = useNotificationStore();
-
   const [name, setName] = useState('');
   const [gender, setGender] = useState('');
   const [age, setAge] = useState('');
@@ -33,9 +31,12 @@ const ProfileScreen = observer(() => {
   const [hideAvatar, setHideAvatar] = useState(false);
 
   const auth = useAuth({});
+  const { currentUser } = useAuth({});
   const navigate = useNavigate();
+  const notificationStore = useNotificationStore();
 
   const PRIVACY_URL = process.env.VITE_PRIVACY_URL ?? 'https://privacy-url.com';
+
   const goToPrivacy = () => {
     if (Platform.OS === 'web') {
       window.open(PRIVACY_URL, '_blank');
@@ -51,6 +52,19 @@ const ProfileScreen = observer(() => {
       navigate('/get-started');
     } else {
       navigate('/get-started');
+    }
+  };
+
+  const [deleteAccount] = useMutation(DELETE_ACCOUNT);
+
+  const handleDelete = async () => {
+    try {
+      await deleteAccount();
+      await auth.logout();
+      navigate('/get-started');
+    } catch (error) {
+      console.error(error);
+      alert('Failed to delete account');
     }
   };
 
@@ -153,7 +167,7 @@ const ProfileScreen = observer(() => {
         <Pressable onPress={logout}>
           <Text style={styles.logout}>Logout</Text>
         </Pressable>
-        <Pressable>
+        <Pressable onPress={handleDelete}>
           <Text style={styles.delete}>Delete Account</Text>
         </Pressable>
       </View>
