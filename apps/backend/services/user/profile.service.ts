@@ -25,4 +25,24 @@ export class UserProfileService extends BaseService {
 
     return user;
   }
+
+  async deleteCurrentUser(userId: string) {
+    if (!userId) {
+      throw new GraphQLError('user id is required', { extensions: { code: 'UNAUTHENTICATED' } });
+    }
+
+    const user = await this.context.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new GraphQLError('user not found', { extensions: { code: 'NOT_FOUND' } });
+    }
+
+    await this.context.prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return true;
+  }
 }

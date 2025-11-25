@@ -158,7 +158,12 @@ export const typeDefs = gql`
   type CustomDeleteForumPostResult {
     success: Boolean!
     message: String!
-    deletedPostId: ID!
+    deletedId: ID!
+  }
+
+  type CustomDeleteAccountResult {
+    success: Boolean!
+    message: String!
   }
 
   input GetForumPostsInput {
@@ -443,6 +448,7 @@ export const typeDefs = gql`
     login(input: LoginInput!): LoginResult!
     customCreateForumPost(data: CreateForumPostInput!): CustomCreateForumPostResult!
     customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
+    customDeleteAccount: CustomDeleteAccountResult!
     customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
     sendChatMessage(input: SendChatMessageInput!): SendChatMessageResult!
     saveQuestionnaireResponse(
