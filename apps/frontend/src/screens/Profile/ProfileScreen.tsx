@@ -31,6 +31,7 @@ const ProfileScreen = () => {
       <Text style={styles.header}>Profile</Text>
       <View>
         <Avatar size="lg"></Avatar>
+
         <Image
           source={require('../../../assets/pencil_icon.png')}
           style={styles.headerPencilIcon}
@@ -112,7 +113,10 @@ const ProfileScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    margin: 0,
+    padding: 24,
+  },
   header: {
     fontSize: 16,
     lineHeight: 20,
@@ -140,17 +144,33 @@ const styles = StyleSheet.create({
     borderColor: '#E7E7E7',
     height: 70,
     width: 345,
+    margin: 0,
+    padding: 16,
   },
   toggleText: {
     fontSize: 16,
     lineHeight: 20,
     color: '#363636',
   },
-  profileDataContainer: {},
+  profileDataContainer: {
+    color: '#F6F4FA',
+    borderWidth: 1,
+    borderColor: '#E7E7E7',
+    borderRadius: 20,
+    margin: 0,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
   profileDataRow: {},
   profileDataTextColumn: {},
-  profileDataLabel: {},
-  profileDataUserInfo: {},
+  profileDataLabel: {
+    fontSize: 16,
+    fontWeight: 400,
+    lineHeight: 20,
+    color: '#363636',
+    opacity: 0.5,
+  },
+  profileDataUserInfo: { fontSize: 18, fontWeight: 400, lineHeight: 22 },
   profileDataPencilIcon: {
     height: 16,
     width: 16,
