@@ -947,6 +947,66 @@ input CarePlanRelateToOneForCreateInput {
   connect: CarePlanWhereUniqueInput
 }
 
+type NotificationCounter {
+  id: ID!
+  user: User
+  notificationType: String
+  count: Int
+  lastUpdated: DateTime
+}
+
+input NotificationCounterWhereUniqueInput {
+  id: ID
+}
+
+input NotificationCounterWhereInput {
+  AND: [NotificationCounterWhereInput!]
+  OR: [NotificationCounterWhereInput!]
+  NOT: [NotificationCounterWhereInput!]
+  id: IDFilter
+  user: UserWhereInput
+  notificationType: StringFilter
+  count: IntFilter
+  lastUpdated: DateTimeNullableFilter
+}
+
+input IntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: IntFilter
+}
+
+input NotificationCounterOrderByInput {
+  id: OrderDirection
+  notificationType: OrderDirection
+  count: OrderDirection
+  lastUpdated: OrderDirection
+}
+
+input NotificationCounterUpdateInput {
+  user: UserRelateToOneForUpdateInput
+  notificationType: String
+  count: Int
+  lastUpdated: DateTime
+}
+
+input NotificationCounterUpdateArgs {
+  where: NotificationCounterWhereUniqueInput!
+  data: NotificationCounterUpdateInput!
+}
+
+input NotificationCounterCreateInput {
+  user: UserRelateToOneForCreateInput
+  notificationType: String
+  count: Int
+  lastUpdated: DateTime
+}
+
 type Parent {
   id: ID!
   name: String
@@ -973,17 +1033,6 @@ input ParentWhereInput {
   createdAt: DateTimeNullableFilter
   updatedAt: DateTimeNullableFilter
   user: UserWhereInput
-}
-
-input IntFilter {
-  equals: Int
-  in: [Int!]
-  notIn: [Int!]
-  lt: Int
-  lte: Int
-  gt: Int
-  gte: Int
-  not: IntFilter
 }
 
 input ParentOrderByInput {
@@ -1554,6 +1603,8 @@ type User {
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
   notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
   notificationsCount(where: NotificationWhereInput! = {}): Int
+  notificationCounter(where: NotificationCounterWhereInput! = {}, orderBy: [NotificationCounterOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationCounterWhereUniqueInput): [NotificationCounter!]
+  notificationCounterCount(where: NotificationCounterWhereInput! = {}): Int
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
@@ -1592,6 +1643,7 @@ input UserWhereInput {
   forumPost: ForumPostManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
   notifications: NotificationManyRelationFilter
+  notificationCounter: NotificationCounterManyRelationFilter
   isAdmin: BooleanFilter
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
@@ -1643,6 +1695,12 @@ input NotificationManyRelationFilter {
   none: NotificationWhereInput
 }
 
+input NotificationCounterManyRelationFilter {
+  every: NotificationCounterWhereInput
+  some: NotificationCounterWhereInput
+  none: NotificationCounterWhereInput
+}
+
 input UserOrderByInput {
   id: OrderDirection
   name: OrderDirection
@@ -1676,6 +1734,7 @@ input UserUpdateInput {
   forumPost: ForumPostRelateToManyForUpdateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
   notifications: NotificationRelateToManyForUpdateInput
+  notificationCounter: NotificationCounterRelateToManyForUpdateInput
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
@@ -1718,6 +1777,13 @@ input NotificationRelateToManyForUpdateInput {
   connect: [NotificationWhereUniqueInput!]
 }
 
+input NotificationCounterRelateToManyForUpdateInput {
+  disconnect: [NotificationCounterWhereUniqueInput!]
+  set: [NotificationCounterWhereUniqueInput!]
+  create: [NotificationCounterCreateInput!]
+  connect: [NotificationCounterWhereUniqueInput!]
+}
+
 input UserUpdateArgs {
   where: UserWhereUniqueInput!
   data: UserUpdateInput!
@@ -1741,6 +1807,7 @@ input UserCreateInput {
   forumPost: ForumPostRelateToManyForCreateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
   notifications: NotificationRelateToManyForCreateInput
+  notificationCounter: NotificationCounterRelateToManyForCreateInput
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
@@ -1771,6 +1838,11 @@ input ForumPostRelateToManyForCreateInput {
 input NotificationRelateToManyForCreateInput {
   create: [NotificationCreateInput!]
   connect: [NotificationWhereUniqueInput!]
+}
+
+input NotificationCounterRelateToManyForCreateInput {
+  create: [NotificationCounterCreateInput!]
+  connect: [NotificationCounterWhereUniqueInput!]
 }
 
 """JSON custom scalar type"""
@@ -1831,6 +1903,12 @@ type Mutation {
   updateNotifications(data: [NotificationUpdateArgs!]!): [Notification]
   deleteNotification(where: NotificationWhereUniqueInput!): Notification
   deleteNotifications(where: [NotificationWhereUniqueInput!]!): [Notification]
+  createNotificationCounter(data: NotificationCounterCreateInput!): NotificationCounter
+  createNotificationCounters(data: [NotificationCounterCreateInput!]!): [NotificationCounter]
+  updateNotificationCounter(where: NotificationCounterWhereUniqueInput!, data: NotificationCounterUpdateInput!): NotificationCounter
+  updateNotificationCounters(data: [NotificationCounterUpdateArgs!]!): [NotificationCounter]
+  deleteNotificationCounter(where: NotificationCounterWhereUniqueInput!): NotificationCounter
+  deleteNotificationCounters(where: [NotificationCounterWhereUniqueInput!]!): [NotificationCounter]
   createParent(data: ParentCreateInput!): Parent
   createParents(data: [ParentCreateInput!]!): [Parent]
   updateParent(where: ParentWhereUniqueInput!, data: ParentUpdateInput!): Parent
@@ -1944,6 +2022,9 @@ type Query {
   notification(where: NotificationWhereUniqueInput!): Notification
   notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
   notificationsCount(where: NotificationWhereInput! = {}): Int
+  notificationCounter(where: NotificationCounterWhereUniqueInput!): NotificationCounter
+  notificationCounters(where: NotificationCounterWhereInput! = {}, orderBy: [NotificationCounterOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationCounterWhereUniqueInput): [NotificationCounter!]
+  notificationCountersCount(where: NotificationCounterWhereInput! = {}): Int
   parent(where: ParentWhereUniqueInput!): Parent
   parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
   parentsCount(where: ParentWhereInput! = {}): Int

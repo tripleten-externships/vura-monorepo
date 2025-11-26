@@ -21,7 +21,7 @@ export async function incrementCounter(
     // Use upsert with atomic increment
     // This is a single database operation, very fast with proper indexing
     const result = await prisma.$executeRaw`
-      INSERT INTO NotificationCounter (id, userId, notificationType, count, lastUpdated)
+      INSERT INTO NotificationCounter (id, user, notificationType, count, lastUpdated)
       VALUES (
         CONCAT(${userId}, '-', ${notificationType}),
         ${userId},
@@ -37,7 +37,7 @@ export async function incrementCounter(
     // Get the updated count
     const counter = await prisma.$queryRaw<Array<{ count: number }>>`
       SELECT count FROM NotificationCounter
-      WHERE userId = ${userId} AND notificationType = ${notificationType}
+      WHERE user = ${userId} AND notificationType = ${notificationType}
     `;
 
     const newCount = counter[0]?.count || 1;
@@ -64,14 +64,14 @@ export async function decrementCounter(
       UPDATE NotificationCounter
       SET count = GREATEST(0, count - 1),
           lastUpdated = NOW(3)
-      WHERE userId = ${userId} 
+      WHERE user = ${userId} 
         AND notificationType = ${notificationType}
     `;
 
     // Get the updated count
     const counter = await prisma.$queryRaw<Array<{ count: number }>>`
       SELECT count FROM NotificationCounter
-      WHERE userId = ${userId} AND notificationType = ${notificationType}
+      WHERE user = ${userId} AND notificationType = ${notificationType}
     `;
 
     const newCount = counter[0]?.count || 0;
@@ -92,7 +92,7 @@ export async function getTotalUnreadCount(prisma: PrismaClient, userId: string):
     const result = await prisma.$queryRaw<Array<{ total: bigint }>>`
       SELECT COALESCE(SUM(count), 0) as total
       FROM NotificationCounter
-      WHERE userId = ${userId}
+      WHERE user = ${userId}
     `;
 
     const total = Number(result[0]?.total || 0);
@@ -117,7 +117,7 @@ export async function getUnreadCountByType(
     const counter = await prisma.$queryRaw<Array<{ count: number }>>`
       SELECT COALESCE(count, 0) as count
       FROM NotificationCounter
-      WHERE userId = ${userId} 
+      WHERE user = ${userId} 
         AND notificationType = ${notificationType}
     `;
 
@@ -140,7 +140,7 @@ export async function resetAllCounters(prisma: PrismaClient, userId: string): Pr
       UPDATE NotificationCounter
       SET count = 0,
           lastUpdated = NOW(3)
-      WHERE userId = ${userId}
+      WHERE user = ${userId}
     `;
 
     logger.info('All counters reset', { userId });
@@ -163,15 +163,15 @@ export async function syncCountersFromNotifications(
     const actualCounts = await prisma.$queryRaw<Array<{ notificationType: string; count: bigint }>>`
       SELECT notificationType, COUNT(*) as count
       FROM Notification
-      WHERE userId = ${userId} 
-        AND read = false
+      WHERE \`user\` = ${userId} 
+        AND \`read\` = false
       GROUP BY notificationType
     `;
 
     // Update counters to match actual counts
     for (const row of actualCounts) {
       await prisma.$executeRaw`
-        INSERT INTO NotificationCounter (id, userId, notificationType, count, lastUpdated)
+        INSERT INTO NotificationCounter (id, user, notificationType, count, lastUpdated)
         VALUES (
           CONCAT(${userId}, '-', ${row.notificationType}),
           ${userId},

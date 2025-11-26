@@ -165,6 +165,17 @@ model Notification {
   @@index([relatedForumPostId])
 }
 
+model NotificationCounter {
+  id               String    @id @default(uuid())
+  user             User?     @relation("NotificationCounter_user", fields: [userId], references: [id])
+  userId           String?   @map("user")
+  notificationType String    @default("SYSTEM")
+  count            Int       @default(0)
+  lastUpdated      DateTime? @default(now())
+
+  @@index([userId])
+}
+
 model Parent {
   id               Int       @id @default(autoincrement())
   name             String    @default("")
@@ -280,6 +291,7 @@ model User {
   forumPost              ForumPost[]             @relation("ForumPost_author")
   questionnaireResponses QuestionnaireResponse[] @relation("QuestionnaireResponse_user")
   notifications          Notification[]          @relation("Notification_user")
+  notificationCounter    NotificationCounter[]   @relation("NotificationCounter_user")
   isAdmin                Boolean                 @default(false)
   createdAt              DateTime?               @default(now())
   lastLoginDate          DateTime?               @default(now())

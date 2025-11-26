@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { BottomNavBar } from '../../components/BottomNavBar';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotificationStore } from '../../store/StoreContext';
+import { ImageUpload, ImageUploadChangeEvent } from '../../components/ImageUpload/ImageUpload';
 
 const ProfileScreen = observer(() => {
   const { currentUser } = useAuth({});
@@ -14,6 +15,11 @@ const ProfileScreen = observer(() => {
     notificationStore.refreshUnread();
   }, [notificationStore]);
 
+  const handleImageChange = useCallback((event: ImageUploadChangeEvent) => {
+    if (event.asset?.uri) {
+      console.log(`Selected ${event.source} image:`, event.asset.uri);
+    }
+  }, []);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile</Text>
@@ -36,6 +42,12 @@ const ProfileScreen = observer(() => {
           <Text style={styles.notificationContent}>{notification.content}</Text>
         </View>
       ))}
+
+      <ImageUpload
+        label="Profile photo"
+        helperText="Take a new photo or choose one from your library."
+        onChange={handleImageChange}
+      />
 
       <BottomNavBar />
     </View>
