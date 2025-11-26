@@ -99,6 +99,10 @@ export const User = list({
       ref: 'Notification.user',
       many: true,
     }),
+    notificationCounter: relationship({
+      ref: 'NotificationCounter.user',
+      many: true,
+    }),
     // Metadata
 
     // Only admins can view/modify admin status

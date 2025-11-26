@@ -7,3 +7,4 @@ export * from './Button/MainButton';
 export * from './NotificationBell/NotificationBell';
 export * from './Emoji/Emoji';
 export * from './PostInput/PostInput';
+export * from './ImageUpload/ImageUpload';
