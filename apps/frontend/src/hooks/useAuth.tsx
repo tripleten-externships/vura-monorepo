@@ -78,11 +78,18 @@ export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
     }
   }, [logout, onLogoutSuccess]);
 
+  const refreshCurrentUser = useCallback(async ({ force }: { force?: boolean } = {}) => {
+    await client.refetchQueries({
+      include: [GET_USER_PROFILE],
+    });
+  }, []);
+
   return {
     currentUser: currentUserData?.userProfile ?? null,
     login: handleLogin,
-    error: currentUserError ?? logoutError ?? loginError,
     logout: handleLogout,
+    error: currentUserError ?? logoutError ?? loginError,
     loading: currentUserLoading || loginLoading || logoutLoading,
+    refreshCurrentUser,
   };
 };
