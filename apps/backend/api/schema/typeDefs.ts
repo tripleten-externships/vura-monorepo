@@ -59,6 +59,30 @@ export const typeDefs = gql`
     password: String! @constraint(minLength: 8, maxLength: 128)
   }
 
+  input FrontendSignupInput {
+    name: String @constraint(minLength: 2, maxLength: 120)
+    email: String! @constraint(format: "email")
+    password: String! @constraint(minLength: 10, maxLength: 128)
+  }
+
+  input FrontendLoginInput {
+    email: String! @constraint(format: "email")
+    password: String! @constraint(minLength: 10, maxLength: 128)
+  }
+
+  enum FrontendOAuthProvider {
+    GOOGLE
+    APPLE
+  }
+
+  input CompleteOAuthInput {
+    provider: FrontendOAuthProvider!
+    email: String! @constraint(format: "email")
+    providerAccountId: String! @constraint(minLength: 3, maxLength: 255)
+    name: String @constraint(maxLength: 120)
+    avatarUrl: String @constraint(format: "uri")
+  }
+
   type SignupResult {
     user: UserProfile!
     token: String!
@@ -67,6 +91,16 @@ export const typeDefs = gql`
   type LoginResult {
     user: UserProfile!
     token: String!
+  }
+
+  type FrontendAuthPayload {
+    user: UserProfile!
+    token: String!
+    jwt: String!
+  }
+
+  type OAuthUrlPayload {
+    url: String!
   }
 
   # User Profile
@@ -441,6 +475,11 @@ export const typeDefs = gql`
   type Mutation {
     signup(input: SignupInput!): SignupResult!
     login(input: LoginInput!): LoginResult!
+    registerFrontendUser(input: FrontendSignupInput!): FrontendAuthPayload!
+    loginFrontendUser(input: FrontendLoginInput!): FrontendAuthPayload!
+    beginGoogleAuth: OAuthUrlPayload!
+    beginAppleAuth: OAuthUrlPayload!
+    completeOAuthCallback(input: CompleteOAuthInput!): FrontendAuthPayload!
     customCreateForumPost(data: CreateForumPostInput!): CustomCreateForumPostResult!
     customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
     customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!

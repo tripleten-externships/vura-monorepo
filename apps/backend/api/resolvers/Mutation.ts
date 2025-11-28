@@ -18,6 +18,13 @@ import { customMarkNotificationAsRead } from '../schema/mutations/markNotificati
 import { customMarkAllNotificationsAsRead } from '../schema/mutations/markAllNotificationsAsRead';
 import { customSubscribeToForum } from '../schema/mutations/subscribeToForum';
 import { customUnsubscribeFromForum } from '../schema/mutations/unsubscribeFromForum';
+import {
+  beginAppleAuth,
+  beginGoogleAuth,
+  completeOAuthCallback,
+  loginFrontendUser,
+  registerFrontendUser,
+} from '../schema/mutations/frontendAuth';
 
 const withAuth = (resolver: Function) => (root: any, args: any, context: any, info: any) => {
   requireAuth(context.session);
@@ -29,6 +36,11 @@ const withAuth = (resolver: Function) => (root: any, args: any, context: any, in
 export const Mutation = {
   signup,
   login,
+  registerFrontendUser,
+  loginFrontendUser,
+  beginGoogleAuth,
+  beginAppleAuth,
+  completeOAuthCallback,
   // Wrap protected mutations with custom resolvers (via withAuth)
   // Protected mutations
 
