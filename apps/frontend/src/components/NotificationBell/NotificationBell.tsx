@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
 import { Image, Pressable } from 'react-native';
 
-export const Bell = ({ bellIcon }: { bellIcon: { uri: string } }) => {
-  // use usestate to track whether the notification bell is active or not
-  const [isActive, setIsActive] = useState(true);
+export const NotificationBell = ({
+  hasUnread,
+  onClick,
+}: {
+  hasUnread: boolean;
+  onClick?: () => void;
+}) => {
+  const handlePress = () => {
+    if (onClick) {
+      onClick();
+    }
+  };
 
-  // change the bell icon based on the active state
-  const bellNotification = isActive
-    ? { uri: '../../../assets/notification_bell.png' }
-    : { uri: '../../../assets/bell.png' };
   return (
-    // when the user presses the notification bell, it changes back to the regular bell
-    <Pressable onPress={() => setIsActive(false)}>
-      <Image source={bellNotification} style={[{ width: 24, height: 24 }]} />
+    <Pressable onPress={handlePress}>
+      <Image
+        source={
+          hasUnread
+            ? { uri: '../../../assets/notification_bell.png' }
+            : { uri: '../../../assets/bell.png' }
+        }
+        style={[{ width: 20, height: 20 }]}
+      />
     </Pressable>
   );
 };

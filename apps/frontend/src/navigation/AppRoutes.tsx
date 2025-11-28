@@ -7,6 +7,7 @@ import ChecklistScreen from '../screens/Checklist/Checklist';
 import ResourcesScreen from '../screens/Resources/Resources';
 import CommunityForumsScreen from '../screens/CommunityForums/CommunityForums';
 import ProfileScreen from '../screens/Profile/Profile';
+import NotificationsScreen from '../screens/Notifications/Notifications';
 
 export function AppRoutes() {
   return (
@@ -49,6 +50,14 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <ProfileScreen />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsScreen />
           </ProtectedRoute>
         }
       />

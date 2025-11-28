@@ -1,12 +1,17 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import { BottomNavBar } from '../../components/BottomNavBar';
 import ForumCard from '../../components/ForumCard/ForumCard';
 import { useForumStore } from '../../store/StoreContext';
+import { PageHeader } from '../../components/PageHeader/PageHeader';
+import { NotificationBell } from '../../components/NotificationBell/NotificationBell';
+import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
+import { useNavigate } from 'react-router-dom';
 
 const CommunityForumsScreen = observer(() => {
   const forumStore = useForumStore();
+  const navigate = useNavigate();
+  const { hasUnread } = useUnreadNotifications();
 
   useEffect(() => {
     forumStore.fetchPosts({ first: 5 });
@@ -14,7 +19,14 @@ const CommunityForumsScreen = observer(() => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Find support and answers here</Text>
+      <PageHeader
+        title="Find support and answers here"
+        rightIcon={{
+          icon: (
+            <NotificationBell hasUnread={hasUnread} onClick={() => navigate('/notifications')} />
+          ),
+        }}
+      />
       {forumStore.loading ? (
         <ActivityIndicator size="small" color="#333" />
       ) : forumStore.error ? (
@@ -32,7 +44,6 @@ const CommunityForumsScreen = observer(() => {
           />
         ))
       )}
-      <BottomNavBar />
     </View>
   );
 });

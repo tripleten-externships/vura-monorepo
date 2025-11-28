@@ -6,17 +6,17 @@ export const USER_LOGIN = gql(`
       token
       jwt
       user {
-        id
-        name
-        email
-        avatarUrl
-        isAdmin
-        privacyToggle
+          id
+          name
+          email
+          avatarUrl
+          isAdmin
+          privacyToggle
         createdAt
         lastLoginDate
         lastUpdateDate
+        }
       }
-    }
   }
 `);
 
@@ -79,5 +79,16 @@ export const COMPLETE_OAUTH_LOGIN = gql(`
 export const USER_LOGOUT = gql(`
   mutation Mutation {
     endSession
+  }
+`);
+
+export const UPDATE_PROFILE = gql(`
+  mutation UpdateProfile($input: UpdateProfileInput!) {
+    updateProfile(input: $input) {
+      success
+      message
+      error
+      userId
+    }
   }
 `);

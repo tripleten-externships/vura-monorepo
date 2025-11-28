@@ -8,6 +8,7 @@ import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
 import { constraintDirective, constraintDirectiveTypeDefs } from 'graphql-constraint-directive';
 import initGoogleStrategy from './google-strategy';
 import { withAuth, session } from './api/middlewares/auth';
+import express from 'express';
 
 import * as Models from './models';
 import { Query } from './api/resolvers/Query';
@@ -53,6 +54,10 @@ export default withAuth(
         credentials: true,
       },
       extendExpressApp: (app, commonContext) => {
+        // Increase body-size limits for JSON/form payloads (needed for base64 avatars)
+        app.use(express.json({ limit: '6mb' }));
+        app.use(express.urlencoded({ limit: '6mb', extended: true }));
+
         // Middleware to convert/override Bearer tokens into the keystonejs-session cookie
         app.use((req: any, res: any, next: any) => {
           const authHeader = req.headers.authorization;

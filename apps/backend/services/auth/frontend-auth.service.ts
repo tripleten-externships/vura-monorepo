@@ -98,7 +98,7 @@ export class FrontendAuthService extends BaseService {
       });
     }
 
-    const account = await this.context.prisma.frontendAccount.findUnique({
+    let account = await this.context.prisma.frontendAccount.findUnique({
       where: { email },
       include: { user: true },
     });
@@ -116,9 +116,12 @@ export class FrontendAuthService extends BaseService {
       });
     }
 
-    const { user } = account.user
-      ? { account, user: account.user }
-      : await this.ensureKeystoneUser(account);
+    let ensuredUser = account.user;
+    if (!ensuredUser) {
+      const ensured = await this.ensureKeystoneUser(account);
+      account = ensured.account;
+      ensuredUser = ensured.user;
+    }
 
     await this.context.prisma.frontendAccount.update({
       where: { id: account.id },
@@ -127,9 +130,9 @@ export class FrontendAuthService extends BaseService {
         isKeystoneUserCreated: true,
       },
     });
-    await this.touchUserLogin(user.id);
+    await this.touchUserLogin(ensuredUser.id);
 
-    return this.buildAuthResult(user);
+    return this.buildAuthResult(ensuredUser);
   }
 
   async upsertOAuthAccount(
@@ -181,9 +184,15 @@ export class FrontendAuthService extends BaseService {
       });
     }
 
-    const { user } = account.user
-      ? { account, user: account.user }
-      : await this.ensureKeystoneUser(account, { name: input.name, avatarUrl: input.avatarUrl });
+    let ensuredUser = account.user;
+    if (!ensuredUser) {
+      const ensured = await this.ensureKeystoneUser(account, {
+        name: input.name,
+        avatarUrl: input.avatarUrl,
+      });
+      account = ensured.account;
+      ensuredUser = ensured.user;
+    }
 
     await this.context.prisma.frontendAccount.update({
       where: { id: account.id },
@@ -192,9 +201,9 @@ export class FrontendAuthService extends BaseService {
         isKeystoneUserCreated: true,
       },
     });
-    await this.touchUserLogin(user.id, { name: input.name, avatarUrl: input.avatarUrl });
+    await this.touchUserLogin(ensuredUser.id, { name: input.name, avatarUrl: input.avatarUrl });
 
-    return this.buildAuthResult(user);
+    return this.buildAuthResult(ensuredUser);
   }
 
   private async ensureKeystoneUser(
@@ -274,7 +283,7 @@ export class FrontendAuthService extends BaseService {
     return { token, jwt, user };
   }
 
-  private async startSession(user: User) {
+  private async startSession(user: User): Promise<string> {
     const sessionStrategy = this.context.sessionStrategy;
     if (!sessionStrategy) {
       throw new GraphQLError('Session strategy is not configured', {
@@ -282,7 +291,9 @@ export class FrontendAuthService extends BaseService {
       });
     }
 
-    const sessionToken = await sessionStrategy.start({
+    const sessionPayload = {
+      listKey: 'User',
+      itemId: user.id,
       data: {
         id: user.id,
         name: user.name,
@@ -290,8 +301,12 @@ export class FrontendAuthService extends BaseService {
         role: user.role ?? 'user',
         isAdmin: user.isAdmin ?? false,
       },
+    };
+
+    const sessionToken = (await sessionStrategy.start({
+      data: sessionPayload as any,
       context: this.context,
-    });
+    })) as string | undefined;
 
     if (!sessionToken) {
       throw new GraphQLError('Failed to issue session token', {
