@@ -130,6 +130,10 @@ export const User = list({
       ref: 'ForumSubscription.user',
       many: true,
     }),
+    frontendAccount: relationship({
+      ref: 'FrontendAccount.user',
+      ui: { description: 'Linked frontend auth identity used by the mobile/web app.' },
+    }),
   },
 
   ui: {

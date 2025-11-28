@@ -1,10 +1,19 @@
-import { View, TouchableOpacity, StyleSheet, Text, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Text,
+  ViewStyle,
+  TextStyle,
+  Image,
+} from 'react-native';
 import { useNavigation } from '../../hooks/useNavigation';
 
 export interface NavigationItem {
   id: string;
   label: string;
   route: string;
+  icon: string;
   onPress?: () => void;
 }
 
@@ -38,7 +47,12 @@ export default function NavigationIcons({
             onPress={() => handlePress(item)}
             accessibilityLabel={`Navigate to ${item.route}`}
           >
-            <Text style={[styles.label, labelStyle]}>{item.label}</Text>
+            <Text style={[styles.label, labelStyle]}>
+              <Image
+                source={{ uri: `../../../assets/${item.icon}` }}
+                style={[{ width: 24, height: 24 }]}
+              />
+            </Text>
           </TouchableOpacity>
         );
       })}

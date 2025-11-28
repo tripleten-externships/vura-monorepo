@@ -31,6 +31,7 @@ const getBrowserStorage = (): Storage | null => {
 };
 
 export const AUTH_TOKEN_KEY = 'vura.authToken';
+export const JWT_TOKEN_KEY = 'vura.jwtToken';
 
 async function getNativeItem(key: string): Promise<string | null> {
   if (encryptedStorage) {
@@ -106,4 +107,30 @@ export async function clearStoredToken(): Promise<void> {
     return;
   }
   await removeNativeItem(AUTH_TOKEN_KEY);
+}
+
+export async function getStoredJwt(): Promise<string | null> {
+  const browserStorage = getBrowserStorage();
+  if (browserStorage) {
+    return browserStorage.getItem(JWT_TOKEN_KEY);
+  }
+  return getNativeItem(JWT_TOKEN_KEY);
+}
+
+export async function setStoredJwt(token: string): Promise<void> {
+  const browserStorage = getBrowserStorage();
+  if (browserStorage) {
+    browserStorage.setItem(JWT_TOKEN_KEY, token);
+    return;
+  }
+  await setNativeItem(JWT_TOKEN_KEY, token);
+}
+
+export async function clearStoredJwt(): Promise<void> {
+  const browserStorage = getBrowserStorage();
+  if (browserStorage) {
+    browserStorage.removeItem(JWT_TOKEN_KEY);
+    return;
+  }
+  await removeNativeItem(JWT_TOKEN_KEY);
 }

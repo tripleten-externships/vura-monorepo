@@ -123,6 +123,20 @@ model ForumSubscription {
   @@index([forumPostId])
 }
 
+model FrontendAccount {
+  id                    String    @id @default(uuid())
+  email                 String    @unique @default("")
+  password              String?
+  providerType          String?   @default("PASSWORD")
+  providerAccountId     String    @unique @default("")
+  isKeystoneUserCreated Boolean   @default(false)
+  lastLoginAt           DateTime?
+  createdAt             DateTime? @default(now())
+  updatedAt             DateTime? @updatedAt
+  user                  User?     @relation("FrontendAccount_user", fields: [userId], references: [id])
+  userId                String?   @unique @map("user")
+}
+
 model GroupChat {
   id                            String         @id @default(uuid())
   groupName                     String         @default("")
@@ -297,6 +311,7 @@ model User {
   lastLoginDate          DateTime?               @default(now())
   lastUpdateDate         DateTime?               @updatedAt
   forumSubscriptions     ForumSubscription[]     @relation("ForumSubscription_user")
+  frontendAccount        FrontendAccount?        @relation("FrontendAccount_user")
 }
 
 enum AiChatSessionStatusType {

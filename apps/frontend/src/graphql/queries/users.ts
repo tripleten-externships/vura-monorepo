@@ -7,6 +7,8 @@ export const GET_USER_PROFILE = gql(`
       name
       email
       avatarUrl
+      age
+      gender
       isAdmin
       privacyToggle
       createdAt

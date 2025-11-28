@@ -66,7 +66,7 @@ export const Notification = list({
       // Only logged-in users can query notifications
       query: ({ session }) => isLoggedIn(session),
       // Only admins can create notifications (or system)
-      create: ({ session }) => isAdmin(session),
+      create: ({ session }) => isLoggedIn(session),
       // Only logged-in users can update their notifications (mark as read)
       update: ({ session }) => isLoggedIn(session),
       // Only admins can delete notifications
