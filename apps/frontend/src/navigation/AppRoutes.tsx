@@ -7,6 +7,7 @@ import ChecklistScreen from '../screens/Checklist/Checklist';
 import ResourcesScreen from '../screens/Resources/Resources';
 import CommunityForumsScreen from '../screens/CommunityForums/CommunityForums';
 import ProfileScreen from '../screens/Profile/Profile';
+import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
 
 export function AppRoutes() {
   return (
@@ -29,6 +30,14 @@ export function AppRoutes() {
         }
       />
       <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute>
+            <WelcomeScreen />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/resources"
         element={
           <ProtectedRoute>
@@ -36,6 +45,7 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/community"
         element={

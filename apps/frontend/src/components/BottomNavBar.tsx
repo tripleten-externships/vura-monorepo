@@ -3,6 +3,7 @@ import NavigationIcons, { NavigationItem } from './NavigationIcons/NavigationIco
 
 export function BottomNavBar() {
   const navigationItems: NavigationItem[] = [
+    { id: 'onboording', label: 'Onboarding', route: '/onboarding' },
     { id: 'checklist', label: 'Checklist', route: '/checklist' },
     { id: 'resources', label: 'Resources', route: '/resources' },
     { id: 'community', label: 'Community', route: '/community' },
