@@ -2,48 +2,143 @@
 
 ## 1. Purpose & Scope
 
-This document defines the backend GraphQL interface and runtime behavior for the Notifications domain and Unread Counters integration, so the frontend can reliably fetch, display, and subscribe to unread badge counts.
+This document defines the backend **GraphQL interface** and **runtime behavior** for the Notifications domain and Unread Counters, so the frontend can reliably:
 
-### What this module does
+- fetch paginated notifications
+- fetch unread counts (total or by type)
+- subscribe to real-time notification and unread count changes
+- render consistent notification badges.
 
-- Persists notifications (Keystone `Notification` list).
-- Exposes queries to page/filter notifications.
-- Maintains per-user unread counters in Redis (hash with fields: `total`, plus one per `NotificationType`: `CARE_PLAN`, `CHAT`, `FORUM`, `SYSTEM`).
-- Emits Pub/Sub events when unread totals change and when notifications are created.
+All behavior described here is based on the current `schema.graphql` and the `NotificationService` + `db-cache` implementation.
 
-### How Frontend should use it (now vs soon)
+### 1.1 What this module does
 
-- Now (current):
-  - Queries:
-    - `unreadCount` (total)
-    - `unreadCountByType(type)` (per category)
-    - `notifications(input)` (paginated list with filters)
-  - Subscription:
-    - `unreadCountChanged { count }` (total only)
+At a high level, the Notifications module:
 
-- Soon (target / separate subtask):
-  - Query: `unreadCounts(input) { total, asOf, byScope { scope count } }`
-  - Subscription : `unreadCountChange(input) { asOf totalk byScope delta }`
-  - This replaces the current total-only surfaces with a richer, Frontend-friendly shape.
+- **Persists notifications**
+  - Keystone `Notification` list stores notification records.
+  - Business logic lives in `NotificationService` and exposes a clean GraphQL facade via:
+    - `customCreateNotification`
+    - `customMarkNotificationAsRead`
+    - `customMarkAllNotificationsAsRead`
+    - `customGetNotifications`
+    - `customGetUnreadCount`.
 
-### Out of scope (handled by sister subtasks)
+- **Exposes read APIs for the frontend**
+  - `Query.customGetNotifications(input)`  
+    → paginated, filterable notification list returning `NotificationDetails`.
+  - `Query.customGetUnreadCount(notificationType?)`  
+    → unread count for the current user, optionally filtered by `NotificationType`.
 
-- Efficient Counter Queries: DB/index/caching strategy and performance of `unreadCounts`.
-- Real-time Counter Updates: Publishing `unreadCountChange` with correct payload & ordering, plus cache coherence with Redis.
+- **Maintains per-user unread counters in MySQL**
+  - Uses a **database-backed “cache” table** via helper functions in `db-cache`:
+    - `incrementCounter(prisma, userId, notificationType)`
+    - `decrementCounter(prisma, userId, notificationType)`
+    - `resetAllCounters(prisma, userId)`
+    - `getTotalUnreadCount(prisma, userId)`
+    - `getUnreadCountByType(prisma, userId, type)`
+  - This avoids Redis entirely and keeps counters strongly consistent with the DB.
 
-### Error signaling
+- **Emits Pub/Sub events for real-time updates**
+  - `Subscription.notificationReceived(userId)`  
+    -> fires on new notifications created for that user.
+  - `Subscription.unreadCountChanged(userId)`  
+    -> fires whenever the unread count for that user changes
+    (create, mark single as read, mark all as read).
 
-- Uses GraphQL errors with `extensions.code`, including:
-  - `UNAUTHENTICATED` (no session)
-  - `BAD_USER_INPUT` (validation)
-  - `NOT_FOUND`
-  - `CACHE_MISS` (Redis has no value yet)
-  - `INTERNAL_SERVER_ERROR`
+### 1.2 How the frontend should use it (current)
 
-### Security / tenancy
+For the integration prep, the frontent should treat these as the primary surfaces:
 
-- All reads/writes are **scoped to the authenticated user** (`context.session.data.id`).
-- Keystone list filtering restricts queries to the owner's notifications.
+-- **Queries**
+
+- `customGetUnreadCount(notificationType?: NotificationType)`
+  - `notificationType` omitted → total unread across all types.
+  - `notificationType` provided → unread count for that specific category only.
+- `customGetNotifications(input: GetNotificationsInput)`
+  - Filtering by `read`, `notificationType`, `priority`.
+  - Pagination via `take` (1–50) and `skip` (0–200).
+  - Returns `NotificationsResult` with `notifications: [NotificationDetails!]!`.
+
+- **Mutations**
+  - `customCreateNotification(input: CreateNotificationInput!)`
+  - `customMarkNotificationAsRead(notificationId: ID!)`
+  - `customMarkAllNotificationsAsRead`
+
+  These call into `NotificationService`, update the MySQL counters via `db-cache`,
+  and then publish subscription events.
+
+- **Subscriptions**
+  - `notificationReceived(userId: ID!) : NotificationDetails!`  
+    -> subscribe to new notifications for the current user.
+  - `unreadCountChanged(userId: ID!) : UnreadCountResult!`  
+    -> subscribe to updated unread counts for the current user.
+
+> Frontend consumers should **prefer these custom fields** over Keystone’s raw `Notification` list queries/mutations.
+
+### 1.3 Out of scope (handled by sister subtasks)
+
+This document assumes the following are handled by separate stories/subtasks:
+
+- **Efficient Counter Queries**
+  - Physical table design and indexing for the counters table.
+  - Query plans and performance tuning of `db-cache` helpers.
+  - Any future richer unread API (e.g. returning breakdowns in a single call).
+
+- **Real-time Counter Updates**
+  - Low-level Pub/Sub wiring and event fan-out.
+  - Ensuring ordering and idempotency of `unreadCountChanged` events.
+  - Any advanced payload design
+
+This spec only describes **how those capabilities are exposed to the frontend**, not how they
+are implemented internally.
+
+### 1.4 Error signaling
+
+Notification queries/mutations use `GraphQLError` with `extensions.code` to signal errors.
+
+Common codes used by this module:
+
+- `UNAUTHENTICATED`
+  - No `context.session.data.id` present.
+  - Frontend should treat this as “user logged out / token expired”.
+
+- `BAD_USER_INPUT`
+  - Validation failures (e.g. missing userId, invalid notificationType).
+  - Typically thrown inside `NotificationService`.
+
+- `NOT_FOUND`
+  - A specific notification cannot be found (e.g. for `customMarkNotificationAsRead`).
+
+- `INTERNAL_SERVER_ERROR`
+  - Any unexpected error during DB operations, counter updates, or Pub/Sub.
+
+> If a row doesn't exist yet, helpers must treat that as `0`.
+
+### 1.5 Security / tenancy
+
+Multi-tenant behavior is enforced at two layers:
+
+- **Keystone list access (Notification list)**
+  - `query` access:
+    - Admins can see all notifications.
+    - Regular users can only see notifications where `notification.userId = session.data.id`.
+  - `create`:
+    - Restricted to admins (or system).
+  - `update`:
+    - Users can only update their own notifications; admins can update any.
+  - `delete`:
+    - Restricted to admins.
+
+- **Custom resolvers**
+  - All custom queries/mutations (`customGetNotifications`, `customGetUnreadCount`,
+    `customCreateNotification`, `customMarkNotificationAsRead`, `customMarkAllNotificationsAsRead`)
+    enforce that an authenticated session exists (`context.session.data.id`).
+  - Unread counters in `db-cache` are always keyed by the **current user id**,
+    not by arbitrary IDs supplied by the client.
+  - Subscriptions `notificationReceived(userId)` and `unreadCountChanged(userId)` use
+    the `userId` argument to route events, but the server is responsible for ensuring
+    that a client cannot subscribe to another user’s stream (enforced at resolver level).
 
 ## 2. notifications & Unread Counters - GraphQL Surface (Implemented)
 
@@ -107,163 +202,189 @@ type NotificationsResult {
   skip: Int!
   take: Int!
 }
+"""
+Result shape for querying unread counts (optionally filter by type).
+"""
+type UnreadCountResult {
+  count: Int!
+  """
+  Present when the request was filtered by a specific NotificationType.
+  Null when the query requested the global total.
+  """
+  notificationType: NotificationType
+}
 ```
 
-#### 2.2 Queries
+> There is also the Keystone list type `Notification` (with string fields for `notificationType` / `priority`). For the frontend, always use `NotificationDetails` via the custom resolvers instead of the raw list.
 
-Backed by:
+#### 2.2 Inputs
 
-- `customGetUnreadCount` -> `notificationService.getUnreadCount / getUnreadCountByType`
-- `customGetNotifications` -> `notificationService.getNotifications`
+```graphql
+"""
+Input for creating a single notification.
+Used by Mutation.customCreateNotification.
+"""
+input CreateNotificationInput {
+  userId: userId_ID_NotNull_minLength_1!
+  type: type_String_NotNull_maxLength_50!
+  notificationType: NotificationType!
+  priority: NotificationPriority
+  content: content_String_NotNull_minLength_1_maxLength_500!
+  actionUrl: actionUrl_String_format_uri
+  metadata: JSON
+  relatedCarePlanId: relatedCarePlanId_ID_minLength_1
+  relatedChatId: relatedChatId_ID_minLength_1
+  relatedForumPostId: relatedForumPostId_ID_minLength_1
+}
+
+"""
+Input for fetching notifications with filters and pagination.
+Used by Query.customGetNotifications.
+"""
+input GetNotificationsInput {
+  read: Boolean
+  notificationType: NotificationType
+  priority: NotificationPriority
+  take: take_Int_min_1_max_50
+  skip: skip_Int_min_0_max_200
+}
+```
+
+#### 2.3 Queries (custom notifcation endpoints)
+
+Custom queries exposed for notification consumption:
 
 ```graphql
 type Query {
   """
-  Returns unread count(s) for the authenticated user.
-
-  If 'notificationType' is provided:
-  - returns the unread count for that category only
-  - `notificationType` in the response is set
-
-  If 'notificationType' is omitted:
-  - returns total unread across all categories
-  - `notificationType` in the response is null
-
-  Errors:
-  - UNAUTHENTICATED   (no session.id in context)
-  - BAD_USER_INPUT    (missing userId on service call - internal invariant)
-  - INTERNAL_SERVER_ERROR
-  """
-  unreadCount(notificationType: NotificationType): UnreadCount!
-
-  """
-  Returns paginated notifications for the authenticated user with optional filters.
+  Returns paginated notifications for the authenticated user.
 
   Filters:
   - read: filter by read/unread
   - notificationType: CARE_PLAN | CHAT | FORUM | SYSTEM
   - priority: LOW | MEDIUM | HIGH | URGENT
-  - pagination: take (page size), skip (offset)
+  - pagination: take (page size, 1–50), skip (offset, 0–200)
+
+  Return:
+  - notifications: array of NotificationDetails
+  - total: total results for given filters
+  - hasMore: (skip + take) < total
+  - skip, take: echo of input (for client-side pagination logic)
 
   Errors:
-  - UNAUTHENTICATED  (no session)
+  - UNAUTHENTICATED                 (no session in context)
+  - INTERNAL_SERVER_ERROR           (unexpected server error)
+  """
+  customGetNotifications(input: GetNotificationsInput): NotificationsResult!
+
+  """
+  Returns unread count(s) for the authenticated user.
+
+  If `notificationType` is provided:
+    - returns count of unread notifications for that category only
+    - response.notificationType is set to that enum value
+
+  If `notificationType` is omitted:
+    - returns total unread across all categories
+    - response.notificationType is null
+
+  Errors:
+  - UNAUTHENTICATED
   - INTERNAL_SERVER_ERROR
   """
-  notifications(input: GetNotificationsInput): PaginatedNotificationsResponse!
+  customGetUnreadCount(notificationType: NotificationType): UnreadCountResult!
 }
 ```
 
-#### 2.3 Mutations
+#### 2.4 Mutations (custom notification endpoints)
 
-These are driven by `NotificationService`.
-They change the unread counters and fire subscription events.
+Backed by `NotificationService` **plus** the db-cache helpers (`incrementCounter`, `decrementCounter`, `resetAllCounters`) and PubSub.
 
 ```graphql
 type Mutation {
   """
-  Create a single notification for a user.
-  Only admins can create notifications (see Keystone access rules).
+  Create a notification for a specific user.
+
+  Access control:
+  - Only admins (or system code) can create notifications (see Keystone access rules).
+
+  Side effects:
+  - Persists the notification.
+  - Increment unread counters in the MySQL cache table.
+  - Publishes:
+    - unreadCountChanged(userId) with updated UnreadCountResult
+    - notificationReceived(userId) with NotificationDetails
   """
-  createNotification(input: CreateNotificationInput!): Notification
+  customCreateNotification(input: CreateNotificationInput!): CreateNotificationResult!
 
   """
-  Create multiple notifications in a batch.
-  Only admins can create notifications.
+  Mark a single notification as read for the current authenticated user.
+
+  Side effects:
+  - Marks notification.read = true (if it belongs to the user).
+  - Decrements unread counters in the MySQL cache (if previously unread).
+  - Publishes unreadCountChanged(userId) with updated UnreadCountResult.
   """
-  createBulkNotifications(input: CreateBulkNotificationsInput!): [Notification!]!
+  customMarkNotificationAsRead(notificationId: ID!): MarkAsReadResult!
 
   """
-  Mark a single notification as read for the current user.
-  """
-  markAsRead(notificationsId: ID!) Notification!
+  Mark all notifications as read for the current authenticated user.
 
-  """
-  Mark all notifications as read for the current user.
-  Returns number of notifications updated.
-  """
-  markAllAsRead: Int!
+  Return:
+  - count: number of updated notifications.
 
+  Side effects:
+  - Bulk set read = true for all unread notifications for that user.
+  - Resets all counters to 0 in the MySQL cache.
+  - Publishes unreadCountChanged(userId) with count = 0.
   """
-  Delete a notification.
-  Only admins can delete notifications.
-  """
-  deleteNotification(notificationId: ID!) Boolean!
+  customMarkAllNotificationsAsRead: MarkAllAsReadResult!
 }
 
-input CreateNotificationInput {
-  userId: ID!
-  notificationType: NotificationType!
-  type: String!
-  priority: NotificationPriority = MEDIUM
-  content: String!
-  actionUrl: String
-  metadata: JSON
-  expiresAt: DateTime
-  scheduledFor: DateTime
-  relatedCarePlanId: ID
-  relatedChatId: ID
-  relatedForumPostId: ID
+type CreateNotificationResult {
+  notification: NotificationDetails!
+  message: String!
 }
 
-input CreateBulkNotificationsInput {
-  userIds: [ID!]!
-  notificationType: NotificationType!
-  type: String!
-  priority: NotificationPriority = MEDIUM
-  content: String!
-  actionUrl: String
-  metadata: JSON
-  expiresAt: DateTime
-  scheduledFor: DateTime
-  relatedCarePlanId: ID
-  relatedChatId: ID
-  relatedForumPostId: ID
+type MarkAsReadResult {
+  notification: NotificationDetails!
+  message: String!
+}
+
+type MarkAllAsReadResult {
+  count: Int!
+  message: String!
 }
 ```
 
-#### 2.4 Subscriptions (Current)
+#### 2.5 Subscriptions
 
-From `NotificationService`:
-
-- On create:
-  - `UNREAD_COUNT_CHANGED` with `{ userId, count }`
-  - `NOTIFICATION_CREATED` with notification payload
-- On markAsRead / markAllAsRead:
-  - `UNREAD_COUNT_CHANGED` with `{ userId, count }`
-
-GraphQL layer:
+Based on the schema:
 
 ```graphql
-type UnreadCountChanged {
-  count: Int!
-}
-
-type NotificationCreated {
-  userId: ID!
-  notificationId: ID!
-  type: String!
-  notificationType: NotificationType!
-  priority: NotificationPriority!
-  content: String!
-  actionUrl: String
-  metadata: JSON
-  createdAt: DateTime!
-}
-
-type Subcription {
+type Subscription {
   """
-  Emits whenever the total unread count changes for the authenticated user.
-  Triggered by :
-  - createdNotification (increment)
-  - markAsRead (decrement, if previously unread)
-  - markAllAsRead (reset to 0)
+  Emits whenever a new notification is created for the given userId.
+
+  Payload:
+  - NotificationDetails for the new notification.
   """
-  unreadCountChanged: UnreadCountChanged!
+  notificationReceived(userId: ID!): NotificationDetails!
 
   """
-  Emits whenever a new notification is created for the authenticated user.
+  Emits whenever the unread count for the given userId changes.
+
+  Triggered by:
+  - customCreateNotification (increment)
+  - customMarkNotificationAsRead (decrement, if previously unread)
+  - customMarkAllNotificationsAsRead (reset to zero)
+
+  Payload:
+  - UnreadCountResult (currently total only; future versions may include more fields)
   """
-  notificationCreated: NotificationCreated!
+  unreadCountChanged(userId: ID!): UnreadCountResult!
+
+  # other subscriptions...
 }
 ```
 
