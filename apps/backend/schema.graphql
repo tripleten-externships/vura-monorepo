@@ -737,6 +737,109 @@ input ForumPostRelateToOneForCreateInput {
   connect: ForumPostWhereUniqueInput
 }
 
+type FrontendAccount {
+  id: ID!
+  email: String
+  password: PasswordState
+  providerType: String
+  providerAccountId: String
+  isKeystoneUserCreated: Boolean
+  lastLoginAt: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
+  user: User
+}
+
+type PasswordState {
+  isSet: Boolean!
+}
+
+input FrontendAccountWhereUniqueInput {
+  id: ID
+  email: String
+  providerAccountId: String
+  user: UserWhereUniqueInput
+}
+
+input FrontendAccountWhereInput {
+  AND: [FrontendAccountWhereInput!]
+  OR: [FrontendAccountWhereInput!]
+  NOT: [FrontendAccountWhereInput!]
+  id: IDFilter
+  email: StringFilter
+  password: PasswordFilter
+  providerType: StringNullableFilter
+  providerAccountId: StringFilter
+  isKeystoneUserCreated: BooleanFilter
+  lastLoginAt: DateTimeNullableFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
+  user: UserWhereInput
+}
+
+input PasswordFilter {
+  isSet: Boolean!
+}
+
+input StringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: StringNullableFilter
+}
+
+input BooleanFilter {
+  equals: Boolean
+  not: BooleanFilter
+}
+
+input FrontendAccountOrderByInput {
+  id: OrderDirection
+  email: OrderDirection
+  providerType: OrderDirection
+  providerAccountId: OrderDirection
+  isKeystoneUserCreated: OrderDirection
+  lastLoginAt: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
+}
+
+input FrontendAccountUpdateInput {
+  email: String
+  password: String
+  providerType: String
+  providerAccountId: String
+  isKeystoneUserCreated: Boolean
+  lastLoginAt: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
+  user: UserRelateToOneForUpdateInput
+}
+
+input FrontendAccountUpdateArgs {
+  where: FrontendAccountWhereUniqueInput!
+  data: FrontendAccountUpdateInput!
+}
+
+input FrontendAccountCreateInput {
+  email: String
+  password: String
+  providerType: String
+  providerAccountId: String
+  isKeystoneUserCreated: Boolean
+  lastLoginAt: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
+  user: UserRelateToOneForCreateInput
+}
+
 type GroupChat {
   id: ID!
   groupName: String
@@ -876,11 +979,6 @@ input NotificationWhereInput {
   relatedForumPost: ForumPostWhereInput
 }
 
-input BooleanFilter {
-  equals: Boolean
-  not: BooleanFilter
-}
-
 input NotificationOrderByInput {
   id: OrderDirection
   type: OrderDirection
@@ -947,6 +1045,66 @@ input CarePlanRelateToOneForCreateInput {
   connect: CarePlanWhereUniqueInput
 }
 
+type NotificationCounter {
+  id: ID!
+  user: User
+  notificationType: String
+  count: Int
+  lastUpdated: DateTime
+}
+
+input NotificationCounterWhereUniqueInput {
+  id: ID
+}
+
+input NotificationCounterWhereInput {
+  AND: [NotificationCounterWhereInput!]
+  OR: [NotificationCounterWhereInput!]
+  NOT: [NotificationCounterWhereInput!]
+  id: IDFilter
+  user: UserWhereInput
+  notificationType: StringFilter
+  count: IntFilter
+  lastUpdated: DateTimeNullableFilter
+}
+
+input IntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: IntFilter
+}
+
+input NotificationCounterOrderByInput {
+  id: OrderDirection
+  notificationType: OrderDirection
+  count: OrderDirection
+  lastUpdated: OrderDirection
+}
+
+input NotificationCounterUpdateInput {
+  user: UserRelateToOneForUpdateInput
+  notificationType: String
+  count: Int
+  lastUpdated: DateTime
+}
+
+input NotificationCounterUpdateArgs {
+  where: NotificationCounterWhereUniqueInput!
+  data: NotificationCounterUpdateInput!
+}
+
+input NotificationCounterCreateInput {
+  user: UserRelateToOneForCreateInput
+  notificationType: String
+  count: Int
+  lastUpdated: DateTime
+}
+
 type Parent {
   id: ID!
   name: String
@@ -973,17 +1131,6 @@ input ParentWhereInput {
   createdAt: DateTimeNullableFilter
   updatedAt: DateTimeNullableFilter
   user: UserWhereInput
-}
-
-input IntFilter {
-  equals: Int
-  in: [Int!]
-  notIn: [Int!]
-  lt: Int
-  lte: Int
-  gt: Int
-  gte: Int
-  not: IntFilter
 }
 
 input ParentOrderByInput {
@@ -1554,21 +1701,21 @@ type User {
   questionnaireResponsesCount(where: QuestionnaireResponseWhereInput! = {}): Int
   notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
   notificationsCount(where: NotificationWhereInput! = {}): Int
+  notificationCounter(where: NotificationCounterWhereInput! = {}, orderBy: [NotificationCounterOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationCounterWhereUniqueInput): [NotificationCounter!]
+  notificationCounterCount(where: NotificationCounterWhereInput! = {}): Int
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
   forumSubscriptions(where: ForumSubscriptionWhereInput! = {}, orderBy: [ForumSubscriptionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumSubscriptionWhereUniqueInput): [ForumSubscription!]
   forumSubscriptionsCount(where: ForumSubscriptionWhereInput! = {}): Int
-}
-
-type PasswordState {
-  isSet: Boolean!
+  frontendAccount: FrontendAccount
 }
 
 input UserWhereUniqueInput {
   id: ID
   email: String
+  frontendAccount: FrontendAccountWhereUniqueInput
 }
 
 input UserWhereInput {
@@ -1592,25 +1739,13 @@ input UserWhereInput {
   forumPost: ForumPostManyRelationFilter
   questionnaireResponses: QuestionnaireResponseManyRelationFilter
   notifications: NotificationManyRelationFilter
+  notificationCounter: NotificationCounterManyRelationFilter
   isAdmin: BooleanFilter
   createdAt: DateTimeNullableFilter
   lastLoginDate: DateTimeNullableFilter
   lastUpdateDate: DateTimeNullableFilter
   forumSubscriptions: ForumSubscriptionManyRelationFilter
-}
-
-input StringNullableFilter {
-  equals: String
-  in: [String!]
-  notIn: [String!]
-  lt: String
-  lte: String
-  gt: String
-  gte: String
-  contains: String
-  startsWith: String
-  endsWith: String
-  not: StringNullableFilter
+  frontendAccount: FrontendAccountWhereInput
 }
 
 input AiChatSessionManyRelationFilter {
@@ -1641,6 +1776,12 @@ input NotificationManyRelationFilter {
   every: NotificationWhereInput
   some: NotificationWhereInput
   none: NotificationWhereInput
+}
+
+input NotificationCounterManyRelationFilter {
+  every: NotificationCounterWhereInput
+  some: NotificationCounterWhereInput
+  none: NotificationCounterWhereInput
 }
 
 input UserOrderByInput {
@@ -1676,11 +1817,13 @@ input UserUpdateInput {
   forumPost: ForumPostRelateToManyForUpdateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForUpdateInput
   notifications: NotificationRelateToManyForUpdateInput
+  notificationCounter: NotificationCounterRelateToManyForUpdateInput
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
   forumSubscriptions: ForumSubscriptionRelateToManyForUpdateInput
+  frontendAccount: FrontendAccountRelateToOneForUpdateInput
 }
 
 input AiChatSessionRelateToManyForUpdateInput {
@@ -1718,6 +1861,19 @@ input NotificationRelateToManyForUpdateInput {
   connect: [NotificationWhereUniqueInput!]
 }
 
+input NotificationCounterRelateToManyForUpdateInput {
+  disconnect: [NotificationCounterWhereUniqueInput!]
+  set: [NotificationCounterWhereUniqueInput!]
+  create: [NotificationCounterCreateInput!]
+  connect: [NotificationCounterWhereUniqueInput!]
+}
+
+input FrontendAccountRelateToOneForUpdateInput {
+  create: FrontendAccountCreateInput
+  connect: FrontendAccountWhereUniqueInput
+  disconnect: Boolean
+}
+
 input UserUpdateArgs {
   where: UserWhereUniqueInput!
   data: UserUpdateInput!
@@ -1741,11 +1897,13 @@ input UserCreateInput {
   forumPost: ForumPostRelateToManyForCreateInput
   questionnaireResponses: QuestionnaireResponseRelateToManyForCreateInput
   notifications: NotificationRelateToManyForCreateInput
+  notificationCounter: NotificationCounterRelateToManyForCreateInput
   isAdmin: Boolean
   createdAt: DateTime
   lastLoginDate: DateTime
   lastUpdateDate: DateTime
   forumSubscriptions: ForumSubscriptionRelateToManyForCreateInput
+  frontendAccount: FrontendAccountRelateToOneForCreateInput
 }
 
 input AiChatSessionRelateToManyForCreateInput {
@@ -1771,6 +1929,16 @@ input ForumPostRelateToManyForCreateInput {
 input NotificationRelateToManyForCreateInput {
   create: [NotificationCreateInput!]
   connect: [NotificationWhereUniqueInput!]
+}
+
+input NotificationCounterRelateToManyForCreateInput {
+  create: [NotificationCounterCreateInput!]
+  connect: [NotificationCounterWhereUniqueInput!]
+}
+
+input FrontendAccountRelateToOneForCreateInput {
+  create: FrontendAccountCreateInput
+  connect: FrontendAccountWhereUniqueInput
 }
 
 """JSON custom scalar type"""
@@ -1819,6 +1987,12 @@ type Mutation {
   updateForumSubscriptions(data: [ForumSubscriptionUpdateArgs!]!): [ForumSubscription]
   deleteForumSubscription(where: ForumSubscriptionWhereUniqueInput!): ForumSubscription
   deleteForumSubscriptions(where: [ForumSubscriptionWhereUniqueInput!]!): [ForumSubscription]
+  createFrontendAccount(data: FrontendAccountCreateInput!): FrontendAccount
+  createFrontendAccounts(data: [FrontendAccountCreateInput!]!): [FrontendAccount]
+  updateFrontendAccount(where: FrontendAccountWhereUniqueInput!, data: FrontendAccountUpdateInput!): FrontendAccount
+  updateFrontendAccounts(data: [FrontendAccountUpdateArgs!]!): [FrontendAccount]
+  deleteFrontendAccount(where: FrontendAccountWhereUniqueInput!): FrontendAccount
+  deleteFrontendAccounts(where: [FrontendAccountWhereUniqueInput!]!): [FrontendAccount]
   createGroupChat(data: GroupChatCreateInput!): GroupChat
   createGroupChats(data: [GroupChatCreateInput!]!): [GroupChat]
   updateGroupChat(where: GroupChatWhereUniqueInput!, data: GroupChatUpdateInput!): GroupChat
@@ -1831,6 +2005,12 @@ type Mutation {
   updateNotifications(data: [NotificationUpdateArgs!]!): [Notification]
   deleteNotification(where: NotificationWhereUniqueInput!): Notification
   deleteNotifications(where: [NotificationWhereUniqueInput!]!): [Notification]
+  createNotificationCounter(data: NotificationCounterCreateInput!): NotificationCounter
+  createNotificationCounters(data: [NotificationCounterCreateInput!]!): [NotificationCounter]
+  updateNotificationCounter(where: NotificationCounterWhereUniqueInput!, data: NotificationCounterUpdateInput!): NotificationCounter
+  updateNotificationCounters(data: [NotificationCounterUpdateArgs!]!): [NotificationCounter]
+  deleteNotificationCounter(where: NotificationCounterWhereUniqueInput!): NotificationCounter
+  deleteNotificationCounters(where: [NotificationCounterWhereUniqueInput!]!): [NotificationCounter]
   createParent(data: ParentCreateInput!): Parent
   createParents(data: [ParentCreateInput!]!): [Parent]
   updateParent(where: ParentWhereUniqueInput!, data: ParentUpdateInput!): Parent
@@ -1878,6 +2058,11 @@ type Mutation {
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
   signup(input: SignupInput!): SignupResult!
   login(input: LoginInput!): LoginResult!
+  registerFrontendUser(input: FrontendSignupInput!): FrontendAuthPayload!
+  loginFrontendUser(input: FrontendLoginInput!): FrontendAuthPayload!
+  beginGoogleAuth: OAuthUrlPayload!
+  beginAppleAuth: OAuthUrlPayload!
+  completeOAuthCallback(input: CompleteOAuthInput!): FrontendAuthPayload!
   customCreateForumPost(data: CreateForumPostInput!): CustomCreateForumPostResult!
   customDeleteForumPost(id: ID!): CustomDeleteForumPostResult!
   customCreateGroupChat(input: CreateGroupChatInput!): CustomCreateGroupChatResult!
@@ -1938,12 +2123,18 @@ type Query {
   forumSubscription(where: ForumSubscriptionWhereUniqueInput!): ForumSubscription
   forumSubscriptions(where: ForumSubscriptionWhereInput! = {}, orderBy: [ForumSubscriptionOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ForumSubscriptionWhereUniqueInput): [ForumSubscription!]
   forumSubscriptionsCount(where: ForumSubscriptionWhereInput! = {}): Int
+  frontendAccount(where: FrontendAccountWhereUniqueInput!): FrontendAccount
+  frontendAccounts(where: FrontendAccountWhereInput! = {}, orderBy: [FrontendAccountOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: FrontendAccountWhereUniqueInput): [FrontendAccount!]
+  frontendAccountsCount(where: FrontendAccountWhereInput! = {}): Int
   groupChat(where: GroupChatWhereUniqueInput!): GroupChat
   groupChats(where: GroupChatWhereInput! = {}, orderBy: [GroupChatOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: GroupChatWhereUniqueInput): [GroupChat!]
   groupChatsCount(where: GroupChatWhereInput! = {}): Int
   notification(where: NotificationWhereUniqueInput!): Notification
   notifications(where: NotificationWhereInput! = {}, orderBy: [NotificationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationWhereUniqueInput): [Notification!]
   notificationsCount(where: NotificationWhereInput! = {}): Int
+  notificationCounter(where: NotificationCounterWhereUniqueInput!): NotificationCounter
+  notificationCounters(where: NotificationCounterWhereInput! = {}, orderBy: [NotificationCounterOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: NotificationCounterWhereUniqueInput): [NotificationCounter!]
+  notificationCountersCount(where: NotificationCounterWhereInput! = {}): Int
   parent(where: ParentWhereUniqueInput!): Parent
   parents(where: ParentWhereInput! = {}, orderBy: [ParentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ParentWhereUniqueInput): [Parent!]
   parentsCount(where: ParentWhereInput! = {}): Int
@@ -2189,6 +2380,38 @@ input LoginInput {
   password: password_String_NotNull_minLength_8_maxLength_128!
 }
 
+input FrontendSignupInput {
+  name: name_String_minLength_2_maxLength_120
+  email: email_String_NotNull_format_email!
+  password: password_String_NotNull_minLength_10_maxLength_128!
+}
+
+scalar name_String_minLength_2_maxLength_120
+
+scalar password_String_NotNull_minLength_10_maxLength_128
+
+input FrontendLoginInput {
+  email: email_String_NotNull_format_email!
+  password: password_String_NotNull_minLength_10_maxLength_128!
+}
+
+enum FrontendOAuthProvider {
+  GOOGLE
+  APPLE
+}
+
+input CompleteOAuthInput {
+  provider: FrontendOAuthProvider!
+  email: email_String_NotNull_format_email!
+  providerAccountId: providerAccountId_String_NotNull_minLength_3_maxLength_255!
+  name: name_String_maxLength_120
+  avatarUrl: avatarUrl_String_format_uri
+}
+
+scalar providerAccountId_String_NotNull_minLength_3_maxLength_255
+
+scalar name_String_maxLength_120
+
 type SignupResult {
   user: UserProfile!
   token: String!
@@ -2197,6 +2420,16 @@ type SignupResult {
 type LoginResult {
   user: UserProfile!
   token: String!
+}
+
+type FrontendAuthPayload {
+  user: UserProfile!
+  token: String!
+  jwt: String!
+}
+
+type OAuthUrlPayload {
+  url: String!
 }
 
 type UserProfile {
@@ -2454,8 +2687,6 @@ input UpdateProfileInput {
   avatarUrl: avatarUrl_String_format_uri
   currentPassword: currentPassword_String_minLength_8_maxLength_128
 }
-
-scalar name_String_minLength_2_maxLength_120
 
 scalar email_String_format_email
 

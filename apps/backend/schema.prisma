@@ -123,6 +123,20 @@ model ForumSubscription {
   @@index([forumPostId])
 }
 
+model FrontendAccount {
+  id                    String    @id @default(uuid())
+  email                 String    @unique @default("")
+  password              String?
+  providerType          String?   @default("PASSWORD")
+  providerAccountId     String    @unique @default("")
+  isKeystoneUserCreated Boolean   @default(false)
+  lastLoginAt           DateTime?
+  createdAt             DateTime? @default(now())
+  updatedAt             DateTime? @updatedAt
+  user                  User?     @relation("FrontendAccount_user", fields: [userId], references: [id])
+  userId                String?   @unique @map("user")
+}
+
 model GroupChat {
   id                            String         @id @default(uuid())
   groupName                     String         @default("")
@@ -163,6 +177,17 @@ model Notification {
   @@index([relatedCarePlanId])
   @@index([relatedChatId])
   @@index([relatedForumPostId])
+}
+
+model NotificationCounter {
+  id               String    @id @default(uuid())
+  user             User?     @relation("NotificationCounter_user", fields: [userId], references: [id])
+  userId           String?   @map("user")
+  notificationType String    @default("SYSTEM")
+  count            Int       @default(0)
+  lastUpdated      DateTime? @default(now())
+
+  @@index([userId])
 }
 
 model Parent {
@@ -280,11 +305,13 @@ model User {
   forumPost              ForumPost[]             @relation("ForumPost_author")
   questionnaireResponses QuestionnaireResponse[] @relation("QuestionnaireResponse_user")
   notifications          Notification[]          @relation("Notification_user")
+  notificationCounter    NotificationCounter[]   @relation("NotificationCounter_user")
   isAdmin                Boolean                 @default(false)
   createdAt              DateTime?               @default(now())
   lastLoginDate          DateTime?               @default(now())
   lastUpdateDate         DateTime?               @updatedAt
   forumSubscriptions     ForumSubscription[]     @relation("ForumSubscription_user")
+  frontendAccount        FrontendAccount?        @relation("FrontendAccount_user")
 }
 
 enum AiChatSessionStatusType {

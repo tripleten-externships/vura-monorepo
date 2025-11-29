@@ -1,7 +1,11 @@
-import { Express, Request, Response, NextFunction } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import type { KeystoneContext } from '@keystone-6/core/types';
 import type { Profile } from 'passport-google-oauth20';
+import { FrontendAuthProvider, FrontendAuthService } from '../services/auth';
+import { getEventBus, initEventBus } from '../api/subscriptions/eventBus';
+import type { Context } from '../types/context';
+import type { FrontendAuthResult } from '../services/auth';
 
 /**
  * Setup authentication routes for OAuth providers
@@ -13,6 +17,33 @@ import type { Profile } from 'passport-google-oauth20';
 export function authRoutes(app: Express, context: () => Promise<KeystoneContext>) {
   // Initialize Passport middleware
   app.use(passport.initialize());
+  app.use('/auth/apple/native', express.json());
+
+  const resolveEventBus = () => {
+    try {
+      return getEventBus();
+    } catch {
+      return initEventBus();
+    }
+  };
+
+  const buildRedirect = (result: FrontendAuthResult, state?: string | string[]) => {
+    const redirectUrl = new URL(process.env.FRONTEND_URL || 'http://localhost:3000');
+    redirectUrl.searchParams.set('token', result.token);
+    redirectUrl.searchParams.set('jwt', result.jwt);
+    redirectUrl.searchParams.set('userId', result.user.id);
+    redirectUrl.searchParams.set('email', result.user.email || '');
+    if (state && typeof state === 'string') {
+      redirectUrl.searchParams.set('state', state);
+    }
+    return redirectUrl.toString();
+  };
+
+  const getAuthService = async () =>
+    new FrontendAuthService({
+      context: (await context()) as Context,
+      eventBus: resolveEventBus(),
+    });
 
   /**
    * Initiate Google OAuth flow
@@ -47,45 +78,54 @@ export function authRoutes(app: Express, context: () => Promise<KeystoneContext>
 
         const email = profile.emails[0].value;
         const name = profile.displayName || email.split('@')[0];
+        const avatarUrl = profile.photos?.[0]?.value;
 
-        // Get Keystone context
-        const ctx = await context();
-        const prisma = ctx.prisma;
-
-        // Check if user exists
-        let user = await prisma.user.findUnique({
-          where: { email },
+        const authService = await getAuthService();
+        const result = await authService.upsertOAuthAccount(FrontendAuthProvider.GOOGLE, {
+          email,
+          providerAccountId: profile.id,
+          name,
+          avatarUrl,
         });
 
-        // Create user if doesn't exist
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              name,
-              email,
-              // Note: password is optional for OAuth users
-              // You may want to add a provider field to track OAuth vs local auth
-              role: 'user',
-            },
-          });
-        }
-
-        // Generate JWT token or create Keystone session
-        // For now, we'll redirect with user info
-        // You should implement proper token generation here
-
-        const redirectUrl = new URL(process.env.FRONTEND_URL || 'http://localhost:3000');
-        redirectUrl.searchParams.set('userId', user.id);
-        redirectUrl.searchParams.set('email', user.email);
-        redirectUrl.searchParams.set('name', user.name || '');
-
-        res.redirect(redirectUrl.toString());
+        res.redirect(buildRedirect(result, req.query.state));
       } catch (error) {
         console.error('OAuth callback error:', error);
         next(error);
       }
     }
   );
+
+  /**
+   * Native Apple Sign-in handler for mobile clients.
+   * Expects the client to send verified identity information.
+   */
+  app.post('/auth/apple/native', async (req: Request, res: Response) => {
+    const { email, providerAccountId, name, avatarUrl } = req.body || {};
+
+    if (!email || !providerAccountId) {
+      return res.status(400).json({ error: 'email and providerAccountId are required' });
+    }
+
+    try {
+      const authService = await getAuthService();
+      const result = await authService.upsertOAuthAccount(FrontendAuthProvider.APPLE, {
+        email,
+        providerAccountId,
+        name,
+        avatarUrl,
+      });
+
+      res.json({
+        token: result.token,
+        jwt: result.jwt,
+        user: result.user,
+      });
+    } catch (error) {
+      console.error('Apple auth error:', error);
+      res.status(500).json({ error: 'Failed to complete Apple sign-in' });
+    }
+  });
 
   /**
    * Test endpoint to check if auth routes are working

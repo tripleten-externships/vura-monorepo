@@ -4,11 +4,15 @@ import { client } from './store';
 import { StoreProvider } from './store/StoreContext';
 import { AppNavigator } from './navigation/AppNavigator.native';
 
+const AppContent = () => {
+  return <AppNavigator />;
+};
+
 export default function App() {
   return (
     <ApolloProvider client={client}>
       <StoreProvider>
-        <AppNavigator />
+        <AppContent />
       </StoreProvider>
     </ApolloProvider>
   );
