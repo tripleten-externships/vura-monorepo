@@ -388,100 +388,73 @@ type Subscription {
 }
 ```
 
-#### Runtime Notes
+## 3. GraphQL Examples (Queries + Subscriptions)
 
-- Redis Hash per user:
-  - Key = `unread:{userId}`
-  - Fields = `total` + each `NotificationType` (`CARE_PLAN`, `CHAT`, `FORUM`, `SYSTEM`)
-- When counters change:
-  - `createNotification` -> `HINCRBY total +1` and `HINCRBY <type> +1` -> publish `UNREAD_COUNT_CHANGED`
-  - `marAsRead` -> `HINCRBY total -1` and `HINCRBY <type> -1` -> publish `UNREAD_COUNT_CHANGED`.
-  - `markAllAsRead` -> reset all fields to `0` -> publish `UNREAD_COUNT_CHANGED`
-- Errors surfaced via GraphQL:
-  `UNAUTHENTICATED`, `BAD_USER_INPUT`, `NOT_FOUND`, `CACHE_MISS`, `INTERNAL_SERVER_ERROR`.
-- Access control:
-  All resolvers verify `context.session.data.id`;
-  Keystone list filters restrict queries to the current user.
+### 3.1 Unread Count Queries
 
-## 3. Playground Examples
-
-<!-- include working queries/subscriptions and sample payloads -->
-
-> Make sure your Playground/Studio is authenticated (cookie or `Authorization: Bearer <token>`), since all resolvers read the user from `context.session.data.id`.
-
-### Current - Queries you can run right now
-
-#### Total unread (all categories)
-
-**Operation**
+#### A. Total unread (no type filter)
 
 ```graphql
-query UnreadTotal {
-  unreadCount {
-    count
-  }
-}
-
-// Sample response
-
-{
-  "data": {
-    "unreadCount": { "count": 17 }
-  }
-}
-```
-
-Errors you may see:
-
-- `UNAUTHENTICATED` if session is missing.
-- `CACHE_MISS` if Redis hasn't been seeded for this user.
-
-#### Unread by category (`NoitificationType`)
-
-**Operation**
-
-```graphql
-query UnreadByType($type: NotificationType!) {
-  unreadCount(notificationType: $type) {
+query GetTotalUnread {
+  customGetUnreadCount {
     count
     notificationType
   }
 }
 ```
 
-**Variables**
-
-```json
-{ "type": "CHAT" }
-```
-
-**Sample response**
+**Expected response shape**
 
 ```json
 {
   "data": {
-    "unreadCount": { "count": 5, "notificationType": "CHAT" }
+    "customGetUnreadCount": {
+      "count": 17,
+      "notificationType": null
+    }
   }
 }
 ```
 
-### Paginated notifications (filterable)
+#### B. Unread by category
 
-**Operation**
+Example: unread **CHAT** notifications only.
 
 ```graphql
-query GetNotifications($input: GetNotificationsInput) {
-  notifications(input: $input) {
+query GetUnreadChat {
+  customGetUnreadCount(notificationType: CHAT) {
+    count
+    notificationType
+  }
+}
+```
+
+**Expected response**
+
+```json
+{
+  "data": {
+    "customGetUnreadCount": {
+      "count": 3,
+      "notificationType": "CHAT"
+    }
+  }
+}
+```
+
+### 3.2 Notifications List Queries
+
+#### A. Fetch latest notifications (default pagination)
+
+```graphql
+query FetchNotifications {
+  customGetNotifications {
     notifications {
       id
       type
       notificationType
-      priority
       content
-      actionUrl
-      metadata
       read
-      readAt
       createdAt
     }
     total
@@ -492,86 +465,217 @@ query GetNotifications($input: GetNotificationsInput) {
 }
 ```
 
-**Variables (examples)**
+#### B. Filter unread only
 
-**_All unread, any type (page 1):_**
-
-```json
-{ "input": { "read": false, "take": 20, "skip": 0 } }
-```
-
-**_Unread of a specific type, high priority:_**
-
-```json
-{
-  "input": {
-    "read": false,
-    "notificationType": "CHAT",
-    "priority": "HIGH",
-    "take": 10,
-    "skip": 0
+```graphql
+query FetchUnreadOnly {
+  customGetNotifications(input: { read: false }) {
+    notifications {
+      id
+      type
+      notificationType
+      content
+      read
+    }
+    total
   }
 }
 ```
 
-**Sample response**
+#### C. Filter by notificationType + priority
+
+Example: all unread **CHAT** notifications with **HIGH** priority.
+
+```graphql
+query FetchFiltered {
+  customGetNotifications(input: { read: false, notificationType: CHAT, priority: HIGH }) {
+    notifications {
+      id
+      content
+      priority
+      createdAt
+    }
+    total
+  }
+}
+```
+
+#### D. Pagination (infinite scroll)
+
+Page 1 (first 20):
+
+```graphql
+query Page1 {
+  customGetNotifications(input: { take: 20, skip: 0 }) {
+    notifications {
+      id
+      createdAt
+      content
+    }
+    total
+    hasMore
+  }
+}
+```
+
+Page 2:
+
+```graphql
+query Page2 {
+  customGetNotifications(input: { take: 20, skip: 20 }) {
+    notifications {
+      id
+      createdAt
+      content
+    }
+    total
+    hasMore
+  }
+}
+```
+
+### 3.3 Subscriptions (Apollo)
+
+#### A. `unreadCountChanged` subscription
+
+This fires whenever:
+
+- A new notification is created
+- A notification is marked as read
+- `markAllAsRead` resets counts.
+
+```graphql
+subscription OnUnreadCountChanged($userId: ID!) {
+  unreadCountChanged(userId: $userId) {
+    count
+    notificationType
+  }
+}
+```
+
+**Variables**
+
+```json
+{
+  "userId": "USER123"
+}
+```
+
+**Expected event payload**
 
 ```json
 {
   "data": {
-    "notifications": {
-      "notifications": [
-        {
-          "id": "notif_123",
-          "type": "NEW_MESSAGE",
-          "notificationType": "CHAT",
-          "priority": "HIGH",
-          "content": "You have a new message",
-          "actionUrl": "/chats/abc",
-          "metadata": {},
-          "read": false,
-          "readAt": null,
-          "createdAt": "2025-11-12T18:05:31.102Z"
-        }
-      ],
-      "total": 42,
-      "hasMore": true,
-      "skip": 0,
-      "take": 10
+    "unreadCountChanged": {
+      "count": 6,
+      "notificationType": null
     }
   }
 }
 ```
 
-### Current - Subscription you can use right now
+> `notificationType` is **always null** for now because the subscription only emits **total** counts.
 
-> The backend publishes an internal `UNREAD_COUNT_CHANGED` with `{ userId, count }`. The GraphQL subscription exposes a simplified payload for the authenticated user.
+#### B. `notificationReceived` subscription
 
-**Operation**
+Fires when a new notification is created for the user.
 
 ```graphql
-subscription OnUnreadCountChanged {
-  unreadCountChanged {
+subscription OnNotificationReceived($userId: ID!) {
+  notificationReceived(userId: $userId) {
+    id
+    type
+    notificationType
+    content
+    priority
+    read
+    createdAt
+  }
+}
+```
+
+**Variables**
+
+```json
+{
+  "userId": "USER123"
+}
+```
+
+**Expected event payload**
+
+```json
+{
+  "data": {
+    "notificationReceived": {
+      "id": "abc123",
+      "type": "NEW_MESSAGE",
+      "notificationType": "CHAT",
+      "content": "You have a new message",
+      "priority": "MEDIUM",
+      "read": false,
+      "createdAt": "2025-01-01T12:00:00.000Z"
+    }
+  }
+}
+```
+
+### 3.4 Full Example Workflow (End-to-End)
+
+What the Frontend will do:
+
+**Step 1 (initial fetch):**
+
+```graphql
+query {
+  customGetUnreadCount {
     count
   }
 }
 ```
 
-**Sample event**
+**Step 2 (listen for live changes):**
 
-```json
-{
-  "data": { "unreadCountChanged": { "count": 18 } }
+```graphql
+subscription ($userId: ID!) {
+  unreadCountChanged(userId: $userId) {
+    count
+  }
 }
 ```
 
-When does this fire?
+**Step 3 (fetch notifications list):**
 
-- After `createNotification` (increments)
-- After `markAsRead` (decrements, if previously unread)
-- After `markAllAsRead` (resets to 0)
+```graphql
+query {
+  customGetNotifications(input: { read: false }) {
+    notifications {
+      id
+      content
+      read
+    }
+  }
+}
+```
 
-### Future target - Coming from "Real-time counter updates" subtask
+**Step 4 (user marks as read):**
+
+```graphql
+mutation {
+  customMarkNotificationsAsAread(notificationId: "abc123") {
+    notification {
+      id
+      read
+    }
+    message
+  }
+}
+```
+
+**Frontend receives:**
+
+- Updated unread count via subscription.
+- Updated `read` status in notifications list.
 
 > Keep in docs to know what to migrate in the FrontEnd. Not live updates.
 
