@@ -677,270 +677,192 @@ mutation {
 - Updated unread count via subscription.
 - Updated `read` status in notifications list.
 
-> Keep in docs to know what to migrate in the FrontEnd. Not live updates.
+## 4. Badge Display Best Practices
 
-#### Aggregated unread counts
+This section defines **how the frontend should render notification badges** using the current GraphQL API:
 
-**Operation**
+- `customGetUnreadCount(notificationType?: NotificationType)`
+- `customGetNotifications(input)`
+- `unreadCountChanged(userId)`
+- `notificationReceived(userId)`
+
+The goal: **simple, predictable badges** that stay in sync with the MySQL-backed counters.
+
+### 4.1 Source of truth for badge counts
+
+- The **single source of truth** for unread badge counts is the **MySQL counter table**, exposed via:
+  - `Query.customGetUnreadCount(notificationType?: NotificationType)`
+  - `Subscription.unreadCountChanged(userId: ID!)`
+
+- The frontend **SHOULD NOT** compute unread counts by manually filtering the notifications list as its primary mechanism. That can be used as a visual fallback (e.g. in an error state), but the badge should normally follow the counter.
+
+### 4.2 Types of badges
+
+The module supports several UX patterns:
+
+1. **Global app-level badge (bell icon)**
+
+- Shows the **total** unread count across all notification types.
+- Driven by:
+  - `customGetUnreadCount()` (no `notificationType`)
+  - `unreadCountChanged(userId)` subscription
+
+2. **Scoped / tab badges (per domain)**
+
+- E.g. badges on "Chat", "Care Plans", "Forum" tabs.
+- Each tab can query its own category:
+  - `customGetUnreadCount(notificationType: CHAT)`
+  - `customGetUnreadCount(notificationType: CARE_PLAN)`
+  - etc.
+
+3. **Row-level indicators inside a list**
+
+- Individual notifications show read/unread state via:
+  - `NotificationDetails.read` + styling (bold / dot / highlight).
+- These do **not** use the counter table; they rely on `customGetNotifications`.
+
+### 4.3 Recommended display rules
+
+**Global badge (bell icon)**
+
+- **Show a numeric badge** when `count > 0`.
+- Hide the badge completely when `count = 0`.
+- Cap visually at `"99+"` for large values:
+  - 0 -> no badge
+  - 1 -> `1`
+  - 12 -> `12`
+  - 120 -> `99+`
+
+**Scoped (per-type) badges**
+
+- Same rules as global:
+  - `count > 0` -> show numeric badge (capped at `99+`)
+  - `count = 0` -> hide badge.
+
+**Row-level read/unread styling**
+
+- Treat `notification.read === false` as **unseen**:
+  - e.g. bold text, colored left border, unread dot, etc.
+- Once `customMarkNotificationAsRead` returns the updated `NotificationDetails` (or the row is refreshed from `customGetNotifications`), drop the unread styling.
+
+### 4.4 Lifecycle: how the Frontend should wire badges
+
+#### 4.4.1 Initial load (global badge)
+
+On app / layout mount:
+
+1. Call:
 
 ```graphql
-query GetUnreadCounts($input: UnreadCountsInput) {
-  unreadCounts(input: $input) {
-    total
-    asOf
-    byScope {
-      scope
-      count
-    }
+query GetTotalUnread {
+  customGetUnreadCount {
+    count
+    notificationType
   }
 }
 ```
 
-**Variables**
+2. Store `count` in the global state
+3. Render the global badge from that value using the rules above.
 
-```json
-{ "input": { "scopes": ["GLOBAL", "CHAT", "FORUM"] } }
-```
+#### 4.4.2 Live updates
 
-**Sample response**
+Also on layout mount:
 
-```json
-{
-  "data": {
-    "unreadCounts": {
-      "total": 17,
-      "asOf": "2025-11-12T18:21:40.192Z",
-      "byScope": [
-        { "scope": "GLOBAL", "count": 17 },
-        { "scope": "CHAT", "count": 5 },
-        { "scope": "FORUM", "count": 3 }
-      ]
-    }
-  }
-}
-```
-
-#### Rich live updates (snapshot or delta)
-
-**Operation**
+1. Subscribe to `unreadCountChanged` with the current user id:
 
 ```graphql
-subscription OnUnreadCountChange($input: UnreadCountsInput) {
-  unreadCountChange(input: $input) {
-    asOf
-    total
-    byScope {
-      scope
-      count
-    } # present when server sends full snapshot
-    delta {
-      scope
-      id
-      count
-    } # present when server sends delta
+subscription OnUnreadCountChanged($userId: ID!) {
+  unreadCountChanged(userId: $userId) {
+    count
+    notificationType
   }
 }
 ```
 
-**Variables**
+2. For current version, `notificationType` will be `null` (total only).
 
-```json
-{ "input": { "scopes": ["GLOBAL", "CHAT"] } }
+Treat each event as:
+
+- **"Authoritative new total"** -> overwrite the stored global count.
+- Re-render badge.
+
+3. Do **not** try to "increment/decrement manually" on the client in response to `notificationsReceived` / `markAsRead`. The server already updates teh counters and emits the latest value.
+
+#### 4.4.3 Scoped badges (per-type)
+
+For tab bar / navigation where you want per-type counts:
+
+- Option A: **lazy fetch on tab hover / open**
+  - When the user visits/opens a tab:
+    - Call `customGetUnreadCount(notificationType: <TAB_TYPE>)`
+    - Cache locally per tab type.
+  - Good if you want to keep network traffic low.
+- Option B: **eager fetch for all relevant types on layout mount**
+  - Call `customGetUnreadCount(notificationType: CARE_PLAN)`, `CHAT`, `FORUM`, `SYSTEM` in parallel on layout mount and store the 4 numbers.
+  - For now, `unreadCountChanged` only gives **total**, so per-type badges are refreshed by:
+    - occasional refetch (e.g. when tab regains focus), or
+    - on specific triggers (e.g. after you know a notification of that type was read).
+
+> Future versions could add a richer "multi-type" unread payload; this doc sticks to current behavior.
+
+### 4.5 Handling loading, errors, and auth
+
+**Loading state**
+
+- While `customGetUnreadCount` is loading:
+  - Prefer showing **no badge** or a **skeleton dot**, not a `0` badge.
+  - This avoids a flash of "0" that then jumps to a positive number.
+
+**Error state**
+
+- If `customGetUnreadCount` returns:
+  - `UNAUTHENTICATED` -> treat as a sign-out; hide badges or redirect to login.
+  - `INTERNAL_SERVER_ERROR` -> log to monitoring, and:
+    - hide badge, or
+    - show a disabled bell (no number) for a visual hint.
+
+**Auth / tenancy**
+
+- The backend enforces `context.session.data.id` in all custom resolvers.
+- The frontend must **only subscribe with the current user's id**:
+
+```graphql
+unreadCountChanged(userId: CURRENT_USER_ID)
+notificationReceived(userId: CURRENT_USER_ID)
 ```
 
-**Sample events**
+- If the user switches accounts or logs out:
+  - Clean up any active subscriptions
+  - Reset badge counts to `0` or hide them.
 
-**_Snapshot variant:_**
+### 4.6 Interaction patterns
 
-```json
-{
-  "data": {
-    "unreadCountChange": {
-      "asOf": "2025-11-12T18:22:95.012Z",
-      "total": 18,
-      "byScope": [
-        { "scope": "GLOBAL", "count": 18 },
-        { "scope": "CHAT", "count": 6 }
-      ],
-      "delta": null
-    }
-  }
-}
-```
+**Marking as read from the list**
 
-**_Delta variant:_**
+- When the user clicks an item to mark as read:
+  - Call `custommarkNotificationAsRead(notificationId)`.
+  - Optimistically update the row UI to `read = true` if you want.
+  - Do **not** manually decrement the global badge count; wait for the `unreadCountChanged` subscription to deliver the updated total.
 
-```json
-{
-  "data": {
-    "unreadCountChange": {
-      "asOf": "2025-11-12T18:22:10.441Z",
-      "total": 17,
-      "byScope": null,
-      "delta": [{ "scope": "CHAT", "count": 5 }]
-    }
-  }
-}
-```
+**"Mark all as read"**
 
-## 4. Integration Notes (for FrontEnd)
+- When the user hits "Mark all as read":
+  - Call `customMarkAllNotificationsAsRead`.
+  - Optionally, optimistically:
+    - Clear unread styling from all visible rows.
+    - Set the badge to `0` in your internal state.
+  - The server will:
+    - Bulk update notifications
+    - Reset counters
+    - Emit `unreadCountChanged(userId) { count: 0 }`.
 
-This section explains exactly how the fronteld should call the API and how it will migrate once "Real-time counter updates" lands. It also covers error handling and resiliency.
+### 4.7 Summary for frontend devs
 
-### 4.1 Minimal client flow
-
-#### Current version
-
-1. Initial fetch (total only or per type)
-
-- Call `unreadCount()` for total, or `unreadCount(notificationType: ...)` for a specific category.
-
-2. Subscribe to total changes
-
-- Start `unreadCountChanged` and update the total badge when events arrive.
-
-3. Notification list
-
-- Use `notifications(input)` with filters for the inbox UI.
-
-> Note: Current version emits **only total** on the subscription. If you show per-type badges, refetch those types on certain UI actions (e.g., after marking read).
-
-#### Target
-
-1. **Initial fetch (aggregate)**
-
-- Call `unreadCounts(input: { scopes: [...] })` to get `total` + `byScope`.
-
-2. **Live updates (aggregate)**
-
-- Start `unreadCountChange(input: sameScopes)` and either replace snapshot or apply deltas.
-
-3. Consistency
-
-- Use `asOf` to drop stale events.
-
----
-
-### 4.2 Error model & recommended handling
-
-All resolvers may throw GraphQL errors with `extensions.code`:
-
-- `UNAUTHENTICATED` - no session / expired token
-  -> redirect to login; stop subscriptions
-- `BAD_USER_INPUT` - invalid args
-  -> fix variables; show inline error if user-provided
-- `CACHE_MISS` - Redis hasn't been seeded yet for this user
-  -> treat as zero; optionally refetch after a short delay
-- `NOT_FOUND` - resource missing
-  -> show empty state
-- `INTERNAL_SERVER_ERROR` - server error
-  -> keep previous counts; retry with backoff
-
-**Suggested policy**
-
-- Keep the **last known count** in cache; never flash to 0 on transient errors.
-- Retry queries with exponential backoff (e.g., 1s -> 2s -> 4s -> max 30s).
-- If the WebSocket drops, **fallback to polling** until reconnected (30-60s cadence).
-
----
-
-### 4.3 Apollo usage snippets
-
-#### Current - total unread (query + sub)
-
-```ts
-import { gql, useQuery } from '@apollo/client';
-
-// Query
-export const Q_UNREAD_TOTAL = gql`
-  query UnreadTotal {
-    unreadCount {
-      count
-    }
-  }
-`;
-
-// Subscription (total only)
-export const S_UNREAD_TOTAL = gql`
-  subscription OnUnreadCountChanged {
-    unreadCountChanged {
-      count
-    }
-  }
-`;
-
-// Hook
-export function useUnreadTotal() {
-  const q = useQuery(Q_UNREAD_TOTAL, { fetchPolicy: 'cache-and-network' });
-  return q;
-}
-```
-
-Subscription setup (somewhere near app boot / session ready):
-
-```ts
-client.subscribe({ query: S_UNREAD_TOTAL }).subscribe({
-  next: ({ data }) => {
-    const count = data?.unreadCountChanged?.count ?? null;
-    if (count == null) return;
-
-    client.writeQuery({
-      query: Q_UNREAD_TOTAL,
-      data: { unreadCount: { __typename: 'UnreadCount', count } },
-    });
-  },
-  error: (e) => {
-    /* optional: enable polling fallback */
-  },
-});
-```
-
-#### Aggregate unread (target)
-
-```ts
-export const Q_UNREAD_COUNTS = gql`
-  query GetUnreadCounts($input: UnreadCountsInput) {
-    unreadCounts(input: $input) {
-      total
-      asOf
-      byScope { scope count }
-    }
-  }
-`;
-
-export const S_UNREAD_COUNTS = gql`
-  subscription OnUnreadCountChange($input: UnreadCountsInput) {
-    unreadCountChange(input: $input) {
-      asOf
-      total
-      byScope { scope count }
-      delta { scope id count }
-    }
-  }
-`;
-
-// Merge logic
-function applyEvent(existing: any, change: any) {
-  if (!existing?.unreadCounts) return change.byScope ? change : { ...change, byScope: [] };
-  if (new Date(change.asOf) < new Date(existing.unreadCounts.asOf)) return existing unreadCounts;
-
-  if (Array.isArray(cange.byScope) && change.byScope.length) {
-    return { total: change.total, asOf: change.asOf, byScope: change.byScope };
-  }
-  const map = new Map(existing.unreadCounts.byScope.map((x: any) => [x.scope, xcount]));
-  (change.delta || []).forEach((d: any) => map.set(d.scope, d.count));
-  return { total: change.total, asOf: change.asOf, byScope: [...map].map(([scope, count]) => ({ scope, count })) };
-}
-```
-
-## 5. Badge Display – FrontEnd Best Practices
-
-<!-- UX guidance for showing counts -->
-
-## 6. Acceptance Criteria
-
-<!-- checklist for QA and teammates -->
-
-## 7. Redis Caching & PubSub
-
-<!-- how counts are stored/published for real-time updates -->
+- **Global badge** -> use `customGetUnreadCount()` + `unreadCountChanged`.
+- **Per-type badge** -> use `customGetUnreadCount(notificationType: X)` on demand.
+- **Never** treat the notification list as the primary counter.
+- **Badges**:
+  - Hide when `count = 0`
+  - Show number, capped at `99+` when `count > 0`
+  - Use subscription events as the authoritative value.
