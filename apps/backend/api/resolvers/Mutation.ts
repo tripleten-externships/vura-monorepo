@@ -7,6 +7,7 @@ import { customDeleteForumPost } from '../schema/mutations/deleteForumPost';
 import { customCreateGroupChat } from '../schema/mutations/createGroupChat';
 import { sendChatMessage } from '../schema/mutations/sendChatMessage';
 import { saveQuestionnaireResponse, submitQuestionnaire } from '../schema/mutations/questionnaire';
+import { assignQuestionnaire } from '../schema/mutations/assignQuestionnaire';
 import { updateProfile } from '../schema/mutations/updateProfile';
 import { aiChat } from '../schema/mutations/aiChat';
 import { createAiChatMessage } from '../schema/mutations/createAiChatMessage';
@@ -15,6 +16,15 @@ import { updateUserStatus } from '../schema/mutations/userStatus';
 import { customCreateNotification } from '../schema/mutations/createNotification';
 import { customMarkNotificationAsRead } from '../schema/mutations/markNotificationAsRead';
 import { customMarkAllNotificationsAsRead } from '../schema/mutations/markAllNotificationsAsRead';
+import { customSubscribeToForum } from '../schema/mutations/subscribeToForum';
+import { customUnsubscribeFromForum } from '../schema/mutations/unsubscribeFromForum';
+import {
+  beginAppleAuth,
+  beginGoogleAuth,
+  completeOAuthCallback,
+  loginFrontendUser,
+  registerFrontendUser,
+} from '../schema/mutations/frontendAuth';
 
 const withAuth = (resolver: Function) => (root: any, args: any, context: any, info: any) => {
   requireAuth(context.session);
@@ -26,7 +36,14 @@ const withAuth = (resolver: Function) => (root: any, args: any, context: any, in
 export const Mutation = {
   signup,
   login,
-  typingIndicator,
+  registerFrontendUser,
+  loginFrontendUser,
+  beginGoogleAuth,
+  beginAppleAuth,
+  completeOAuthCallback,
+  // Wrap protected mutations with custom resolvers (via withAuth)
+  // Protected mutations
+
   // Wrap protected mutations with custom resolvers (via withAuth)
   customCreateForumPost: withAuth(customCreateForumPost),
   customDeleteForumPost: withAuth(customDeleteForumPost),
@@ -34,11 +51,15 @@ export const Mutation = {
   sendChatMessage: withAuth(sendChatMessage),
   saveQuestionnaireResponse: withAuth(saveQuestionnaireResponse),
   submitQuestionnaire: withAuth(submitQuestionnaire),
+  assignQuestionnaire: withAuth(assignQuestionnaire),
   updateProfile: withAuth(updateProfile),
   aiChat: withAuth(aiChat),
-  createAiChatMessage: withAuth(createAiChatMessage),
+  typingIndicator: withAuth(typingIndicator),
   updateUserStatus: withAuth(updateUserStatus),
+  createAiChatMessage: withAuth(createAiChatMessage),
   customCreateNotification: withAuth(customCreateNotification),
   customMarkNotificationAsRead: withAuth(customMarkNotificationAsRead),
   customMarkAllNotificationsAsRead: withAuth(customMarkAllNotificationsAsRead),
+  customSubscribeToForum: withAuth(customSubscribeToForum),
+  customUnsubscribeFromForum: withAuth(customUnsubscribeFromForum),
 };

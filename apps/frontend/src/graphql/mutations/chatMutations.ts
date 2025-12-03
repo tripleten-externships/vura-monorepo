@@ -22,7 +22,7 @@ export const SEND_CHAT_MESSAGE = gql`
 
 // Send typing indicator
 export const TYPING_INDICATOR = gql`
-  mutation TypingIndicator($input: TypingIndicatorInput!) {
+  mutation TypingIndicatorMutation($input: TypingIndicatorInput!) {
     typingIndicator(input: $input) {
       success
       message

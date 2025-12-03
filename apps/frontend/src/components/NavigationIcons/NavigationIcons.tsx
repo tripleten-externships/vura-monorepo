@@ -1,33 +1,32 @@
 import {
   View,
   TouchableOpacity,
-  Image,
   StyleSheet,
-  ImageProps,
+  Text,
   ViewStyle,
-  ImageStyle,
+  TextStyle,
+  Image,
 } from 'react-native';
 import { useNavigation } from '../../hooks/useNavigation';
 
 export interface NavigationItem {
   id: string;
-  icon: { uri: string };
+  label: string;
   route: string;
+  icon: string;
   onPress?: () => void;
 }
 
 export interface NavigationIconsProps {
   items: NavigationItem[];
   containerStyle?: ViewStyle;
-  iconStyle?: ImageStyle;
-  iconSize?: number;
+  labelStyle?: TextStyle;
 }
 
 export default function NavigationIcons({
   items,
   containerStyle,
-  iconStyle,
-  iconSize = 24,
+  labelStyle,
 }: NavigationIconsProps) {
   const navigation = useNavigation();
 
@@ -42,19 +41,18 @@ export default function NavigationIcons({
   return (
     <View style={[styles.container, containerStyle]}>
       {items.map((item) => {
-        const imageSource = typeof item.icon === 'string' ? { uri: item.icon } : item.icon;
-
         return (
           <TouchableOpacity
             key={item.id}
             onPress={() => handlePress(item)}
             accessibilityLabel={`Navigate to ${item.route}`}
           >
-            <Image
-              source={imageSource}
-              style={[styles.icon, { width: iconSize, height: iconSize }, iconStyle]}
-              resizeMode="contain"
-            />
+            <Text style={[styles.label, labelStyle]}>
+              <Image
+                source={{ uri: `../../../assets/${item.icon}` }}
+                style={[{ width: 24, height: 24 }]}
+              />
+            </Text>
           </TouchableOpacity>
         );
       })}
@@ -73,8 +71,9 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     paddingBottom: 10,
   },
-  icon: {
-    width: 24,
-    height: 24,
+  label: {
+    fontSize: 14,
+    color: '#363636',
+    fontWeight: '600',
   },
 });

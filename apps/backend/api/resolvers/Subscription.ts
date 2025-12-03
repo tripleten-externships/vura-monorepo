@@ -114,6 +114,20 @@ export const Subscription = {
         return payload.userId === variables.userId && payload.userId === userId;
       }
     ),
+    resolve: (payload: any) => {
+      return {
+        id: payload.notificationId,
+        type: payload.type,
+        notificationType: payload.notificationType,
+        priority: payload.priority,
+        content: payload.content,
+        actionUrl: payload.actionUrl || null,
+        metadata: payload.metadata || null,
+        read: false,
+        readAt: null,
+        createdAt: payload.createdAt,
+      };
+    },
   },
 
   // Subscribe to unread count changes for a specific user
@@ -125,6 +139,24 @@ export const Subscription = {
         const userId = context.session?.data?.id;
         if (!userId) return false;
         // only send count updates to the intended user
+        return payload.userId === variables.userId && payload.userId === userId;
+      }
+    ),
+    resolve: (payload: any) => {
+      return {
+        count: payload.count,
+        notificationType: payload.notificationType || null,
+      };
+    },
+  },
+
+  forumNotification: {
+    subscribe: withFilter(
+      () => pubsub.asyncIterableIterator(SubscriptionTopics.FORUM_NOTIFICATION),
+      (payload, variables, context: Context | undefined) => {
+        if (!context) return false;
+        const userId = context.session?.data?.id;
+        if (!userId) return false;
         return payload.userId === variables.userId && payload.userId === userId;
       }
     ),

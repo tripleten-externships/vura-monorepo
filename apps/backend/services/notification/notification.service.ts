@@ -9,6 +9,15 @@ import {
   NotificationType,
 } from './types';
 import { logger } from '../../utils/logger';
+import {
+  incrementCounter,
+  decrementCounter,
+  getTotalUnreadCount,
+  getUnreadCountByType,
+  resetAllCounters,
+} from '../cache/db-cache';
+import { pubsub, SubscriptionTopics } from '../../api/subscriptions/pubsub';
+import { getWebSocketService } from '../websocket';
 
 export class NotificationService implements INotificationService {
   /**
@@ -50,7 +59,6 @@ export class NotificationService implements INotificationService {
         user: { connect: { id: data.userId } },
       };
 
-      // add optional fields
       if (data.actionUrl) {
         notificationData.actionUrl = data.actionUrl;
       }
@@ -84,6 +92,25 @@ export class NotificationService implements INotificationService {
         };
       }
 
+      // skip notification if user is already in the chat (actively viewing)
+      if (data.notificationType === 'CHAT' && data.metadata?.groupId) {
+        try {
+          const websocketService = getWebSocketService();
+          const userInGroup = websocketService.isUserInGroup(data.userId, data.metadata.groupId);
+
+          if (userInGroup) {
+            logger.info('User already in chat, skipping notification', {
+              userId: data.userId,
+              groupId: data.metadata.groupId,
+            });
+            return null;
+          }
+        } catch (error) {
+          // if WebSocket service isn't initialized, continue with notification creation
+          logger.warn('WebSocket service not available for presence check', { error });
+        }
+      }
+
       // create notification
       const notification = await context.db.Notification.createOne({
         data: notificationData,
@@ -96,6 +123,40 @@ export class NotificationService implements INotificationService {
         type: data.type,
         notificationType: data.notificationType,
       });
+
+      // increment unread counters in database cache and publish events
+      try {
+        // Increment counter for this notification type
+        await incrementCounter(
+          context.prisma,
+          data.userId,
+          notification.notificationType as NotificationType
+        );
+
+        // Get total count across all types
+        const totalCount = await getTotalUnreadCount(context.prisma, data.userId);
+
+        // publish unread count changed
+        pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+          userId: data.userId,
+          count: totalCount,
+        });
+
+        // publish notification created
+        pubsub.publish(SubscriptionTopics.NOTIFICATION_CREATED, {
+          userId: data.userId,
+          notificationId: notification.id,
+          type: notification.type,
+          notificationType: notification.notificationType,
+          priority: notification.priority,
+          content: notification.content,
+          actionUrl: notification.actionUrl,
+          metadata: notification.metadata,
+          createdAt: notification.createdAt,
+        });
+      } catch (e) {
+        logger.error('Counter increment/publish failed after createNotification', { error: e });
+      }
 
       return notification;
     } catch (error: any) {
@@ -221,6 +282,28 @@ export class NotificationService implements INotificationService {
         userId,
       });
 
+      // decrement unread counters if it was previously unread, and publish
+      if (notification.read === false) {
+        try {
+          // Decrement counter for this notification type
+          await decrementCounter(
+            context.prisma,
+            userId,
+            notification.notificationType as NotificationType
+          );
+
+          // Get new total count across all types
+          const newTotal = await getTotalUnreadCount(context.prisma, userId);
+
+          pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+            userId,
+            count: newTotal,
+          });
+        } catch (e) {
+          logger.error('Counter decrement/publish failed after markAsRead', { error: e });
+        }
+      }
+
       return updatedNotification;
     } catch (error: any) {
       console.error('Mark as read error:', error);
@@ -246,33 +329,35 @@ export class NotificationService implements INotificationService {
       }
 
       // get all unread notifications for the user first
-      const unreadNotifications = await context.db.Notification.findMany({
+      const unreadNotifications = await context.prisma.notification.updateMany({
         where: {
           user: { id: { equals: userId } },
           read: { equals: false },
         },
+        data: {
+          read: true,
+          readAt: new Date(),
+        },
       });
-
-      // update each notification individually
-      await Promise.all(
-        unreadNotifications.map((notification) =>
-          context.db.Notification.updateOne({
-            where: { id: String(notification.id) },
-            data: {
-              read: true,
-              readAt: new Date(),
-            },
-          })
-        )
-      );
-
-      const count = unreadNotifications.length;
+      const count = unreadNotifications.count;
 
       // log bulk read action
       logger.info('All notifications marked as read', {
         userId,
         count,
       });
+
+      // reset all counters to zero and publish
+      try {
+        await resetAllCounters(context.prisma, userId);
+
+        pubsub.publish(SubscriptionTopics.UNREAD_COUNT_CHANGED, {
+          userId,
+          count: 0,
+        });
+      } catch (e) {
+        logger.error('Counter reset/publish failed after markAllAsRead', { error: e });
+      }
 
       return count;
     } catch (error: any) {
@@ -355,14 +440,8 @@ export class NotificationService implements INotificationService {
         });
       }
 
-      // count unread notifications
-      const count = await context.db.Notification.count({
-        where: {
-          user: { id: { equals: userId } },
-          read: { equals: false },
-        },
-      });
-
+      // Get count from database cache (fast with proper indexing)
+      const count = await getTotalUnreadCount(context.prisma, userId);
       return count;
     } catch (error: any) {
       console.error('Get unread count error:', error);
@@ -397,15 +476,8 @@ export class NotificationService implements INotificationService {
         });
       }
 
-      // count unread notifications by type
-      const count = await context.db.Notification.count({
-        where: {
-          user: { id: { equals: userId } },
-          notificationType: { equals: type },
-          read: { equals: false },
-        },
-      });
-
+      // Get count from database cache (fast with proper indexing)
+      const count = await getUnreadCountByType(context.prisma, userId, type);
       return count;
     } catch (error: any) {
       console.error('Get unread count by type error:', error);
@@ -502,5 +574,4 @@ export class NotificationService implements INotificationService {
   }
 }
 
-// export singleton instance
 export const notificationService = new NotificationService();

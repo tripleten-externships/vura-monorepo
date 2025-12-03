@@ -1,6 +1,15 @@
 declare const VITE_API_URL: string | undefined;
 declare const DEPLOYMENT_ENV: string;
 
+interface ImportMetaEnv {
+  readonly VITE_API_URL?: string;
+  readonly DEPLOYMENT_ENV?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 declare interface Window {
   Beacon: any;
   Attribution: {

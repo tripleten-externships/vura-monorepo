@@ -1,5 +1,6 @@
 import { list } from '@keystone-6/core';
 import { text, checkbox, timestamp, relationship, select, json } from '@keystone-6/core/fields';
+import { isAdmin, isLoggedIn } from '../utils/rbac';
 
 export const Notification = list({
   fields: {
@@ -62,16 +63,39 @@ export const Notification = list({
   },
   access: {
     operation: {
-      query: ({ session }) => !!session?.data.id,
-      create: ({ session }) => !!session?.data.id,
-      update: ({ session }) => !!session?.data.id,
-      delete: ({ session }) => !!session?.data.id,
+      // Only logged-in users can query notifications
+      query: ({ session }) => isLoggedIn(session),
+      // Only admins can create notifications (or system)
+      create: ({ session }) => isLoggedIn(session),
+      // Only logged-in users can update their notifications (mark as read)
+      update: ({ session }) => isLoggedIn(session),
+      // Only admins can delete notifications
+      delete: ({ session }) => isAdmin(session),
     },
     filter: {
       query: ({ session }) => {
-        if (!session?.data?.id) return false;
-        return { user: { id: { equals: session.data.id } } };
+        // Admins can see all notifications
+        if (isAdmin(session)) return true;
+
+        // Regular users can only see their own notifications
+        if (isLoggedIn(session) && session?.data?.id) {
+          return { user: { id: { equals: session.data.id } } };
+        }
+
+        // Not logged in = can't see anything
+        return false;
       },
+    },
+    item: {
+      // Users can only update their own notifications, admins can update any
+      update: ({ session, item }) => {
+        if (isAdmin(session)) return true;
+        if (!isLoggedIn(session) || !session?.data?.id) return false;
+        // Check if the notification belongs to the user (via user relationship)
+        return item.userId === session.data.id;
+      },
+      // Only admins can delete notifications
+      delete: ({ session }) => isAdmin(session),
     },
   },
 });
