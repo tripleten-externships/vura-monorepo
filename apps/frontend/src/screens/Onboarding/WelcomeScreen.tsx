@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     color: '#333',
+    fontFamily: 'Noto-Serif',
   },
   highlightContainer: {
     width: '100%',
