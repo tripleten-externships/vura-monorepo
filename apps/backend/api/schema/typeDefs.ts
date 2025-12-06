@@ -471,6 +471,11 @@ export const typeDefs = gql`
     assignment: JSON
   }
 
+  type DeleteAccountResult {
+    success: Boolean!
+    message: String!
+  }
+
   # Root Types
   type Mutation {
     signup(input: SignupInput!): SignupResult!
@@ -503,6 +508,7 @@ export const typeDefs = gql`
     ): ForumSubscriptionResult!
     customUnsubscribeFromForum(topic: String!): ForumSubscriptionResult!
     assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
+    customDeleteAccount(name: String!): DeleteAccountResult!
   }
 
   type Query {
