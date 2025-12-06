@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
+import { useAuth } from '../../hooks/useAuth';
 import { useMutation } from '@apollo/client/react';
 import { DELETE_ACCOUNT } from '../../graphql/mutations/index';
 import { useNavigate } from 'react-router-dom';
@@ -9,21 +10,24 @@ interface DeleteAccountProps {
 }
 
 export default function DeleteAccount({ currentUserName }: DeleteAccountProps) {
+  const auth = useAuth({});
   const [typedName, setTypedName] = useState('');
   const [checked, setChecked] = useState(false);
   //   const [debouncedName, setDebouncedName] = useState('');
   const navigate = useNavigate();
 
+  // delete the user account and navigate to start page
   const [deleteAccount, { loading }] = useMutation(DELETE_ACCOUNT, {
-    onCompleted: () => {
-      navigate('/login');
-    },
-    onError: (err) => {
-      console.error('delete error', err);
+    onCompleted: async (data) => {
+      console.log('delete response:', data);
+      await auth.logout();
+      navigate('/get-started');
     },
   });
 
+  //delete the user account if name is typed correctly and checkbox is checked
   const handleDelete = () => {
+    console.log('handleDelete called');
     if (typedName === currentUserName && checked) {
       deleteAccount({ variables: { name: currentUserName } });
     }
