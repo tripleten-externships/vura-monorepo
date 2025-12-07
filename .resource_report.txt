@@ -1,0 +1,45 @@
+﻿
+
+Process Count AvgCPU MaxWSMB
+------- ----- ------ -------
+           19              0
+
+
+
+
+Top 10 by WS
+
+   Id ProcessName         WS(MB)        CPU
+   -- -----------         ------        ---
+22724 Code                891.89 125.921875
+23800 Code                   747  32.359375
+ 4016 Memory Compression  497.66           
+17492 SupportAssistAgent  435.99           
+26496 msedgewebview2      403.31      69.25
+20908 Code                384.48  230.90625
+ 2224 Code                365.23 195.453125
+14720 explorer            304.15  17.421875
+ 5400 MsMpEng             302.75           
+ 2516 PhoneExperienceHost 264.43  35.671875
+
+
+
+
+Top 10 by CPU
+
+   Id ProcessName            CPU WS(MB)
+   -- -----------            --- ------
+20908 Code                   231 385.43
+ 2224 Code                195.47 365.23
+22724 Code                125.94 891.95
+26496 msedgewebview2       69.25 403.31
+15136 Code                 39.12    162
+ 2516 PhoneExperienceHost  35.67 264.43
+23800 Code                 32.36    747
+ 7968 SystemSettings        27.3 145.84
+  940 msedgewebview2       26.78  98.08
+ 9780 OneDrive             17.48 162.48
+
+
+
+Done

@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik:ital@0;1&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,500;1,500&display=swap');
+@import url('https://fonts.googleapis2.googleapis.com/css2?family=Rubik:ital,wght@0,500;1,500&display=swap');
+/* Load Noto Serif with the weights we use in the app so fontWeight maps correctly on the web */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600&display=swap');
 
 @import 'tailwindcss';
 
