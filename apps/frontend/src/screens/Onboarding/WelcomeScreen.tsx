@@ -9,7 +9,10 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
+  ImageBackground,
 } from 'react-native';
+// Vite / webpack-friendly static asset import
+import WelcomeImage from '../../../assets/WelcomeScreen.png';
 // use react-router's navigation on the web
 
 const { width } = Dimensions.get('window');
@@ -28,21 +31,29 @@ const WelcomeScreen = () => {
         Vura helps you take better care of yourself and your parents
       </Text>
 
-      <View style={styles.highlightContainer}>
+      {/* <View style={styles.highlightContainer}>
         <View style={styles.highlight}>
           <Image source={{ uri: '../../../assets/' }} style={styles.icon} resizeMode="contain" />
           <Text style={styles.highlightText}>Personalised care plan</Text>
         </View>
 
         <View style={styles.highlight}>
-          <Image source={{ uri: 'YOUR_IMAGE_URL_2' }} style={styles.icon} resizeMode="contain" />
+          <Image source={{ uri: '../../../assets/' }} style={styles.icon} resizeMode="contain" />
           <Text style={styles.highlightText}>Trusted care resources</Text>
         </View>
 
         <View style={styles.highlight}>
-          <Image source={{ uri: 'YOUR_IMAGE_URL_3' }} style={styles.icon} resizeMode="contain" />
+          <Image source={{ uri: '../../../assets/' }} style={styles.icon} resizeMode="contain" />
           <Text style={styles.highlightText}>Community with support</Text>
         </View>
+      </View> */}
+
+      <View style={styles.highlightContainer}>
+        <ImageBackground
+          source={{ uri: WelcomeImage }}
+          style={styles.imageBackground}
+          imageStyle={{ borderRadius: 8 }}
+        />
       </View>
 
       <TouchableOpacity style={styles.ctaButton} onPress={handleStart}>
@@ -54,7 +65,7 @@ const WelcomeScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 40,
+    paddingVertical: 70,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
@@ -67,22 +78,23 @@ const styles = StyleSheet.create({
     lineHeight: 44,
     fontWeight: '400',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 60,
     color: '#333',
     fontFamily: 'Noto Serif',
     fontStyle: 'normal',
     letterSpacing: 34 * -0.01,
   },
   highlightContainer: {
-    width: '100%',
-    marginBottom: 40,
-    alignItems: 'center',
+    // width: '100%',
+    marginBottom: 73,
+    // alignItems: 'center',
+    width: 345,
+    height: 365,
   },
   highlight: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
-    //  textAlign: 'center',
   },
   icon: {
     width: 48,
@@ -98,6 +110,15 @@ const styles = StyleSheet.create({
     fontStyle: 'normal',
     lineHeight: 18 * 1.2,
   },
+  imageBackground: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    justifyContent: 'center',
+    width: 345,
+    height: 365,
+  },
+
   ctaButton: {
     backgroundColor: '#363636',
     paddingVertical: 16,
