@@ -14,6 +14,8 @@ import { useMutation } from '@apollo/client/react';
 import { observer } from 'mobx-react-lite';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 import { useNavigationHistory } from '../../navigation/NavigationHistoryProvider';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
@@ -259,7 +261,7 @@ const ProfileScreen = observer(() => {
                 <View style={styles.updatingFieldView}>
                   {/* save updated value */}
                   <Pressable onPress={handleSave}>
-                    <Text style={{ fontSize: 19 }}>✅</Text>
+                    <FontAwesomeIcon icon={faCheck} style={{ fontSize: 19 }} />
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -268,7 +270,7 @@ const ProfileScreen = observer(() => {
                     }}
                   >
                     {/* Cancel updated value */}
-                    <Text style={{ fontSize: 16 }}>❌</Text>
+                    <FontAwesomeIcon icon={faXmark} style={{ fontSize: 19 }} />
                   </Pressable>
                 </View>
               ) : (
