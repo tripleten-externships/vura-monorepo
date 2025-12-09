@@ -12,31 +12,35 @@ import {
 } from 'react-native';
 import { useMutation } from '@apollo/client/react';
 import { observer } from 'mobx-react-lite';
-import { useAuth } from '../../hooks/useAuth';
 import { Link } from 'react-router-dom';
-import { PageHeader } from '../../components/PageHeader/PageHeader';
-import { useNavigationHistory } from '../../navigation/NavigationHistoryProvider';
 import { useNavigate } from 'react-router-dom';
+
+import { useNavigationHistory } from '../../navigation/NavigationHistoryProvider';
+import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { NotificationBell } from '../../components/NotificationBell/NotificationBell';
-import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
 import { ToggleSwitch } from '../../components/ToggleSwitch/ToggleSwitch';
+import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
 import { useCamera } from '../../hooks/useCamera';
 import { useImageLibrary } from '../../hooks/useImageLibrary';
+import { useAuth } from '../../hooks/useAuth';
 import { UPDATE_PROFILE } from '../../graphql/mutations/users';
 import { GET_USER_PROFILE } from '../../graphql/queries/users';
+
 import { client } from '../../store';
 
 const ProfileScreen = observer(() => {
-  const auth = useAuth({});
-  const { currentUser } = useAuth({});
-  const [hideAvatar, setHideAvatar] = useState(currentUser?.privacyToggle ?? false);
+  const navigate = useNavigate();
   const { goBack } = useNavigationHistory();
+  const { logout, currentUser } = useAuth({});
   const { hasUnread } = useUnreadNotifications();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [updateProfileMutation, { loading: avatarUpdating }] = useMutation(UPDATE_PROFILE);
+
+  const [hideAvatar, setHideAvatar] = useState(currentUser?.privacyToggle ?? false);
   const [updatingField, setUpdatingField] = useState<string | null>(null);
   const [updatedValue, setUpdatedValue] = useState<string>('');
-  const navigate = useNavigate();
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [updateProfileMutation, { loading: avatarUpdating }] = useMutation(UPDATE_PROFILE);
 
   const { openCamera } = useCamera({
     defaultOptions: {
@@ -182,8 +186,8 @@ const ProfileScreen = observer(() => {
     }
   };
   //log out the user and navigate to the start page
-  const logout = async () => {
-    await auth.logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/get-started');
   };
 
@@ -195,9 +199,8 @@ const ProfileScreen = observer(() => {
           titleStyle={{ fontFamily: 'Inter !important' }}
           rightIcon={{
             icon: (
-              <NotificationBell hasUnread={hasUnread} onClick={() => goBack('/notifications')} />
+              <NotificationBell hasUnread={hasUnread} onClick={() => navigate('/notifications')} />
             ),
-            onPress: () => goBack('/'),
           }}
         />
 
@@ -288,7 +291,7 @@ const ProfileScreen = observer(() => {
           Privacy Policy
         </Link>
         {/*logout button: navigate to start page*/}
-        <Pressable onPress={logout}>
+        <Pressable onPress={handleLogout}>
           <Text style={styles.logout}>Logout</Text>
         </Pressable>
         {/*delete button: delete user account*/}
