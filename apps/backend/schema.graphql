@@ -2080,6 +2080,7 @@ type Mutation {
   customSubscribeToForum(authorName: String!, topic: String!, postId: ID): ForumSubscriptionResult!
   customUnsubscribeFromForum(topic: String!): ForumSubscriptionResult!
   assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
+  customDeleteAccount(email: String!): DeleteAccountResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -2828,6 +2829,11 @@ type AssignQuestionnaireResult {
   success: Boolean!
   message: String!
   assignment: JSON
+}
+
+type DeleteAccountResult {
+  success: Boolean!
+  message: String!
 }
 
 type TypingIndicatorPayload {

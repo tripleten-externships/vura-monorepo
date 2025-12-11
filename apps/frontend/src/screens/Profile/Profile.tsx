@@ -12,26 +12,38 @@ import {
 } from 'react-native';
 import { useMutation } from '@apollo/client/react';
 import { observer } from 'mobx-react-lite';
-import { useAuth } from '../../hooks/useAuth';
 import { Link } from 'react-router-dom';
-import { PageHeader } from '../../components/PageHeader/PageHeader';
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
+
 import { useNavigationHistory } from '../../navigation/NavigationHistoryProvider';
+import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { NotificationBell } from '../../components/NotificationBell/NotificationBell';
-import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
 import { ToggleSwitch } from '../../components/ToggleSwitch/ToggleSwitch';
+import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
 import { useCamera } from '../../hooks/useCamera';
 import { useImageLibrary } from '../../hooks/useImageLibrary';
+import { useAuth } from '../../hooks/useAuth';
 import { UPDATE_PROFILE } from '../../graphql/mutations/users';
 import { GET_USER_PROFILE } from '../../graphql/queries/users';
+
 import { client } from '../../store';
 
 const ProfileScreen = observer(() => {
-  const { currentUser } = useAuth({});
-  const [hideAvatar, setHideAvatar] = useState(currentUser?.privacyToggle ?? false);
+  const navigate = useNavigate();
   const { goBack } = useNavigationHistory();
+  const { logout, currentUser } = useAuth({});
   const { hasUnread } = useUnreadNotifications();
+
+  const [hideAvatar, setHideAvatar] = useState(currentUser?.privacyToggle ?? false);
+  const [updatingField, setUpdatingField] = useState<string | null>(null);
+  const [updatedValue, setUpdatedValue] = useState<string>('');
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [updateProfileMutation, { loading: avatarUpdating }] = useMutation(UPDATE_PROFILE);
+
   const { openCamera } = useCamera({
     defaultOptions: {
       mediaType: 'photo',
@@ -154,6 +166,33 @@ const ProfileScreen = observer(() => {
     ]);
   }, [handleCameraCapture, handleLibrarySelect]);
 
+  //update user profile
+  const handleSave = async () => {
+    if (!updatingField) return;
+
+    try {
+      await updateProfileMutation({
+        variables: {
+          input: {
+            [updatingField.toLowerCase()]: updatedValue,
+          },
+        },
+      });
+
+      await client.refetchQueries({ include: [GET_USER_PROFILE] });
+
+      setUpdatingField(null);
+      setUpdatedValue('');
+    } catch (e: any) {
+      console.error('Update failed:', e.message);
+    }
+  };
+  //log out the user and navigate to the start page
+  const handleLogout = async () => {
+    await logout();
+    navigate('/get-started');
+  };
+
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -162,9 +201,8 @@ const ProfileScreen = observer(() => {
           titleStyle={{ fontFamily: 'Inter !important' }}
           rightIcon={{
             icon: (
-              <NotificationBell hasUnread={hasUnread} onClick={() => goBack('/notifications')} />
+              <NotificationBell hasUnread={hasUnread} onClick={() => navigate('/notifications')} />
             ),
-            onPress: () => goBack('/'),
           }}
         />
 
@@ -208,21 +246,57 @@ const ProfileScreen = observer(() => {
             >
               <View>
                 <Text style={styles.infoLabel}>{row.label}</Text>
-                <Text style={styles.infoValue}>{row.value}</Text>
+                {updatingField === row.label ? (
+                  <input
+                    value={updatedValue}
+                    onChange={(e) => setUpdatedValue(e.target.value)}
+                    style={styles.updateInput}
+                  />
+                ) : (
+                  <Text style={styles.infoValue}>{row.value}</Text>
+                )}
               </View>
-              <Pressable>
-                <Image
-                  source={{ uri: '../../../assets/pen.svg' }}
-                  style={[{ width: 16, height: 16 }]}
-                />
-              </Pressable>
+
+              {updatingField === row.label ? (
+                <View style={styles.updatingFieldView}>
+                  {/* save updated value */}
+                  <Pressable onPress={handleSave}>
+                    <FontAwesomeIcon icon={faCheck} style={{ fontSize: 19 }} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setUpdatingField(null);
+                      setUpdatedValue('');
+                    }}
+                  >
+                    {/* Cancel updated value */}
+                    <FontAwesomeIcon icon={faXmark} style={{ fontSize: 19 }} />
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    setUpdatingField(row.label);
+                    setUpdatedValue(row.value === '—' ? '' : row.value);
+                  }}
+                >
+                  <Image
+                    source={{ uri: '../../../assets/pen.svg' }}
+                    style={{ width: 16, height: 16 }}
+                  />
+                </Pressable>
+              )}
             </View>
           ))}
         </View>
-
         <Link to="/privacy-policy" style={styles.link}>
           Privacy Policy
         </Link>
+        {/*logout button: navigate to start page*/}
+        <Pressable onPress={handleLogout}>
+          <Text style={styles.logout}>Logout</Text>
+        </Pressable>
+        {/*delete button: delete user account*/}
         <Link to="/delete-account" style={styles.dangerLink}>
           Delete Account
         </Link>
@@ -359,6 +433,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111',
   },
+  updatingFieldView: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  updateInput: {
+    borderWidth: 1,
+    padding: 4,
+    marginTop: 2,
+    width: 250,
+    borderRadius: 4,
+  },
   link: {
     textAlign: 'center',
     color: '#8A8A8E',
@@ -368,6 +453,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#FF3B30',
     marginBottom: 32,
+  },
+  logout: {
+    color: '#363636',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '400',
   },
 });
 
