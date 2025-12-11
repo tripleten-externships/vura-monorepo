@@ -4,14 +4,15 @@ import { useAuth } from '../../hooks/useAuth';
 import { useMutation } from '@apollo/client/react';
 import { DELETE_ACCOUNT } from '../../graphql/mutations/index';
 import { useNavigate } from 'react-router-dom';
+import Checkbox from '../../components/Checkbox/Checkbox';
 
 interface DeleteAccountProps {
-  currentUserName?: string;
+  currentEmail?: string;
 }
 
-export default function DeleteAccount({ currentUserName }: DeleteAccountProps) {
+export default function DeleteAccount({ currentEmail }: DeleteAccountProps) {
   const auth = useAuth({});
-  const [typedName, setTypedName] = useState('');
+  const [typedEmail, setTypedEmail] = useState('');
   const [checked, setChecked] = useState(false);
   //   const [debouncedName, setDebouncedName] = useState('');
   const navigate = useNavigate();
@@ -19,7 +20,6 @@ export default function DeleteAccount({ currentUserName }: DeleteAccountProps) {
   // delete the user account and navigate to start page
   const [deleteAccount, { loading }] = useMutation(DELETE_ACCOUNT, {
     onCompleted: async (data) => {
-      console.log('delete response:', data);
       await auth.logout();
       navigate('/get-started');
     },
@@ -27,47 +27,32 @@ export default function DeleteAccount({ currentUserName }: DeleteAccountProps) {
 
   //delete the user account if name is typed correctly and checkbox is checked
   const handleDelete = () => {
-    console.log('handleDelete called');
-    if (typedName === currentUserName && checked) {
-      deleteAccount({ variables: { name: currentUserName } });
+    if (typedEmail === currentEmail && checked) {
+      deleteAccount({ variables: { email: currentEmail } });
     }
   };
-  //   useEffect(() => {
-  //     const timer = setTimeout(() => {
-  //       setDebouncedName(typedName);
-  //     }, 500);
-
-  //     return () => clearTimeout(timer);
-  //   }, [typedName]);
-
-  //   useEffect(() => {
-  //     if (debouncedName) {
-  //       handleDelete();
-  //     }
-  //   }, [debouncedName]);
-
-  console.log('typedName:', typedName);
-  console.log('currentUserName:', currentUserName);
-  console.log('equal?:', typedName === currentUserName);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Confirm Delete Account</Text>
+      <Text style={styles.heading}>Delete Account</Text>
 
-      <Text style={styles.instruction}>Please type your name to confirm.</Text>
+      <Text style={styles.instruction}>
+        Please type in the email associated with your account to confirm.
+      </Text>
       <TextInput
-        value={typedName}
-        onChangeText={setTypedName}
-        placeholder="Type your name"
+        value={typedEmail}
+        onChangeText={setTypedEmail}
+        placeholder="Type in your email"
         placeholderTextColor="#36363680"
         style={styles.input}
       />
 
       <View style={styles.checkboxContainer}>
-        <Text onPress={() => setChecked(!checked)} style={styles.checkbox}>
-          {checked ? '☑' : '☐'}
-        </Text>
-        <Text style={styles.checkboxLabel}>I understand this action cannot be undone.</Text>
+        <Checkbox
+          label="I understand this action cannot be undone."
+          checked={checked}
+          onChange={setChecked}
+        />
       </View>
 
       <View style={styles.buttonContainer}>
@@ -77,11 +62,11 @@ export default function DeleteAccount({ currentUserName }: DeleteAccountProps) {
 
         <Pressable
           onPress={handleDelete}
-          disabled={typedName !== currentUserName || !checked}
+          disabled={typedEmail !== currentEmail || !checked}
           style={({ pressed }) => [
             styles.deleteButton,
             { opacity: pressed ? 0.7 : 1 },
-            (typedName !== currentUserName || !checked) && { backgroundColor: '#F12D2D99' },
+            (typedEmail !== currentEmail || !checked) && { backgroundColor: '#F12D2D99' },
           ]}
         >
           <Text style={styles.buttonText}>{loading ? 'Deleting...' : 'Delete'}</Text>
@@ -113,15 +98,9 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   checkboxContainer: {
-    flexDirection: 'row',
+    width: '100%',
     alignItems: 'center',
     marginBottom: 12,
-  },
-  checkbox: {
-    marginRight: 8,
-  },
-  checkboxLabel: {
-    flex: 1,
   },
   buttonContainer: {
     flexDirection: 'row',

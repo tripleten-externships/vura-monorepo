@@ -2080,7 +2080,7 @@ type Mutation {
   customSubscribeToForum(authorName: String!, topic: String!, postId: ID): ForumSubscriptionResult!
   customUnsubscribeFromForum(topic: String!): ForumSubscriptionResult!
   assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
-  customDeleteAccount(name: String!): DeleteAccountResult!
+  customDeleteAccount(email: String!): DeleteAccountResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure

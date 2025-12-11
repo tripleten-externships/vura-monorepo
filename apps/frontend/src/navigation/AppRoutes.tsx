@@ -68,7 +68,7 @@ export function AppRoutes() {
         path="/delete-account"
         element={
           <ProtectedRoute>
-            <DeleteAccount currentUserName={currentUser?.name ?? undefined} />
+            <DeleteAccount currentEmail={currentUser?.email ?? undefined} />
           </ProtectedRoute>
         }
       />

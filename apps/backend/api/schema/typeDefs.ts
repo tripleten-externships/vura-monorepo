@@ -508,7 +508,7 @@ export const typeDefs = gql`
     ): ForumSubscriptionResult!
     customUnsubscribeFromForum(topic: String!): ForumSubscriptionResult!
     assignQuestionnaire(input: AssignQuestionnaireInput!): AssignQuestionnaireResult!
-    customDeleteAccount(name: String!): DeleteAccountResult!
+    customDeleteAccount(email: String!): DeleteAccountResult!
   }
 
   type Query {

@@ -94,8 +94,8 @@ export const UPDATE_PROFILE = gql(`
 `);
 
 export const DELETE_ACCOUNT = gql(`
-   mutation DeleteAccount($name: String!) {
-    customDeleteAccount(name: $name) {
+   mutation DeleteAccount($email: String!) {
+    customDeleteAccount(email: $email) {
       success
       message
     }

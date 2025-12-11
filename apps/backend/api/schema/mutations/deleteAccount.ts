@@ -2,7 +2,11 @@ import { GraphQLError } from 'graphql';
 import { Context } from '../../../types/context';
 
 // delete logged-in user
-export const customDeleteAccount = async (_: any, __: any, context: Context) => {
+export const customDeleteAccount = async (
+  _: any,
+  { email }: { email: string },
+  context: Context
+) => {
   try {
     const userId = context.session?.data?.id;
 
