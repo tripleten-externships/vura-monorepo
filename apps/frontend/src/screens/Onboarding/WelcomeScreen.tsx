@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from 'react';
+// import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
   ScrollView,
   ImageBackground,
 } from 'react-native';
-// Vite / webpack-friendly static asset import
-import WelcomeImage from '../../../assets/WelcomeScreen.png';
+
+// Import background images
+import BG1 from '../../../assets/WelcomScreen-Frame1.svg';
+import BG2 from '../../../assets/WelcomScreen-Frame2.svg';
+import BG3 from '../../../assets/WelcomScreen-Frame3.svg';
 // use react-router's navigation on the web
 
 const { width } = Dimensions.get('window');
@@ -31,29 +33,35 @@ const WelcomeScreen = () => {
         Vura helps you take better care of yourself and your parents
       </Text>
 
-      {/* <View style={styles.highlightContainer}>
-        <View style={styles.highlight}>
-          <Image source={{ uri: '../../../assets/' }} style={styles.icon} resizeMode="contain" />
-          <Text style={styles.highlightText}>Personalised care plan</Text>
-        </View>
-
-        <View style={styles.highlight}>
-          <Image source={{ uri: '../../../assets/' }} style={styles.icon} resizeMode="contain" />
-          <Text style={styles.highlightText}>Trusted care resources</Text>
-        </View>
-
-        <View style={styles.highlight}>
-          <Image source={{ uri: '../../../assets/' }} style={styles.icon} resizeMode="contain" />
-          <Text style={styles.highlightText}>Community with support</Text>
-        </View>
-      </View> */}
-
       <View style={styles.highlightContainer}>
-        <ImageBackground
-          source={{ uri: WelcomeImage }}
-          style={styles.imageBackground}
-          imageStyle={{ borderRadius: 8 }}
-        />
+        <View style={styles.highlight}>
+          <ImageBackground
+            source={{ uri: BG1 }}
+            style={styles.imageBackground}
+            imageStyle={{ borderRadius: 8 }}
+          >
+            <Text style={styles.highlightText}>Personalised care plan</Text>
+          </ImageBackground>
+        </View>
+        <View style={styles.highlight}>
+          <ImageBackground
+            source={{ uri: BG2 }}
+            style={styles.imageBackground}
+            imageStyle={{ borderRadius: 8 }}
+          >
+            <Text style={styles.highlightText}>Trusted care resources</Text>
+          </ImageBackground>
+        </View>
+
+        <View style={styles.highlight}>
+          <ImageBackground
+            source={{ uri: BG3 }}
+            style={styles.imageBackground}
+            imageStyle={{ borderRadius: 8 }}
+          >
+            <Text style={styles.highlightText}>Community with support</Text>
+          </ImageBackground>
+        </View>
       </View>
 
       <TouchableOpacity style={styles.ctaButton} onPress={handleStart}>
@@ -65,6 +73,7 @@ const WelcomeScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
+    width: '100%',
     paddingVertical: 70,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -85,22 +94,16 @@ const styles = StyleSheet.create({
     letterSpacing: 34 * -0.01,
   },
   highlightContainer: {
-    // width: '100%',
     marginBottom: 73,
-    // alignItems: 'center',
     width: 345,
     height: 365,
   },
   highlight: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  icon: {
-    width: 48,
-    height: 48,
-    marginRight: 16,
-  },
+
   highlightText: {
     fontSize: 18,
     color: '#444',
@@ -116,7 +119,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     justifyContent: 'center',
     width: 345,
-    height: 365,
+    height: 111,
   },
 
   ctaButton: {
@@ -124,8 +127,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 8,
-    width: '100%',
+    width: 345,
+    height: 62,
     alignItems: 'center',
+    marginTop: 57,
   },
   ctaText: {
     color: '#fff',
