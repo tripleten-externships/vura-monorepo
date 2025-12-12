@@ -10,7 +10,10 @@ import { Emoji } from '../../components/Emoji/Emoji';
 export default function ChecklistScreen() {
   const navigate = useNavigate();
   const { hasUnread } = useUnreadNotifications();
-  const [testChecked, setTestChecked] = useState(false);
+  const [dailyMoodChecked, setDailyMoodChecked] = useState(false);
+  const [dailyMealChecked, setDailyMealChecked] = useState(false);
+  const [weeklyMoodChecked, setWeeklyMoodChecked] = useState(false);
+  const [weeklyMealChecked, setweeklyMealChecked] = useState(false);
   return (
     <View style={styles.container}>
       <PageHeader
@@ -26,14 +29,18 @@ export default function ChecklistScreen() {
       <View style={styles.checkboxContainer}>
         <Checkbox
           label="Check in with parent's mood"
-          checked={testChecked}
-          onChange={setTestChecked}
+          checked={dailyMoodChecked}
+          onChange={setDailyMoodChecked}
         />
 
         <Image source={{ uri: '../../../assets/flower.svg' }} />
       </View>
       <View style={styles.checkboxContainer}>
-        <Checkbox label="prepare healthy meals" checked={testChecked} onChange={setTestChecked} />
+        <Checkbox
+          label="prepare healthy meals"
+          checked={dailyMealChecked}
+          onChange={setDailyMealChecked}
+        />
 
         <Image source={{ uri: '../../../assets/flower.svg' }} />
       </View>
@@ -41,14 +48,18 @@ export default function ChecklistScreen() {
       <View style={styles.checkboxContainer}>
         <Checkbox
           label="Check in with parent's mood"
-          checked={testChecked}
-          onChange={setTestChecked}
+          checked={weeklyMoodChecked}
+          onChange={setWeeklyMoodChecked}
         />
 
         <Image source={{ uri: '../../../assets/flower.svg' }} />
       </View>
       <View style={styles.checkboxContainer}>
-        <Checkbox label="prepare healthy meals" checked={testChecked} onChange={setTestChecked} />
+        <Checkbox
+          label="prepare healthy meals"
+          checked={weeklyMealChecked}
+          onChange={setweeklyMealChecked}
+        />
 
         <Image source={{ uri: '../../../assets/flower.svg' }} />
       </View>
