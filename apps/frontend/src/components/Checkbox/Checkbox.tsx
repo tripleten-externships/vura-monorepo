@@ -17,7 +17,7 @@ interface CheckboxProps {
 
 function Checkbox({ label, checked, onChange }: CheckboxProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, checked && { backgroundColor: '#FFFFFF' }]}>
       <TouchableOpacity
         style={styles.checkboxRow}
         onPress={() => onChange(!checked)} //Checks if its checked
@@ -33,7 +33,7 @@ function Checkbox({ label, checked, onChange }: CheckboxProps) {
           <View style={styles.checkbox} />
         )}
         {/* label for checkbox */}
-        {label && <Text style={styles.label}>{label}</Text>}
+        {label && <Text style={[styles.label, checked && styles.checkedLabel]}>{label}</Text>}
       </TouchableOpacity>
     </View>
   );
@@ -82,5 +82,8 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     color: 'Black',
+  },
+  checkedLabel: {
+    color: 'rgba(54, 54, 54, 0.5)',
   },
 });
