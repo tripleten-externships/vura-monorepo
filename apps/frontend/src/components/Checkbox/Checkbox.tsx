@@ -8,6 +8,7 @@ import {
   ImageSourcePropType,
 } from 'react-native';
 import checkMark from '../../../assets/checkMark.png';
+import { Emoji } from '../Emoji/Emoji';
 
 interface CheckboxProps {
   label?: string; //Label for checkbox
@@ -15,9 +16,17 @@ interface CheckboxProps {
   onChange: (newValue: boolean) => void; //onChange event for checkbox
   resourceText?: string;
   onPressResource?: () => void;
+  emojiIcon?: ImageSourcePropType | string;
 }
 
-function Checkbox({ label, checked, onChange, resourceText, onPressResource }: CheckboxProps) {
+function Checkbox({
+  label,
+  checked,
+  onChange,
+  resourceText,
+  onPressResource,
+  emojiIcon,
+}: CheckboxProps) {
   return (
     <View style={[styles.container, checked && { backgroundColor: '#FFFFFF' }]}>
       <TouchableOpacity
@@ -36,7 +45,13 @@ function Checkbox({ label, checked, onChange, resourceText, onPressResource }: C
         )}
         {/* label for checkbox */}
         <View style={styles.textContainer}>
-          {label && <Text style={[styles.label, checked && styles.checkedLabel]}>{label}</Text>}
+          {label && (
+            <View style={styles.labelRow}>
+              <Text style={[styles.label, checked && styles.checkedLabel]}>{label}</Text>
+
+              {emojiIcon && <Emoji emojiIcon={emojiIcon} isChecked={checked} />}
+            </View>
+          )}
 
           {resourceText && onPressResource && (
             <TouchableOpacity onPress={onPressResource} activeOpacity={0.7}>
@@ -99,6 +114,11 @@ const styles = StyleSheet.create({
   },
   checkedLabel: {
     color: 'rgba(54, 54, 54, 0.5)',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   resourceText: {
     marginTop: 10,

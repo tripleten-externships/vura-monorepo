@@ -1,26 +1,15 @@
-import React, { useState } from 'react';
-import { Image, ImageSourcePropType, Pressable } from 'react-native';
+import { Image, ImageSourcePropType } from 'react-native';
 
 export interface EmojiProps {
-  emojiIcon: ImageSourcePropType;
+  emojiIcon: ImageSourcePropType | string;
+  isChecked?: boolean;
 }
 
-export const Emoji = ({ emojiIcon }: EmojiProps) => {
-  // use useState to track whether the emoji is checked or not
-  const [isChecked, setIsChecked] = useState(false);
-
-  // toggle the checked state when the checkbox is clicked
-  const handlePress = () => {
-    setIsChecked(!isChecked);
-  };
-
+export const Emoji = ({ emojiIcon, isChecked }: EmojiProps) => {
   return (
-    // change the emoji color based on whether it is checked or not
-    <Pressable onPress={handlePress}>
-      <Image
-        source={emojiIcon}
-        style={[{ width: 24, height: 24, tintColor: isChecked ? 'rgba(54,54,54,0.5)' : undefined }]}
-      />
-    </Pressable>
+    <Image
+      source={typeof emojiIcon === 'string' ? { uri: emojiIcon } : emojiIcon}
+      style={{ width: 24, height: 24, tintColor: isChecked ? 'rgba(54,54,54,0.5)' : undefined }}
+    />
   );
 };

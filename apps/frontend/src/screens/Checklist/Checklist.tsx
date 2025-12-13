@@ -5,7 +5,10 @@ import { NotificationBell } from '../../components/NotificationBell/Notification
 import { useNavigate } from 'react-router-dom';
 import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
 import Checkbox from '../../components/Checkbox/Checkbox';
-import { Emoji } from '../../components/Emoji/Emoji';
+import flower from '../../../assets/flower.svg';
+import salad from '../../../assets/salad.svg';
+import smile from '../../../assets/smile.svg';
+import stethoscope from '../../../assets/stethoscope.svg';
 
 const dummyPlan = {
   Daily: [
@@ -59,6 +62,8 @@ const dummyPlan = {
   ],
 };
 
+const dummyEmojis = [flower, salad, smile, stethoscope];
+
 export default function ChecklistScreen() {
   const navigate = useNavigate();
   const { hasUnread } = useUnreadNotifications();
@@ -83,7 +88,7 @@ export default function ChecklistScreen() {
       <View style={styles.container}>
         <PageHeader
           title="Your care action plan"
-          titleStyle={styles.titlestyle}
+          titleStyle={styles.titleStyle}
           rightIcon={{
             icon: (
               <NotificationBell hasUnread={hasUnread} onClick={() => navigate('/notifications')} />
@@ -94,7 +99,7 @@ export default function ChecklistScreen() {
           <View key={sectionName}>
             <Text style={styles.sectionTitle}>{sectionName}</Text>
 
-            {items.map((item) => (
+            {items.map((item, index) => (
               <View style={styles.checkboxContainer} key={item.key}>
                 <Checkbox
                   label={item.label}
@@ -102,6 +107,7 @@ export default function ChecklistScreen() {
                   onChange={() => toggleChecked(item.key)}
                   resourceText={item.resourceText}
                   onPressResource={() => navigate(item.resourceLink)}
+                  emojiIcon={dummyEmojis[index % dummyEmojis.length]}
                 />
               </View>
             ))}
@@ -127,6 +133,7 @@ const styles = StyleSheet.create({
     fontSize: 34,
     textAlign: 'center',
     lineHeight: 44,
+    color: '#363636',
   },
   topIcon: {
     width: 100,
