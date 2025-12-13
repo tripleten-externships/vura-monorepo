@@ -13,9 +13,11 @@ interface CheckboxProps {
   label?: string; //Label for checkbox
   checked: boolean; //Check for checkbox
   onChange: (newValue: boolean) => void; //onChange event for checkbox
+  resourceText?: string;
+  onPressResource?: () => void;
 }
 
-function Checkbox({ label, checked, onChange }: CheckboxProps) {
+function Checkbox({ label, checked, onChange, resourceText, onPressResource }: CheckboxProps) {
   return (
     <View style={[styles.container, checked && { backgroundColor: '#FFFFFF' }]}>
       <TouchableOpacity
@@ -33,7 +35,15 @@ function Checkbox({ label, checked, onChange }: CheckboxProps) {
           <View style={styles.checkbox} />
         )}
         {/* label for checkbox */}
-        {label && <Text style={[styles.label, checked && styles.checkedLabel]}>{label}</Text>}
+        <View style={styles.textContainer}>
+          {label && <Text style={[styles.label, checked && styles.checkedLabel]}>{label}</Text>}
+
+          {resourceText && onPressResource && (
+            <TouchableOpacity onPress={onPressResource} activeOpacity={0.7}>
+              <Text style={styles.resourceText}>{resourceText}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -57,8 +67,12 @@ const styles = StyleSheet.create({
   //Row layout for checkbox and label
   checkboxRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
+  },
+  textContainer: {
+    flexDirection: 'column',
+    flex: 1,
   },
 
   //Unchecked box
@@ -84,6 +98,12 @@ const styles = StyleSheet.create({
     color: 'Black',
   },
   checkedLabel: {
+    color: 'rgba(54, 54, 54, 0.5)',
+  },
+  resourceText: {
+    marginTop: 10,
+    marginLeft: -33,
+    fontSize: 16,
     color: 'rgba(54, 54, 54, 0.5)',
   },
 });
