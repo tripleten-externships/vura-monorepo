@@ -5,6 +5,7 @@ export interface EmojiProps {
   isChecked?: boolean;
 }
 
+// shows emoji icon if it isChecked color changes and supports URL or local image
 export const Emoji = ({ emojiIcon, isChecked }: EmojiProps) => {
   return (
     <Image

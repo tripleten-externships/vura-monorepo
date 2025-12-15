@@ -49,14 +49,15 @@ function Checkbox({
             <View style={styles.labelRow}>
               <Text style={[styles.label, checked && styles.checkedLabel]}>{label}</Text>
 
+              {/* Render Emoji only if emojiIcon exists */}
               {emojiIcon && <Emoji emojiIcon={emojiIcon} isChecked={checked} />}
             </View>
           )}
-
+          {/* Show clickable resource text */}
           {resourceText && onPressResource && (
-            <TouchableOpacity onPress={onPressResource} activeOpacity={0.7}>
-              <Text style={styles.resourceText}>{resourceText}</Text>
-            </TouchableOpacity>
+            <Text style={styles.resourceText} onPress={onPressResource}>
+              {resourceText}
+            </Text>
           )}
         </View>
       </TouchableOpacity>

@@ -10,12 +10,14 @@ import salad from '../../../assets/salad.svg';
 import smile from '../../../assets/smile.svg';
 import stethoscope from '../../../assets/stethoscope.svg';
 
+// Dummy data for UI testing
 const dummyPlan = {
   Daily: [
     {
       label: "Check in with parent's mood",
       key: 'dailyMood',
       resourceText: 'Read more about how to talk about emotions ↗︎',
+      // Temporary resource link placeholder
       resourceLink: '/resources/emotions',
     },
     {
@@ -62,6 +64,7 @@ const dummyPlan = {
   ],
 };
 
+// Temporary emoji icons for UI testing
 const dummyEmojis = [flower, salad, smile, stethoscope];
 
 export default function ChecklistScreen() {
@@ -95,6 +98,7 @@ export default function ChecklistScreen() {
             ),
           }}
         />
+        {/* Render checklist UI using dummy plan data */}
         {Object.entries(checklistData).map(([sectionName, items]) => (
           <View key={sectionName}>
             <Text style={styles.sectionTitle}>{sectionName}</Text>
@@ -139,11 +143,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
   },
-  checkboxContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 500,
@@ -151,5 +150,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
     marginTop: 32,
+  },
+  checkboxContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
 });
