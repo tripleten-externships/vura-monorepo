@@ -8,6 +8,12 @@ import ResourcesScreen from '../screens/Resources/Resources';
 import CommunityForumsScreen from '../screens/CommunityForums/CommunityForums';
 import ProfileScreen from '../screens/Profile/Profile';
 import NotificationsScreen from '../screens/Notifications/Notifications';
+import QuestionnaireDemo from '../screens/QuestionnaireDemo';
+import StandaloneQuestionnaireDemo from '../screens/StandaloneQuestionnaireDemo';
+import ComponentDemos from '../screens/ComponentDemos';
+import EnhancedQuestionnaireDemo from '../screens/EnhancedQuestionnaireDemo';
+import MobileQuestionnaireDemo from '../screens/MobileQuestionnaireDemo';
+import NavigationHelper from '../screens/NavigationHelper';
 
 export function AppRoutes() {
   return (
@@ -61,7 +67,14 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/questionnaire-demo" element={<QuestionnaireDemo />} />
+      <Route path="/standalone-demo" element={<StandaloneQuestionnaireDemo />} />
+      <Route path="/component-demos" element={<ComponentDemos />} />
+      <Route path="/enhanced-demo" element={<EnhancedQuestionnaireDemo />} />
+      <Route path="/mobile-demo" element={<MobileQuestionnaireDemo />} />
+      <Route path="/nav-helper" element={<NavigationHelper />} />
+      <Route path="/navigation-helper" element={<NavigationHelper />} />
+      <Route path="*" element={<Navigate to="/enhanced-demo" replace />} />
     </Routes>
   );
 }

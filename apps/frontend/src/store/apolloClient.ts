@@ -5,7 +5,7 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 import { clearStoredToken, getStoredToken, setStoredToken } from '../services/storage';
 
-const DEFAULT_API_URL = 'http://localhost:3001';
+const DEFAULT_API_URL = 'http://localhost:3000';
 
 const resolveApiUrl = (rawUrl: string): URL => {
   try {

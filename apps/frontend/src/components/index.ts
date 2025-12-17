@@ -8,3 +8,10 @@ export * from './NotificationBell/NotificationBell';
 export * from './Emoji/Emoji';
 export * from './PostInput/PostInput';
 export * from './ImageUpload/ImageUpload';
+
+// Questionnaire Components
+export * from './RadioGroup';
+export * from './NumberCarousel';
+export * from './QuestionnaireTextInput';
+export * from './CheckboxGroup';
+export * from './OnboardingQuestionnaire';

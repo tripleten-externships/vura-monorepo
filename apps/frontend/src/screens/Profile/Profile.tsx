@@ -316,10 +316,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
+    // Platform-specific shadow implementation
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)' }
+      : {
+          shadowColor: '#000',
+          shadowOpacity: 0.05,
+          shadowOffset: { width: 0, height: 1 },
+          shadowRadius: 4,
+          elevation: 2,
+        }),
   },
   toggleTextContainer: {
     width: '75%',
@@ -333,10 +339,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 12,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 6,
+    // Platform-specific shadow implementation
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 6px rgba(0, 0, 0, 0.04)' }
+      : {
+          shadowColor: '#000',
+          shadowOpacity: 0.04,
+          shadowOffset: { width: 0, height: 1 },
+          shadowRadius: 6,
+          elevation: 2,
+        }),
   },
   infoRow: {
     flexDirection: 'row',

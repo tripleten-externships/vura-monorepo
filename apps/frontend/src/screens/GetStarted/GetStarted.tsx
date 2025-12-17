@@ -170,11 +170,17 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     paddingVertical: 48,
     paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 20,
     justifyContent: 'space-between',
+    // Platform-specific shadow implementation
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)' }
+      : {
+          shadowColor: '#000',
+          shadowOpacity: 0.05,
+          shadowOffset: { width: 0, height: 4 },
+          shadowRadius: 20,
+          elevation: 4, // Android shadow
+        }),
   },
   heading: {
     fontSize: 32,

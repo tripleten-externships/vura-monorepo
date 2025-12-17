@@ -17,13 +17,42 @@ const AppContent = observer(() => {
 });
 
 const Main = () => (
-  <React.StrictMode>
-    <ApolloProvider client={client}>
-      <StoreProvider>
-        <AppContent />
-      </StoreProvider>
-    </ApolloProvider>
-  </React.StrictMode>
+  // Temporarily disabled StrictMode to prevent development-only DOM errors
+  // <React.StrictMode>
+  <ApolloProvider client={client}>
+    <StoreProvider>
+      <AppContent />
+    </StoreProvider>
+  </ApolloProvider>
+  // </React.StrictMode>
 );
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<Main />);
+// Root management with Vite HMR support
+function initializeApp() {
+  const rootElement = document.getElementById('root')!;
+
+  // Clear any existing content to prevent conflicts
+  rootElement.innerHTML = '';
+
+  // Create fresh root every time during HMR
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(<Main />);
+
+  return root;
+}
+
+// Initialize the app
+const root = initializeApp();
+
+// Handle Vite HMR (Hot Module Replacement)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    // Cleanup on hot reload
+    try {
+      root.unmount();
+    } catch (e) {
+      // Ignore cleanup errors
+      console.warn('Error during HMR cleanup:', e);
+    }
+  });
+}

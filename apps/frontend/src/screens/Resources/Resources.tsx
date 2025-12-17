@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useResourceStore } from '../../store/StoreContext';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
@@ -65,9 +65,15 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    // Platform-specific shadow implementation
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)' }
+      : {
+          shadowColor: '#000',
+          shadowOpacity: 0.05,
+          shadowRadius: 6,
+          elevation: 2,
+        }),
   },
   cardTitle: {
     fontSize: 16,

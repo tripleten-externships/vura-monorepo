@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useNotificationStore } from '../../store/StoreContext';
 import { useNavigationHistory } from '../../navigation/NavigationHistoryProvider';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
@@ -97,10 +97,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    // Platform-specific shadow implementation
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)' }
+      : {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
+          elevation: 2,
+        }),
   },
   notificationContent: {
     color: '#2F2F2F',
