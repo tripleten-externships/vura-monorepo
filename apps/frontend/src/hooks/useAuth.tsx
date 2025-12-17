@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react';
+
 import {
   USER_LOGIN,
   USER_LOGOUT,
@@ -8,59 +9,101 @@ import {
   BEGIN_APPLE_AUTH,
   COMPLETE_OAUTH_LOGIN,
 } from '../graphql/mutations/users';
+
 import { GET_USER_PROFILE } from '../graphql/queries/users';
-import type {
-  GetUserProfileQuery,
-  LoginFrontendUserMutation,
-  LoginFrontendUserMutationVariables,
-  RegisterFrontendUserMutation,
-  RegisterFrontendUserMutationVariables,
-  BeginGoogleAuthMutation,
-  BeginAppleAuthMutation,
-  CompleteOAuthCallbackMutation,
-  CompleteOAuthCallbackMutationVariables,
-} from '../__generated__/graphql';
 import { client, setGraphqlHeaders } from '../store';
 import { clearStoredJwt, setStoredJwt } from '../services/storage';
+
+type AuthPayload = {
+  token: string | null;
+  jwt?: string | null;
+};
+
+type LoginResponse = {
+  loginFrontendUser: AuthPayload;
+};
+
+type SignupResponse = {
+  registerFrontendUser: AuthPayload;
+};
+
+type BeginGoogleAuthResponse = {
+  beginGoogleAuth: {
+    url: string;
+  };
+};
+
+type BeginAppleAuthResponse = {
+  beginAppleAuth: {
+    url: string;
+  };
+};
+
+type CompleteOAuthResponse = {
+  completeOAuthCallback: AuthPayload;
+};
+
+type UserProfileResponse = {
+  userProfile: any;
+};
+
+type LoginInput = {
+  email: string;
+  password: string;
+};
+
+type SignupInput = {
+  email: string;
+  password: string;
+  name?: string;
+};
+
+type OAuthInput = {
+  code: string;
+  state?: string;
+};
 
 interface UseAuthProps {
   onLoginSuccess?: (data: { sessionId: string }) => void;
   onLogoutSuccess?: () => void;
 }
 
-type FrontendLoginInput = LoginFrontendUserMutationVariables['input'];
-type FrontendSignupInput = RegisterFrontendUserMutationVariables['input'];
-type FrontendOAuthInput = CompleteOAuthCallbackMutationVariables['input'];
-
 export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
-  const [login, { error: loginError, loading: loginLoading }] = useMutation<
-    LoginFrontendUserMutation,
-    LoginFrontendUserMutationVariables
+  const [loginMutation, { error: loginError, loading: loginLoading }] = useMutation<
+    LoginResponse,
+    { input: LoginInput }
   >(USER_LOGIN);
+
   const [signupMutation, { error: signupError, loading: signupLoading }] = useMutation<
-    RegisterFrontendUserMutation,
-    RegisterFrontendUserMutationVariables
+    SignupResponse,
+    { input: SignupInput }
   >(USER_SIGNUP);
-  const [beginGoogleAuthMutation] = useMutation<BeginGoogleAuthMutation>(BEGIN_GOOGLE_AUTH);
-  const [beginAppleAuthMutation] = useMutation<BeginAppleAuthMutation>(BEGIN_APPLE_AUTH);
+
+  const [beginGoogleAuthMutation] = useMutation<BeginGoogleAuthResponse>(BEGIN_GOOGLE_AUTH);
+
+  const [beginAppleAuthMutation] = useMutation<BeginAppleAuthResponse>(BEGIN_APPLE_AUTH);
+
   const [completeOAuthMutation, { error: oauthError, loading: oauthLoading }] = useMutation<
-    CompleteOAuthCallbackMutation,
-    CompleteOAuthCallbackMutationVariables
+    CompleteOAuthResponse,
+    { input: OAuthInput }
   >(COMPLETE_OAUTH_LOGIN);
+
+  const [logoutMutation, { error: logoutError, loading: logoutLoading }] = useMutation(USER_LOGOUT);
+
   const {
     data: currentUserData,
     loading: currentUserLoading,
     error: currentUserError,
-  } = useQuery<GetUserProfileQuery>(GET_USER_PROFILE);
-  const [logout, { error: logoutError, loading: logoutLoading }] = useMutation(USER_LOGOUT);
+  } = useQuery<UserProfileResponse>(GET_USER_PROFILE);
 
   const persistAuthPayload = useCallback(
-    async (auth?: { token: string | null; jwt?: string | null }) => {
+    async (auth?: AuthPayload) => {
       if (!auth?.token) {
         throw new Error('Authentication failed');
       }
 
       await setGraphqlHeaders(auth.token);
+
       if (auth.jwt) {
         await setStoredJwt(auth.jwt);
       } else {
@@ -70,45 +113,46 @@ export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
       await client.refetchQueries({
         include: [GET_USER_PROFILE],
       });
+
       onLoginSuccess?.({ sessionId: auth.token });
     },
     [onLoginSuccess]
   );
 
-  const handleLogin = useCallback(
-    async (input: FrontendLoginInput) => {
-      const { data } = await login({
+  const login = useCallback(
+    async (input: LoginInput) => {
+      const { data } = await loginMutation({
         variables: { input },
       });
 
       await persistAuthPayload(data?.loginFrontendUser);
     },
-    [login, persistAuthPayload]
+    [loginMutation, persistAuthPayload]
   );
 
-  const handleSignup = useCallback(
-    async (input: FrontendSignupInput) => {
+  const signup = useCallback(
+    async (input: SignupInput) => {
       const { data } = await signupMutation({
         variables: { input },
       });
 
       await persistAuthPayload(data?.registerFrontendUser);
     },
-    [persistAuthPayload, signupMutation]
+    [signupMutation, persistAuthPayload]
   );
 
-  const handleBeginGoogleAuth = useCallback(async () => {
+  const beginGoogleAuth = useCallback(async () => {
     const { data } = await beginGoogleAuthMutation();
     return data?.beginGoogleAuth.url;
   }, [beginGoogleAuthMutation]);
 
-  const handleBeginAppleAuth = useCallback(async () => {
+  const beginAppleAuth = useCallback(async () => {
     const { data } = await beginAppleAuthMutation();
     return data?.beginAppleAuth.url;
   }, [beginAppleAuthMutation]);
 
-  const handleCompleteOAuthLogin = useCallback(
-    async (input: FrontendOAuthInput) => {
+  const completeOAuthLogin = useCallback(
+    async (input: OAuthInput) => {
       const { data } = await completeOAuthMutation({
         variables: { input },
       });
@@ -118,9 +162,9 @@ export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
     [completeOAuthMutation, persistAuthPayload]
   );
 
-  const handleLogout = useCallback(async () => {
+  const logout = useCallback(async () => {
     try {
-      const res = await logout();
+      const res = await logoutMutation();
       if (res) {
         await setGraphqlHeaders(undefined);
         await clearStoredJwt();
@@ -130,20 +174,22 @@ export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
     } catch (err) {
       console.error(err);
     }
-  }, [logout, onLogoutSuccess]);
+  }, [logoutMutation, onLogoutSuccess]);
 
-  const aggregatedError =
-    currentUserError ?? logoutError ?? loginError ?? signupError ?? oauthError;
+  const error = currentUserError ?? loginError ?? signupError ?? logoutError ?? oauthError;
+
+  const loading =
+    currentUserLoading || loginLoading || signupLoading || logoutLoading || oauthLoading;
 
   return {
     currentUser: currentUserData?.userProfile ?? null,
-    login: handleLogin,
-    signup: handleSignup,
-    beginGoogleAuth: handleBeginGoogleAuth,
-    beginAppleAuth: handleBeginAppleAuth,
-    completeOAuthLogin: handleCompleteOAuthLogin,
-    error: aggregatedError,
-    logout: handleLogout,
-    loading: currentUserLoading || loginLoading || logoutLoading || signupLoading || oauthLoading,
+    login,
+    signup,
+    beginGoogleAuth,
+    beginAppleAuth,
+    completeOAuthLogin,
+    logout,
+    loading,
+    error,
   };
 };

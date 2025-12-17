@@ -7,7 +7,6 @@ import {
   Alert,
   Linking,
   Image,
-  Platform,
   ViewStyle,
 } from 'react-native';
 import { InputField } from '../../components/InputField/InputField';
@@ -25,21 +24,58 @@ export default function GetStartedPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [hasAttempted, setHasAttempted] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const isSignup = mode === 'signup';
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
+
+  const validate = () => {
+    const errors: typeof fieldErrors = {};
+
+    if (!email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      errors.email = 'Enter a valid email address';
+    }
+
+    if (!password) {
+      errors.password = 'Password is required';
+    } else if (password.length < 8) {
+      errors.password = 'Password must be at least 8 characters';
+    }
+
+    if (isSignup) {
+      if (!confirmPassword) {
+        errors.confirmPassword = 'Please confirm your password';
+      } else if (password !== confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleLogin = async () => {
+    setHasAttempted(true);
+
+    if (!validate()) {
+      return;
+    }
+
     try {
-      setHasAttempted(true);
       if (mode === 'login') {
         await login({ email, password });
       } else {
         await signup({ email, password, name: fullName });
       }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to authenticate. Please try again.');
-    }
+    } catch {}
   };
 
   const handleGoogleLogin = async () => {
@@ -75,8 +111,6 @@ export default function GetStartedPage() {
     }
   }, [currentUser, navigation]);
 
-  const isSignup = mode === 'signup';
-
   const containerStyle = [
     styles.card,
     { maxWidth: '-webkit-fill-available' } as unknown as ViewStyle,
@@ -85,7 +119,14 @@ export default function GetStartedPage() {
     <View style={containerStyle}>
       <View>
         <Text style={styles.heading}>{isSignup ? 'Sign Up' : 'Sign In'}</Text>
-        {hasAttempted && error ? <Text style={styles.errorText}>{error.message}</Text> : null}
+        {hasAttempted && error && (
+          <Text style={styles.errorText}>
+            {error.message.toLowerCase().includes('credentials')
+              ? 'Invalid email or password'
+              : 'Something went wrong. Please try again.'}
+          </Text>
+        )}
+
         {isSignup && (
           <InputField
             placeholder="Full name"
@@ -103,6 +144,7 @@ export default function GetStartedPage() {
           onChange={setEmail}
           containerStyle={styles.input}
         />
+        {fieldErrors.email && <Text style={styles.errorText}>{fieldErrors.email}</Text>}
         <InputField
           placeholder="Password"
           placeholderTextColor="#A8A4B0"
@@ -111,15 +153,19 @@ export default function GetStartedPage() {
           secureTextEntry
           containerStyle={styles.input}
         />
+        {fieldErrors.password && <Text style={styles.errorText}>{fieldErrors.password}</Text>}
         {isSignup && (
           <InputField
             placeholder="Repeat password"
             placeholderTextColor="#A8A4B0"
-            value={password}
-            onChange={setPassword}
+            value={confirmPassword}
+            onChange={setConfirmPassword}
             secureTextEntry
             containerStyle={styles.input}
           />
+        )}
+        {fieldErrors.confirmPassword && (
+          <Text style={styles.errorText}>{fieldErrors.confirmPassword}</Text>
         )}
       </View>
 
