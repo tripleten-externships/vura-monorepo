@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 import ProtectedRoute from '../components/ProtectedRoute';
 import HomeScreen from '../screens/Home/Home';
-import GetStartedScreen from '../screens/GetStarted/GetStarted';
+import LoginScreen from '../screens/Login/Login';
 import ChecklistScreen from '../screens/Checklist/Checklist';
 import ResourcesScreen from '../screens/Resources/Resources';
 import CommunityForumsScreen from '../screens/CommunityForums/CommunityForums';
@@ -16,7 +16,7 @@ export function AppRoutes() {
   const { currentUser } = useAuth({});
   return (
     <Routes>
-      <Route path="/get-started" element={<GetStartedScreen />} />
+      <Route path="/login" element={<LoginScreen />} />
       <Route
         path="/"
         element={
@@ -33,14 +33,7 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/onboarding"
-        element={
-          <ProtectedRoute>
-            <WelcomeScreen />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/onboarding" element={<WelcomeScreen />} />
       <Route
         path="/resources"
         element={

@@ -23,8 +23,8 @@ const WelcomeScreen = () => {
   const navigate = useNavigate();
 
   const handleStart = () => {
-    // navigate to the questionnaire step route used by the web app
-    navigate('/questionnaire/step-1');
+    // Send users into the existing onboarding flow entry point
+    navigate('/login');
   };
 
   return (

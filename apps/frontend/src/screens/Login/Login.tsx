@@ -14,7 +14,7 @@ import { InputField } from '../../components/InputField/InputField';
 import { useNavigation } from '../../hooks/useNavigation';
 import { useAuth } from '../../hooks/useAuth';
 
-export default function GetStartedPage() {
+export default function LoginScreen() {
   const navigation = useNavigation();
   const { login, signup, beginGoogleAuth, beginAppleAuth, loading, currentUser, error } = useAuth({
     onLoginSuccess: () => {

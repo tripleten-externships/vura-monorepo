@@ -13,7 +13,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   React.useEffect(() => {
     if (!loading && !currentUser) {
-      navigate('/get-started');
+      navigate('/login');
     }
   }, [currentUser, loading, navigate]);
 

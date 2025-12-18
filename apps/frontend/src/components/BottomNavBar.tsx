@@ -3,7 +3,6 @@ import NavigationIcons, { NavigationItem } from './NavigationIcons/NavigationIco
 
 export function BottomNavBar() {
   const navigationItems: NavigationItem[] = [
-    { id: 'onboarding', label: 'Onboarding', route: '/onboarding', icon: 'book-open-check.svg' },
     { id: 'checklist', label: 'Checklist', route: '/checklist', icon: 'list-checks.svg' },
     { id: 'resources', label: 'Resources', route: '/resources', icon: 'book-open-check.svg' },
     { id: 'community', label: 'Community', route: '/community', icon: 'message-circle-heart.svg' },

@@ -122,4 +122,3 @@ export function getForumNotificationTemplate(
       throw new Error(`Unknown forum notification type: ${type}`);
   }
 }
-(VURA - 39 / [Frontend] - Onboarding) & (Questionnaire - Flow);
