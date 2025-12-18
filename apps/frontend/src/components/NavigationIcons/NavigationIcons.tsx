@@ -67,8 +67,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 72,
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#eee',
     paddingBottom: 10,
   },
   label: {

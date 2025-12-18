@@ -5,7 +5,7 @@ import { AppRoutes } from './AppRoutes';
 
 export function AppNavigator() {
   return (
-    <MemoryRouter>
+    <MemoryRouter initialEntries={['/onboarding']}>
       <NavigatorContent />
     </MemoryRouter>
   );

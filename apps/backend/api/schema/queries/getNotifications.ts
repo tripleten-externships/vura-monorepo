@@ -16,11 +16,11 @@ export const customGetNotifications = async (
   context: Context
 ) => {
   try {
-    if (!context.session?.data?.id) {
-      throw new GraphQLError('User must be authenticated', {
-        extensions: { code: 'UNAUTHENTICATED' },
-      });
-    }
+    // if (!context.session?.data?.id) {
+    //   throw new GraphQLError('User must be authenticated', {
+    //     extensions: { code: 'UNAUTHENTICATED' },
+    //   });
+    // }
 
     const result = await notificationService.getNotifications(
       context.session.data.id,

@@ -1,5 +1,6 @@
 // import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
 
 import {
   View,
@@ -10,21 +11,27 @@ import {
   ScrollView,
   ImageBackground,
 } from 'react-native';
-
-// Import background images
+import { useAuth } from '../../hooks/useAuth';
 import BG1 from '../../../assets/WelcomScreen-Frame1.svg';
 import BG2 from '../../../assets/WelcomScreen-Frame2.svg';
 import BG3 from '../../../assets/WelcomScreen-Frame3.svg';
 // use react-router's navigation on the web
 
-const { width } = Dimensions.get('window');
+// const { width } = Dimensions.get('window');
 
 const WelcomeScreen = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth({});
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/checklist', { replace: true });
+    }
+  }, [currentUser, navigate]);
 
   const handleStart = () => {
-    // Send users into the existing onboarding flow entry point
-    navigate('/login');
+    // Send users into the guided onboarding questionnaire
+    navigate('/onboarding/chat');
   };
 
   return (
@@ -128,7 +135,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 8,
     width: 345,
-    height: 62,
     alignItems: 'center',
     marginTop: 57,
   },

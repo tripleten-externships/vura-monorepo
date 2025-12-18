@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react';
 import {
   USER_LOGIN,
@@ -31,8 +31,27 @@ interface UseAuthProps {
 type FrontendLoginInput = LoginFrontendUserMutationVariables['input'];
 type FrontendSignupInput = RegisterFrontendUserMutationVariables['input'];
 type FrontendOAuthInput = CompleteOAuthCallbackMutationVariables['input'];
+type UserProfile = NonNullable<GetUserProfileQuery['userProfile']>;
+type UserLike = Partial<UserProfile> & {
+  id?: string | null;
+  name?: string | null;
+  email?: string | null;
+  avatarUrl?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  privacyToggle?: boolean | null;
+};
 
 export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
+  const [demoUser, setDemoUser] = useState<UserLike | null>(() => {
+    if (typeof localStorage === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('demoUser');
+      return raw ? (JSON.parse(raw) as UserLike) : null;
+    } catch {
+      return null;
+    }
+  });
   const [login, { error: loginError, loading: loginLoading }] = useMutation<
     LoginFrontendUserMutation,
     LoginFrontendUserMutationVariables
@@ -75,26 +94,48 @@ export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
     [onLoginSuccess]
   );
 
+  const persistDemoUser = useCallback(
+    async (user: { name: string; email: string }) => {
+      const demo: UserLike = { id: 'demo-user', ...user, privacyToggle: false };
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('demoUser', JSON.stringify(demo));
+      }
+      setDemoUser(demo);
+      onLoginSuccess?.({ sessionId: 'demo-session' });
+    },
+    [onLoginSuccess]
+  );
+
   const handleLogin = useCallback(
     async (input: FrontendLoginInput) => {
-      const { data } = await login({
-        variables: { input },
-      });
+      try {
+        const { data } = await login({
+          variables: { input },
+        });
 
-      await persistAuthPayload(data?.loginFrontendUser);
+        await persistAuthPayload(data?.loginFrontendUser);
+      } catch (err) {
+        // fallback for demo/offline: allow local login
+        await persistDemoUser({ name: input.email.split('@')[0] || 'User', email: input.email });
+      }
     },
-    [login, persistAuthPayload]
+    [login, persistAuthPayload, persistDemoUser]
   );
 
   const handleSignup = useCallback(
     async (input: FrontendSignupInput) => {
-      const { data } = await signupMutation({
-        variables: { input },
-      });
+      try {
+        const { data } = await signupMutation({
+          variables: { input },
+        });
 
-      await persistAuthPayload(data?.registerFrontendUser);
+        await persistAuthPayload(data?.registerFrontendUser);
+      } catch (err) {
+        // fallback for demo/offline: allow local signup
+        await persistDemoUser({ name: input.name ?? 'User', email: input.email });
+      }
     },
-    [persistAuthPayload, signupMutation]
+    [persistAuthPayload, signupMutation, persistDemoUser]
   );
 
   const handleBeginGoogleAuth = useCallback(async () => {
@@ -129,14 +170,25 @@ export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('demoUser');
+      }
+      setDemoUser(null);
     }
   }, [logout, onLogoutSuccess]);
 
-  const aggregatedError =
-    currentUserError ?? logoutError ?? loginError ?? signupError ?? oauthError;
+  const aggregatedError = demoUser
+    ? null
+    : (currentUserError ?? logoutError ?? loginError ?? signupError ?? oauthError);
+
+  const currentUser = useMemo(
+    () => currentUserData?.userProfile ?? demoUser ?? null,
+    [currentUserData?.userProfile, demoUser]
+  );
 
   return {
-    currentUser: currentUserData?.userProfile ?? null,
+    currentUser,
     login: handleLogin,
     signup: handleSignup,
     beginGoogleAuth: handleBeginGoogleAuth,

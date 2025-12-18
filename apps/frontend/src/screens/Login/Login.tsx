@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,23 @@ import {
   Alert,
   Linking,
   Image,
-  Platform,
   ViewStyle,
 } from 'react-native';
 import { InputField } from '../../components/InputField/InputField';
 import { useNavigation } from '../../hooks/useNavigation';
 import { useAuth } from '../../hooks/useAuth';
+import { colors, radii, spacing, typography } from '../../theme/designTokens';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function LoginScreen() {
+  const location = useLocation();
+  const navigateRaw = useNavigate();
   const navigation = useNavigation();
   const { login, signup, beginGoogleAuth, beginAppleAuth, loading, currentUser, error } = useAuth({
     onLoginSuccess: () => {
       Alert.alert('Success', 'Login successful');
-      navigation.push('/');
+      const redirect = (location.state as any)?.from ?? '/';
+      navigateRaw(redirect);
     },
   });
 
@@ -27,7 +31,14 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [hasAttempted, setHasAttempted] = useState(false);
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const initialMode = useMemo(() => {
+    const stateMode = (location.state as any)?.mode;
+    const query = new URLSearchParams(location.search);
+    const queryMode = query.get('mode');
+    if (stateMode === 'signup' || queryMode === 'signup') return 'signup';
+    return 'login';
+  }, [location.search, location.state]);
+  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
 
   const handleLogin = async () => {
     try {
@@ -36,6 +47,9 @@ export default function LoginScreen() {
         await login({ email, password });
       } else {
         await signup({ email, password, name: fullName });
+      }
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('lastEmail', email);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to authenticate. Please try again.');
@@ -71,9 +85,12 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (currentUser) {
-      navigation.push('/');
+      const query = new URLSearchParams(location.search);
+      const fromQuery = query.get('from');
+      const redirect = (location.state as any)?.from ?? fromQuery ?? '/';
+      navigation.push(redirect);
     }
-  }, [currentUser, navigation]);
+  }, [currentUser, navigation, location.state, location.search]);
 
   const isSignup = mode === 'signup';
 
@@ -82,80 +99,91 @@ export default function LoginScreen() {
     { maxWidth: '-webkit-fill-available' } as unknown as ViewStyle,
   ];
   return (
-    <View style={containerStyle}>
-      <View>
-        <Text style={styles.heading}>{isSignup ? 'Sign Up' : 'Sign In'}</Text>
-        {hasAttempted && error ? <Text style={styles.errorText}>{error.message}</Text> : null}
-        {isSignup && (
-          <InputField
-            placeholder="Full name"
-            placeholderTextColor="#A8A4B0"
-            value={fullName}
-            onChange={setFullName}
-            containerStyle={styles.input}
-          />
-        )}
+    <View style={styles.screen}>
+      <View style={containerStyle}>
+        <View>
+          <Text style={styles.heading}>{isSignup ? 'Sign Up' : 'Sign In'}</Text>
+          {hasAttempted &&
+          error &&
+          !/not authorized/i.test(error.message || '') &&
+          !/logged in to view your profile/i.test(error.message || '') ? (
+            <Text style={styles.errorText}>{error.message}</Text>
+          ) : null}
+          {isSignup && (
+            <InputField
+              placeholder="Full name"
+              placeholderTextColor={colors.textSecondary}
+              value={fullName}
+              onChange={setFullName}
+              containerStyle={styles.input}
+              inputStyle={styles.inputText}
+            />
+          )}
 
-        <InputField
-          placeholder="Email"
-          placeholderTextColor="#A8A4B0"
-          value={email}
-          onChange={setEmail}
-          containerStyle={styles.input}
-        />
-        <InputField
-          placeholder="Password"
-          placeholderTextColor="#A8A4B0"
-          value={password}
-          onChange={setPassword}
-          secureTextEntry
-          containerStyle={styles.input}
-        />
-        {isSignup && (
           <InputField
-            placeholder="Repeat password"
-            placeholderTextColor="#A8A4B0"
+            placeholder="Email"
+            placeholderTextColor={colors.textSecondary}
+            value={email}
+            onChange={setEmail}
+            containerStyle={styles.input}
+            inputStyle={styles.inputText}
+          />
+          <InputField
+            placeholder="Password"
+            placeholderTextColor={colors.textSecondary}
             value={password}
             onChange={setPassword}
             secureTextEntry
             containerStyle={styles.input}
+            inputStyle={styles.inputText}
           />
-        )}
-      </View>
+          {isSignup && (
+            <InputField
+              placeholder="Repeat password"
+              placeholderTextColor={colors.textSecondary}
+              value={password}
+              onChange={setPassword}
+              secureTextEntry
+              containerStyle={styles.input}
+              inputStyle={styles.inputText}
+            />
+          )}
+        </View>
 
-      <View>
-        <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
-          <Image
-            source={{ uri: '../../../assets/google.png' }}
-            style={{ width: 22, height: 22, marginRight: 8 }}
-          />
-          <Text style={styles.socialButtonText}>Continue with Google</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton} onPress={handleAppleLogin}>
-          <Image
-            source={{ uri: '../../../assets/apple.png' }}
-            style={{ width: 20, height: 25, marginRight: 8 }}
-          />
-          <Text style={styles.socialButtonText}>Continue with Apple</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          <Text style={styles.primaryButtonText}>{isSignup ? 'Sign up' : 'Sign in'}</Text>
-        </TouchableOpacity>
-        <View style={styles.switchContainer}>
-          <TouchableOpacity
-            onPress={() => {
-              setMode(isSignup ? 'login' : 'signup');
-              setHasAttempted(false);
-            }}
-          >
-            <Text style={styles.switchText}>
-              {isSignup ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-            </Text>
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
+            <Image
+              source={{ uri: '../../../assets/google.png' }}
+              style={{ width: 22, height: 22, marginRight: 8 }}
+            />
+            <Text style={styles.socialButtonText}>Continue with Google</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.socialButton} onPress={handleAppleLogin}>
+            <Image
+              source={{ uri: '../../../assets/apple.png' }}
+              style={{ width: 20, height: 25, marginRight: 8 }}
+            />
+            <Text style={styles.socialButtonText}>Continue with Apple</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            <Text style={styles.primaryButtonText}>{isSignup ? 'Sign up' : 'Sign in'}</Text>
+          </TouchableOpacity>
+          <View style={styles.switchContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                setMode(isSignup ? 'login' : 'signup');
+                setHasAttempted(false);
+              }}
+            >
+              <Text style={styles.switchText}>
+                {isSignup ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -163,74 +191,91 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.base,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   card: {
     width: '100%',
-    height: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 32,
-    paddingVertical: 48,
-    paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 20,
+    backgroundColor: colors.base,
+    borderRadius: radii.cardLg,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
     justifyContent: 'space-between',
+    gap: spacing.xl,
+    alignSelf: 'center',
+    maxWidth: 480,
   },
   heading: {
-    fontSize: 32,
-    fontWeight: '400',
-    color: '#2C2C2E',
+    ...typography.headingSerif,
+    color: colors.textPrimary,
     textAlign: 'center',
-    fontFamily: 'Noto Serif',
-    marginBottom: 32,
+    marginBottom: spacing.lg,
   },
   errorText: {
-    color: '#b00020',
-    marginBottom: 12,
+    color: colors.danger,
+    marginBottom: spacing.sm,
     textAlign: 'center',
+    ...typography.body16Regular,
   },
   input: {
-    backgroundColor: '#F3EFF8',
-    borderRadius: 16,
-    borderColor: '#F3EFF8',
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radii.input,
+    borderColor: colors.stroke,
+    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    height: 62,
+    justifyContent: 'center',
+  },
+  inputText: {
+    ...typography.body18Medium,
+    color: colors.textPrimary,
   },
   primaryButton: {
-    backgroundColor: '#1F1F22',
-    borderRadius: 16,
-    paddingVertical: 16,
+    backgroundColor: colors.cta,
+    borderRadius: radii.button,
+    paddingVertical: spacing.md,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: spacing.md,
   },
   primaryButtonDisabled: {
     opacity: 0.6,
   },
   primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: colors.base,
+    ...typography.body18Medium,
   },
   switchContainer: {
-    marginVertical: 20,
+    marginVertical: spacing.lg,
     alignItems: 'center',
   },
   switchText: {
-    color: '#8A8A8E',
+    color: colors.textSecondary,
+    ...typography.body16Regular,
   },
   socialButton: {
     flexDirection: 'row',
     width: '100%',
-    borderColor: '#D8D8D8',
+    borderColor: colors.stroke,
     borderWidth: 1,
-    borderRadius: 20,
-    paddingVertical: 14,
+    borderRadius: radii.button,
+    paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
+    backgroundColor: colors.base,
+    gap: spacing.sm,
   },
   socialButtonText: {
-    color: '#1F1F22',
-    fontWeight: '500',
+    color: colors.textPrimary,
+    ...typography.body18Medium,
+  },
+  actions: {
+    marginTop: spacing.sm,
   },
 });

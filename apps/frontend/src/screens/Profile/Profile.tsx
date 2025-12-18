@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 
-import { useNavigationHistory } from '../../navigation/NavigationHistoryProvider';
+// import { useNavigationHistory } from '../../navigation/NavigationHistoryProvider';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { NotificationBell } from '../../components/NotificationBell/NotificationBell';
 import { ToggleSwitch } from '../../components/ToggleSwitch/ToggleSwitch';
@@ -27,18 +27,20 @@ import { useImageLibrary } from '../../hooks/useImageLibrary';
 import { useAuth } from '../../hooks/useAuth';
 import { UPDATE_PROFILE } from '../../graphql/mutations/users';
 import { GET_USER_PROFILE } from '../../graphql/queries/users';
+import { colors, radii, spacing, typography } from '../../theme/designTokens';
 
 import { client } from '../../store';
 
 const ProfileScreen = observer(() => {
   const navigate = useNavigate();
-  const { goBack } = useNavigationHistory();
+  // const { goBack } = useNavigationHistory();
   const { logout, currentUser } = useAuth({});
   const { hasUnread } = useUnreadNotifications();
 
   const [hideAvatar, setHideAvatar] = useState(currentUser?.privacyToggle ?? false);
   const [updatingField, setUpdatingField] = useState<string | null>(null);
   const [updatedValue, setUpdatedValue] = useState<string>('');
+  const [privacySaving, setPrivacySaving] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -63,6 +65,26 @@ const ProfileScreen = observer(() => {
     setHideAvatar(currentUser?.privacyToggle ?? false);
   }, [currentUser?.privacyToggle]);
 
+  useEffect(() => {
+    if (hideAvatar === currentUser?.privacyToggle) return;
+    const timeout = setTimeout(async () => {
+      try {
+        setPrivacySaving(true);
+        await updateProfileMutation({
+          variables: { input: { privacyToggle: hideAvatar } as any },
+        });
+        await client.refetchQueries({ include: [GET_USER_PROFILE] });
+      } catch (error: any) {
+        Alert.alert('Privacy update failed', error?.message ?? 'Please try again.');
+        setHideAvatar(currentUser?.privacyToggle ?? false);
+      } finally {
+        setPrivacySaving(false);
+      }
+    }, 200);
+
+    return () => clearTimeout(timeout);
+  }, [hideAvatar]);
+
   const userInitials = useMemo(() => {
     if (!currentUser?.name) return '??';
     return currentUser.name
@@ -72,11 +94,14 @@ const ProfileScreen = observer(() => {
       .toUpperCase();
   }, [currentUser?.name]);
 
+  const fallbackEmail =
+    (typeof localStorage !== 'undefined' && localStorage.getItem('lastEmail')) || '—';
+
   const profileRows = [
     { label: 'Name', value: currentUser?.name || 'Unnamed User' },
     { label: 'Age', value: currentUser?.age ? String(currentUser.age) : '—' },
     { label: 'Gender', value: currentUser?.gender || '—' },
-    { label: 'Email', value: currentUser?.email || '—' },
+    { label: 'Email', value: currentUser?.email || fallbackEmail },
   ];
 
   const applyAvatarUpdate = useCallback(
@@ -236,6 +261,7 @@ const ProfileScreen = observer(() => {
             <Text style={styles.toggleTitle}>Hide my avatar, and display my name as initials</Text>
           </View>
           <ToggleSwitch value={hideAvatar} onValueChange={setHideAvatar} />
+          {privacySaving ? <ActivityIndicator size="small" color="#666" /> : null}
         </View>
 
         <View style={styles.infoCard}>
@@ -317,33 +343,37 @@ const ProfileScreen = observer(() => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F7F5F8',
+    backgroundColor: colors.base,
+    alignItems: 'center',
   },
   content: {
-    padding: 20,
-    paddingBottom: 120,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl * 2 + spacing.sm,
+    width: '100%',
+    maxWidth: 480,
   },
   avatarSection: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   avatarWrapper: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
   avatarCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#111',
+    width: 100,
+    height: 100,
+    borderRadius: radii.avatar,
+    backgroundColor: colors.cta,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
   },
   avatarImage: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 100,
+    height: 100,
+    borderRadius: radii.avatar,
   },
   avatarOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -352,113 +382,113 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarInitials: {
-    color: '#fff',
-    fontSize: 28,
+    color: colors.base,
+    fontSize: 40,
     fontWeight: '600',
   },
   avatarEdit: {
     position: 'absolute',
-    bottom: -9,
+    bottom: -6,
     right: 34,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#F2F2F7',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.stroke,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarEditIcon: {
     fontSize: 12,
-    color: '#111',
+    color: colors.textPrimary,
   },
   name: {
+    ...typography.body18Medium,
     fontSize: 20,
-    fontWeight: '600',
-    color: '#111',
+    color: colors.textPrimary,
   },
   meta: {
-    color: '#8A8A8E',
-    marginTop: 4,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    ...typography.body16Regular,
   },
   toggleCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radii.card,
+    padding: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
+    marginBottom: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.stroke,
   },
   toggleTextContainer: {
     width: '75%',
   },
   toggleTitle: {
-    fontSize: 15,
-    color: '#111',
+    ...typography.body16Regular,
+    color: colors.textPrimary,
   },
   infoCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 6,
+    backgroundColor: colors.surface,
+    borderRadius: radii.card,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.stroke,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: spacing.sm + 2,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0EFF4',
+    borderBottomColor: colors.stroke,
   },
   infoRowLast: {
     borderBottomWidth: 0,
   },
   infoLabel: {
-    fontSize: 12,
-    color: '#8A8A8E',
-    marginBottom: 2,
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs / 2,
     textTransform: 'uppercase',
   },
   infoValue: {
-    fontSize: 16,
-    color: '#111',
+    ...typography.body18Medium,
+    fontSize: 18,
+    color: colors.textPrimary,
   },
   updatingFieldView: {
     flexDirection: 'row',
-    gap: 10,
+    gap: spacing.sm,
   },
   updateInput: {
     borderWidth: 1,
-    padding: 4,
-    marginTop: 2,
+    borderColor: colors.stroke,
+    padding: spacing.xs,
+    marginTop: spacing.xs,
     width: 250,
-    borderRadius: 4,
+    borderRadius: 8,
   },
   link: {
     textAlign: 'center',
-    color: '#8A8A8E',
-    marginBottom: 12,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+    ...typography.body16Regular,
   },
   dangerLink: {
     textAlign: 'center',
-    color: '#FF3B30',
-    marginBottom: 32,
+    color: colors.danger,
+    marginBottom: spacing.lg,
+    ...typography.body18Medium,
   },
   logout: {
-    color: '#363636',
+    color: colors.textPrimary,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '400',
+    ...typography.body18Medium,
   },
 });
 

@@ -9,19 +9,45 @@ import ResourcesScreen from '../screens/Resources/Resources';
 import CommunityForumsScreen from '../screens/CommunityForums/CommunityForums';
 import ProfileScreen from '../screens/Profile/Profile';
 import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
+import OnboardingChat from '../screens/Onboarding/OnboardingChat';
 import NotificationsScreen from '../screens/Notifications/Notifications';
 import DeleteAccount from '../screens/DeleteAccout/DeleteAccount';
+import { View, StyleSheet, Platform } from 'react-native';
+import { BottomNavBar } from '../components/BottomNavBar';
+
+const NavLayout = ({ children }: { children: React.ReactNode }) => (
+  <View style={styles.shell}>
+    {children}
+    <BottomNavBar />
+  </View>
+);
 
 export function AppRoutes() {
   const { currentUser } = useAuth({});
   return (
     <Routes>
       <Route path="/login" element={<LoginScreen />} />
+      {/* Public entry points */}
+      <Route path="/" element={<WelcomeScreen />} />
+      <Route path="/onboarding" element={<WelcomeScreen />} />
+      <Route path="/onboarding/chat" element={<OnboardingChat />} />
       <Route
-        path="/"
+        path="/care-plan"
+        element={
+          <NavLayout>
+            <ChecklistScreen />
+          </NavLayout>
+        }
+      />
+
+      {/* Authenticated app */}
+      <Route
+        path="/app"
         element={
           <ProtectedRoute>
-            <HomeScreen />
+            <NavLayout>
+              <HomeScreen />
+            </NavLayout>
           </ProtectedRoute>
         }
       />
@@ -29,16 +55,19 @@ export function AppRoutes() {
         path="/checklist"
         element={
           <ProtectedRoute>
-            <ChecklistScreen />
+            <NavLayout>
+              <ChecklistScreen />
+            </NavLayout>
           </ProtectedRoute>
         }
       />
-      <Route path="/onboarding" element={<WelcomeScreen />} />
       <Route
         path="/resources"
         element={
           <ProtectedRoute>
-            <ResourcesScreen />
+            <NavLayout>
+              <ResourcesScreen />
+            </NavLayout>
           </ProtectedRoute>
         }
       />
@@ -47,7 +76,9 @@ export function AppRoutes() {
         path="/community"
         element={
           <ProtectedRoute>
-            <CommunityForumsScreen />
+            <NavLayout>
+              <CommunityForumsScreen />
+            </NavLayout>
           </ProtectedRoute>
         }
       />
@@ -55,7 +86,9 @@ export function AppRoutes() {
         path="/profile"
         element={
           <ProtectedRoute>
-            <ProfileScreen />
+            <NavLayout>
+              <ProfileScreen />
+            </NavLayout>
           </ProtectedRoute>
         }
       />
@@ -79,3 +112,11 @@ export function AppRoutes() {
     </Routes>
   );
 }
+
+const styles = StyleSheet.create({
+  shell: {
+    flex: 1,
+    minHeight: Platform.OS === 'web' ? '100%' : undefined,
+    backgroundColor: '#fff',
+  },
+});

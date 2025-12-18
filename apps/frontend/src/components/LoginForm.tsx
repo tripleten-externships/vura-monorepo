@@ -15,19 +15,16 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await login({ variables: { email, password } });
+    const result = await login({ variables: { input: { email, password } } });
 
-    const auth = result.data?.authenticateUserWithPassword;
+    const auth = result.data?.loginFrontendUser;
 
-    if (auth?.__typename === 'UserAuthenticationWithPasswordSuccess') {
-      const token = auth.sessionToken;
-      await setGraphqlHeaders(token); // store token in Apollo Client
+    if (auth?.token || auth?.jwt) {
+      // Prefer the first available token for downstream auth headers.
+      await setGraphqlHeaders(auth.token ?? auth.jwt);
       console.log('Logged in successfully!');
-    } else if (auth?.__typename === 'UserAuthenticationWithPasswordFailure') {
-      // Narrowed to Failure, safe to access `message`
-      console.error('Login failed:', auth.message);
     } else {
-      console.error('Login failed: unexpected response', auth);
+      console.error('Login failed: missing auth token', auth);
     }
   };
 
@@ -49,10 +46,7 @@ export function LoginForm() {
         {loading ? 'Logging in...' : 'Log In'}
       </button>
       {error && <p>Error: {error.message}</p>}
-      {data?.authenticateUserWithPassword?.__typename ===
-        'UserAuthenticationWithPasswordSuccess' && (
-        <p>Welcome {data.authenticateUserWithPassword.item.name}</p>
-      )}
+      {data?.loginFrontendUser?.user && <p>Welcome {data.loginFrontendUser.user.name}</p>}
     </form>
   );
 }
