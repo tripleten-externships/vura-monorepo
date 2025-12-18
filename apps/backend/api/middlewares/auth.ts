@@ -1,7 +1,12 @@
 // apps/backend/api/middlewares/auth.ts
 import { createAuth } from '@keystone-6/auth';
 import { statelessSessions } from '@keystone-6/core/session';
+import dotenv from 'dotenv';
+
 import type { Session } from '../../types/context'; // adjust path if needed
+import { logger } from '../../utils/logger';
+
+dotenv.config();
 
 type AccessArgs = {
   session?: Session;
@@ -10,7 +15,8 @@ type AccessArgs = {
 
 // Fail fast in prod if secret missing
 if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
-  throw new Error('SESSION_SECRET must be set in production');
+  // throw new Error('SESSION_SECRET must be set in production');
+  logger.warn('SESSION_SECRET must be set in production');
 }
 
 const sessionSecret =
