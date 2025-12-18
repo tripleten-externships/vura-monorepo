@@ -3,6 +3,7 @@ import { initializeChatEventHandlers } from './chatEventHandler';
 import { initializeForumPostEventHandlers } from './forumEventHandler';
 import { logger } from '../../../utils/logger';
 import { EventBus } from '../eventBus';
+import { initializeQuestionnaireEventHandlers } from './questionnaireEventHandler';
 
 /**
  * Initialize all event handlers for the pub/sub system
@@ -21,6 +22,7 @@ export function initializeEventHandlers(context: Context, eventBus: EventBus): v
     // initialize chat event handlers (notifications for messages, mentions, etc)
     initializeChatEventHandlers(context, eventBus);
     initializeForumPostEventHandlers(context, eventBus);
+    initializeQuestionnaireEventHandlers(eventBus);
 
     // future handlers can be added here:
     // initializeForumEventHandlers(context);

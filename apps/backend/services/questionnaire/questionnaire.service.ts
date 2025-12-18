@@ -1,6 +1,5 @@
 import { GraphQLError } from 'graphql';
 import { BaseService, ServiceDependencies } from '../core';
-import { questionnaireEmitter } from './questionnaire.emitter';
 import {
   AssignQuestionnaireInput,
   AssignQuestionnaireResult,
@@ -10,6 +9,11 @@ import {
   SubmitQuestionnaireInput,
   SubmitQuestionnaireResult,
 } from './types';
+import {
+  QuestionnaireAssignedEvent,
+  QuestionnaireCompletedEvent,
+} from '../../api/subscriptions/events';
+import { SubscriptionTopics } from '../../api/subscriptions/pubsub';
 
 const CONFIDENCE_MIN = 1;
 const CONFIDENCE_MAX = 5;
@@ -146,10 +150,15 @@ export class QuestionnaireService extends BaseService {
         });
       }
 
-      questionnaireEmitter.emit('assigned', {
-        id: questionnaireResponse.id,
-        data: questionnaireResponse,
-      });
+      const assignedEvent: QuestionnaireAssignedEvent = {
+        assignmentId: questionnaireResponse.id,
+        userId,
+        questionnaireId: questionnaireResponse.questionnaireId,
+        questionnaireTitle: questionnaire?.title,
+        carePlanId: questionnaireResponse.carePlanId ?? undefined,
+      };
+
+      this.eventBus.publish(SubscriptionTopics.QUESTIONNAIRE_ASSIGNED, assignedEvent);
 
       const carePlanUpdated =
         Boolean(carePlan && !input.isDraft) &&
@@ -260,10 +269,15 @@ export class QuestionnaireService extends BaseService {
         },
       });
 
-      questionnaireEmitter.emit('completed', {
-        id: updatedResponse.id,
-        data: updatedResponse,
-      });
+      const completedEvent: QuestionnaireCompletedEvent = {
+        questionnaireResponseId: updatedResponse.id,
+        userId: updatedResponse.userId,
+        questionnaireId: updatedResponse.questionnaireId,
+        questionnaireTitle: updatedResponse.questionnaire?.title,
+        carePlanId: updatedResponse.carePlanId ?? undefined,
+      };
+
+      this.eventBus.publish(SubscriptionTopics.QUESTIONNAIRE_COMPLETED, completedEvent);
 
       const carePlanProgressScore =
         input.updateCarePlanProgress && questionnaireResponse.carePlan
@@ -335,14 +349,15 @@ export class QuestionnaireService extends BaseService {
       },
     });
 
-    questionnaireEmitter.emit('assigned', {
-      id: assignment.id,
-      data: {
-        userId: input.assignedToId,
-        title: assignment.questionnaire?.title,
-        carePlanId: input.carePlanId,
-      },
-    });
+    const assignedEvent: QuestionnaireAssignedEvent = {
+      assignmentId: assignment.id,
+      userId: input.assignedToId,
+      questionnaireId: input.questionnaireId,
+      questionnaireTitle: assignment.questionnaire?.title,
+      carePlanId: input.carePlanId ?? undefined,
+    };
+
+    this.eventBus.publish(SubscriptionTopics.QUESTIONNAIRE_ASSIGNED, assignedEvent);
 
     return {
       success: true,
