@@ -131,6 +131,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Compile generated files
+        working-directory: ./apps/frontend
+        run: npm run compile
+
       - name: Run frontend tests
         working-directory: ./apps/frontend
         run: npm test
