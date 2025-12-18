@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   titleStyle: {
     fontFamily: 'Noto Serif',
-    fontWeight: 400,
+    fontWeight: '400',
     fontSize: 34,
     textAlign: 'center',
     lineHeight: 44,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 500,
+    fontWeight: '500',
     color: 'rgba(54, 54, 54, 0.5)',
     textAlign: 'center',
     marginBottom: 16,

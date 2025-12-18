@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#eee',
     backgroundColor: '#fff',
-    position: 'fixed' as any,
+    position: 'absolute',
     bottom: 0,
     left: 0,
     zIndex: 100,
