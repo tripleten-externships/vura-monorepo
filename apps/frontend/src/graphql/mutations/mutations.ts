@@ -1,7 +1,11 @@
 import { gql } from '@apollo/client';
 
 export const SIGNUP_MUTATION = gql`
-  mutation Signup($email: String!, $password: String!, $name: String) {
+  mutation Signup(
+    $email: email_String_NotNull_format_email!
+    $password: password_String_NotNull_minLength_8_maxLength_128!
+    $name: name_String_NotNull_minLength_2_maxLength_120!
+  ) {
     signup(input: { email: $email, password: $password, name: $name }) {
       token
       user {
@@ -14,7 +18,10 @@ export const SIGNUP_MUTATION = gql`
 `;
 
 export const LOGIN_MUTATION = gql`
-  mutation Login($email: String!, $password: String!) {
+  mutation Login(
+    $email: email_String_NotNull_format_email!
+    $password: password_String_NotNull_minLength_8_maxLength_128!
+  ) {
     login(input: { email: $email, password: $password }) {
       token
       user {
@@ -22,16 +29,6 @@ export const LOGIN_MUTATION = gql`
         email
         name
       }
-    }
-  }
-`;
-
-export const CURRENT_USER_QUERY = gql`
-  query CurrentUser {
-    me {
-      id
-      email
-      name
     }
   }
 `;

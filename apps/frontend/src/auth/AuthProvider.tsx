@@ -1,7 +1,6 @@
 // src/auth/AuthProvider.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { apolloClient } from '../apollo/client';
-import { CURRENT_USER_QUERY } from '../graphql/mutations/mutations';
 import { getToken, saveToken, deleteToken } from '../store/secureStore';
 
 type User = { id: string; email: string; name?: string | null } | null;
@@ -34,33 +33,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     (async () => {
       try {
         const storedToken = await getToken();
-
         if (storedToken) {
-          try {
-            const result = await apolloClient.query({
-              query: CURRENT_USER_QUERY,
-              fetchPolicy: 'network-only',
-              context: {
-                headers: {
-                  authorization: `Bearer ${storedToken}`,
-                },
-              },
-            });
-
-            // Extract the current user from the API response
-            const me = (result.data as any)?.me;
-            setUser(me ?? null);
-            setToken(storedToken);
-          } catch (err) {
-            // Invalid or expired token, clear it
-            await deleteToken();
-            setUser(null);
-            setToken(null);
-          }
+          setToken(storedToken);
         }
       } catch (e) {
-        // Reading token failed, treat as logged out
-        console.warn('Restore token failed', e);
+        console.warn('Failed to restore auth token', e);
       } finally {
         setLoading(false);
       }
@@ -85,7 +62,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        signIn,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
