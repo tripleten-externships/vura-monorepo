@@ -3,11 +3,12 @@ import { Routes, Route, Navigate } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 import ProtectedRoute from '../components/ProtectedRoute';
 import HomeScreen from '../screens/Home/Home';
-import GetStartedScreen from '../screens/GetStarted/GetStarted';
+import LoginScreen from '../screens/Login/Login';
 import ChecklistScreen from '../screens/Checklist/Checklist';
 import ResourcesScreen from '../screens/Resources/Resources';
 import CommunityForumsScreen from '../screens/CommunityForums/CommunityForums';
 import ProfileScreen from '../screens/Profile/Profile';
+import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
 import NotificationsScreen from '../screens/Notifications/Notifications';
 import DeleteAccount from '../screens/DeleteAccout/DeleteAccount';
 
@@ -15,7 +16,7 @@ export function AppRoutes() {
   const { currentUser } = useAuth({});
   return (
     <Routes>
-      <Route path="/get-started" element={<GetStartedScreen />} />
+      <Route path="/login" element={<LoginScreen />} />
       <Route
         path="/"
         element={
@@ -32,6 +33,7 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/onboarding" element={<WelcomeScreen />} />
       <Route
         path="/resources"
         element={
@@ -40,6 +42,7 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/community"
         element={

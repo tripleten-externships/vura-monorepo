@@ -190,7 +190,7 @@ const ProfileScreen = observer(() => {
   //log out the user and navigate to the start page
   const handleLogout = async () => {
     await logout();
-    navigate('/get-started');
+    navigate('/login');
   };
 
   return (

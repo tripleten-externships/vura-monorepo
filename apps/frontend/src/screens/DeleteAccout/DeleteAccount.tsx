@@ -21,7 +21,7 @@ export default function DeleteAccount({ currentEmail }: DeleteAccountProps) {
   const [deleteAccount, { loading }] = useMutation(DELETE_ACCOUNT, {
     onCompleted: async (data) => {
       await auth.logout();
-      navigate('/get-started');
+      navigate('/login');
     },
   });
 
