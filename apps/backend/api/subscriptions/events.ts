@@ -45,3 +45,19 @@ export interface ForumPostCreatedEvent {
   type?: string;
   forumPostType?: 'NEW_POST' | 'REPLY_TO_YOUR_POST' | 'REPLY_TO_SUBSCRIBED_POST';
 }
+
+export interface QuestionnaireAssignedEvent {
+  assignmentId?: string;
+  userId: string;
+  questionnaireId?: string;
+  questionnaireTitle?: string | null;
+  carePlanId?: string | null;
+}
+
+export interface QuestionnaireCompletedEvent {
+  questionnaireResponseId: string;
+  userId: string;
+  questionnaireId?: string;
+  questionnaireTitle?: string | null;
+  carePlanId?: string | null;
+}
