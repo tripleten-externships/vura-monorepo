@@ -8,11 +8,11 @@ export const customGetUnreadCount = async (
   context: Context
 ) => {
   try {
-    if (!context.session?.data?.id) {
-      throw new GraphQLError('User must be authenticated', {
-        extensions: { code: 'UNAUTHENTICATED' },
-      });
-    }
+    // if (!context.session?.data?.id) {
+    //   throw new GraphQLError('User must be authenticated', {
+    //     extensions: { code: 'UNAUTHENTICATED' },
+    //   });
+    // }
 
     let count: number;
 

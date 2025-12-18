@@ -22,9 +22,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#eee',
     backgroundColor: '#fff',
-    position: 'absolute',
+    position: 'fixed',
     bottom: 0,
     left: 0,
     zIndex: 100,
+    paddingVertical: 8,
   },
 });

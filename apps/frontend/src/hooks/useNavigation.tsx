@@ -4,8 +4,8 @@ export function useNavigation() {
   const navigate = useNavigate();
 
   return {
-    push: (route: string) => {
-      navigate(route);
+    push: (route: string, state?: any) => {
+      navigate(route, { state });
     },
   };
 }
