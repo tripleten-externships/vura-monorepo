@@ -99,6 +99,10 @@ export const User = list({
       ref: 'Notification.user',
       many: true,
     }),
+    notificationCounter: relationship({
+      ref: 'NotificationCounter.user',
+      many: true,
+    }),
     // Metadata
 
     // Only admins can view/modify admin status
@@ -125,6 +129,10 @@ export const User = list({
     forumSubscriptions: relationship({
       ref: 'ForumSubscription.user',
       many: true,
+    }),
+    frontendAccount: relationship({
+      ref: 'FrontendAccount.user',
+      ui: { description: 'Linked frontend auth identity used by the mobile/web app.' },
     }),
   },
 

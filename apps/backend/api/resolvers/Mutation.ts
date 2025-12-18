@@ -18,6 +18,14 @@ import { customMarkNotificationAsRead } from '../schema/mutations/markNotificati
 import { customMarkAllNotificationsAsRead } from '../schema/mutations/markAllNotificationsAsRead';
 import { customSubscribeToForum } from '../schema/mutations/subscribeToForum';
 import { customUnsubscribeFromForum } from '../schema/mutations/unsubscribeFromForum';
+import { customDeleteAccount } from '../schema/mutations/deleteAccount';
+import {
+  beginAppleAuth,
+  beginGoogleAuth,
+  completeOAuthCallback,
+  loginFrontendUser,
+  registerFrontendUser,
+} from '../schema/mutations/frontendAuth';
 
 const withAuth = (resolver: Function) => (root: any, args: any, context: any, info: any) => {
   requireAuth(context.session);
@@ -29,12 +37,18 @@ const withAuth = (resolver: Function) => (root: any, args: any, context: any, in
 export const Mutation = {
   signup,
   login,
+  registerFrontendUser,
+  loginFrontendUser,
+  beginGoogleAuth,
+  beginAppleAuth,
+  completeOAuthCallback,
   // Wrap protected mutations with custom resolvers (via withAuth)
   // Protected mutations
 
   // Wrap protected mutations with custom resolvers (via withAuth)
   customCreateForumPost: withAuth(customCreateForumPost),
   customDeleteForumPost: withAuth(customDeleteForumPost),
+  customDeleteAccount: withAuth(customDeleteAccount),
   customCreateGroupChat: withAuth(customCreateGroupChat),
   sendChatMessage: withAuth(sendChatMessage),
   saveQuestionnaireResponse: withAuth(saveQuestionnaireResponse),

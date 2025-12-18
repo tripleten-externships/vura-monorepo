@@ -12,3 +12,25 @@
       system-ui sans-serif;
   }
 }
+
+.app-shell {
+  height: 100vh;
+  background: #f4f1f6;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px;
+  background: #f4f1f6;
+}
+
+.app-shell__content {
+  flex: 1;
+  background-color: #f4f1f6;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}

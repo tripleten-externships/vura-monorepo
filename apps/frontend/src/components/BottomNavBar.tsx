@@ -3,11 +3,11 @@ import NavigationIcons, { NavigationItem } from './NavigationIcons/NavigationIco
 
 export function BottomNavBar() {
   const navigationItems: NavigationItem[] = [
-    { id: 'onboording', label: 'Onboarding', route: '/onboarding' },
-    { id: 'checklist', label: 'Checklist', route: '/checklist' },
-    { id: 'resources', label: 'Resources', route: '/resources' },
-    { id: 'community', label: 'Community', route: '/community' },
-    { id: 'profile', label: 'Profile', route: '/profile' },
+    { id: 'onboarding', label: 'Onboarding', route: '/onboarding', icon: 'book-open-check.svg' },
+    { id: 'checklist', label: 'Checklist', route: '/checklist', icon: 'list-checks.svg' },
+    { id: 'resources', label: 'Resources', route: '/resources', icon: 'book-open-check.svg' },
+    { id: 'community', label: 'Community', route: '/community', icon: 'message-circle-heart.svg' },
+    { id: 'profile', label: 'Profile', route: '/profile', icon: 'circle-user.svg' },
   ];
 
   return (
@@ -23,5 +23,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#eee',
     backgroundColor: '#fff',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    zIndex: 100,
   },
 });

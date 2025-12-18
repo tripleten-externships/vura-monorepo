@@ -6,8 +6,9 @@ dotenv.config({ path: path.resolve(process.cwd(), 'apps/backend/.env') });
 import { config } from '@keystone-6/core';
 import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema';
 import { constraintDirective, constraintDirectiveTypeDefs } from 'graphql-constraint-directive';
-// import initGoogleStrategy from './google-strategy';
+import initGoogleStrategy from './google-strategy';
 import { withAuth, session } from './api/middlewares/auth';
+import express from 'express';
 
 import * as Models from './models';
 import { Query } from './api/resolvers/Query';
@@ -27,7 +28,7 @@ import { SubscriptionTopics } from './api/subscriptions/pubsub';
 import { logger } from './utils/logger';
 import { aiService } from './services/ai/ai.service';
 
-// initGoogleStrategy();
+initGoogleStrategy();
 
 const dbUrl =
   process.env.DATABASE_URL ||
@@ -53,6 +54,24 @@ export default withAuth(
         credentials: true,
       },
       extendExpressApp: (app, commonContext) => {
+        // Increase body-size limits for JSON/form payloads (needed for base64 avatars)
+        app.use(express.json({ limit: '6mb' }));
+        app.use(express.urlencoded({ limit: '6mb', extended: true }));
+
+        // Middleware to convert/override Bearer tokens into the keystonejs-session cookie
+        app.use((req: any, res: any, next: any) => {
+          const authHeader = req.headers.authorization;
+          if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.replace('Bearer ', '').trim();
+            const otherCookies = (req.headers.cookie || '')
+              .split(';')
+              .map((cookie: string) => cookie.trim())
+              .filter((cookie: string) => cookie && !cookie.startsWith('keystonejs-session='));
+            req.headers.cookie = [`keystonejs-session=${token}`, ...otherCookies].join('; ');
+          }
+          next();
+        });
+
         // Register authentication routes (OAuth)
         authRoutes(app, () => Promise.resolve(commonContext));
         // Register chat routes

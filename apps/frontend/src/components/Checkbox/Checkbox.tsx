@@ -8,16 +8,27 @@ import {
   ImageSourcePropType,
 } from 'react-native';
 import checkMark from '../../../assets/checkMark.png';
+import { Emoji } from '../Emoji/Emoji';
 
 interface CheckboxProps {
   label?: string; //Label for checkbox
   checked: boolean; //Check for checkbox
   onChange: (newValue: boolean) => void; //onChange event for checkbox
+  resourceText?: string;
+  onPressResource?: () => void;
+  emojiIcon?: ImageSourcePropType | string;
 }
 
-function Checkbox({ label, checked, onChange }: CheckboxProps) {
+function Checkbox({
+  label,
+  checked,
+  onChange,
+  resourceText,
+  onPressResource,
+  emojiIcon,
+}: CheckboxProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, checked && { backgroundColor: '#FFFFFF' }]}>
       <TouchableOpacity
         style={styles.checkboxRow}
         onPress={() => onChange(!checked)} //Checks if its checked
@@ -33,7 +44,22 @@ function Checkbox({ label, checked, onChange }: CheckboxProps) {
           <View style={styles.checkbox} />
         )}
         {/* label for checkbox */}
-        {label && <Text style={styles.label}>{label}</Text>}
+        <View style={styles.textContainer}>
+          {label && (
+            <View style={styles.labelRow}>
+              <Text style={[styles.label, checked && styles.checkedLabel]}>{label}</Text>
+
+              {/* Render Emoji only if emojiIcon exists */}
+              {emojiIcon && <Emoji emojiIcon={emojiIcon} isChecked={checked} />}
+            </View>
+          )}
+          {/* Show clickable resource text */}
+          {resourceText && onPressResource && (
+            <Text style={styles.resourceText} onPress={onPressResource}>
+              {resourceText}
+            </Text>
+          )}
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -57,8 +83,12 @@ const styles = StyleSheet.create({
   //Row layout for checkbox and label
   checkboxRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
+  },
+  textContainer: {
+    flexDirection: 'column',
+    flex: 1,
   },
 
   //Unchecked box
@@ -82,5 +112,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     color: 'Black',
+  },
+  checkedLabel: {
+    color: 'rgba(54, 54, 54, 0.5)',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  resourceText: {
+    marginTop: 10,
+    marginLeft: -33,
+    fontSize: 16,
+    color: 'rgba(54, 54, 54, 0.5)',
   },
 });

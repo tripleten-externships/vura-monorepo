@@ -7,11 +7,15 @@ import { LoginForm } from './components/LoginForm';
 import WelcomeScreen from './screens/Onboarding/WelcomeScreen';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
+const AppContent = () => {
+  return <AppNavigator />;
+};
+
 export default function App() {
   return (
     <ApolloProvider client={client}>
       <StoreProvider>
-        <AppNavigator />
+        <AppContent />
       </StoreProvider>
     </ApolloProvider>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router';
+import { useAuth } from '../hooks/useAuth';
 import ProtectedRoute from '../components/ProtectedRoute';
 import HomeScreen from '../screens/Home/Home';
 import GetStartedScreen from '../screens/GetStarted/GetStarted';
@@ -8,8 +9,11 @@ import ResourcesScreen from '../screens/Resources/Resources';
 import CommunityForumsScreen from '../screens/CommunityForums/CommunityForums';
 import ProfileScreen from '../screens/Profile/Profile';
 import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
+import NotificationsScreen from '../screens/Notifications/Notifications';
+import DeleteAccount from '../screens/DeleteAccout/DeleteAccount';
 
 export function AppRoutes() {
+  const { currentUser } = useAuth({});
   return (
     <Routes>
       <Route path="/get-started" element={<GetStartedScreen />} />
@@ -59,6 +63,22 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <ProfileScreen />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsScreen />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/delete-account"
+        element={
+          <ProtectedRoute>
+            <DeleteAccount currentEmail={currentUser?.email ?? undefined} />
           </ProtectedRoute>
         }
       />

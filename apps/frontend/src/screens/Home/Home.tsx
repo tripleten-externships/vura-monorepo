@@ -1,13 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { BottomNavBar } from '../../components/BottomNavBar';
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to BetterHunt Vura</Text>
       <Text style={styles.subtitle}>Select a tab below to get started.</Text>
-      <BottomNavBar />
     </View>
   );
 }

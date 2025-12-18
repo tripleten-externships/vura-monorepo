@@ -1,11 +1,16 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import { BottomNavBar } from '../../components/BottomNavBar';
 import { useResourceStore } from '../../store/StoreContext';
+import { PageHeader } from '../../components/PageHeader/PageHeader';
+import { NotificationBell } from '../../components/NotificationBell/NotificationBell';
+import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
+import { useNavigate } from 'react-router-dom';
 
 const ResourcesScreen = observer(() => {
   const resourceStore = useResourceStore();
+  const { hasUnread } = useUnreadNotifications();
+  const navigate = useNavigate();
 
   useEffect(() => {
     resourceStore.fetchResources({ first: 5 });
@@ -13,7 +18,14 @@ const ResourcesScreen = observer(() => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Curated self and elderly care resources</Text>
+      <PageHeader
+        title="Curated self and elderly care resources"
+        rightIcon={{
+          icon: (
+            <NotificationBell hasUnread={hasUnread} onClick={() => navigate('/notifications')} />
+          ),
+        }}
+      />
 
       {resourceStore.loading ? (
         <ActivityIndicator size="small" color="#333" />
@@ -30,8 +42,6 @@ const ResourcesScreen = observer(() => {
           </View>
         ))
       )}
-
-      <BottomNavBar />
     </View>
   );
 });
