@@ -88,7 +88,13 @@ export function authRoutes(app: Express, context: () => Promise<KeystoneContext>
           avatarUrl,
         });
 
-        res.redirect(buildRedirect(result, req.query.state));
+        const state = Array.isArray(req.query.state)
+          ? req.query.state.map((value) => String(value))
+          : typeof req.query.state === 'string'
+            ? req.query.state
+            : undefined;
+
+        res.redirect(buildRedirect(result, state));
       } catch (error) {
         console.error('OAuth callback error:', error);
         next(error);

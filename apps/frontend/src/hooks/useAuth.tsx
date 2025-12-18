@@ -31,19 +31,27 @@ interface UseAuthProps {
 type FrontendLoginInput = LoginFrontendUserMutationVariables['input'];
 type FrontendSignupInput = RegisterFrontendUserMutationVariables['input'];
 type FrontendOAuthInput = CompleteOAuthCallbackMutationVariables['input'];
+type UserProfile = NonNullable<GetUserProfileQuery['userProfile']>;
+type UserLike = Partial<UserProfile> & {
+  id?: string | null;
+  name?: string | null;
+  email?: string | null;
+  avatarUrl?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  privacyToggle?: boolean | null;
+};
 
 export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
-  const [demoUser, setDemoUser] = useState<null | { id: string; name: string; email: string }>(
-    () => {
-      if (typeof localStorage === 'undefined') return null;
-      try {
-        const raw = localStorage.getItem('demoUser');
-        return raw ? JSON.parse(raw) : null;
-      } catch {
-        return null;
-      }
+  const [demoUser, setDemoUser] = useState<UserLike | null>(() => {
+    if (typeof localStorage === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('demoUser');
+      return raw ? (JSON.parse(raw) as UserLike) : null;
+    } catch {
+      return null;
     }
-  );
+  });
   const [login, { error: loginError, loading: loginLoading }] = useMutation<
     LoginFrontendUserMutation,
     LoginFrontendUserMutationVariables
@@ -88,7 +96,7 @@ export const useAuth = ({ onLoginSuccess, onLogoutSuccess }: UseAuthProps) => {
 
   const persistDemoUser = useCallback(
     async (user: { name: string; email: string }) => {
-      const demo = { id: 'demo-user', ...user };
+      const demo: UserLike = { id: 'demo-user', ...user, privacyToggle: false };
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('demoUser', JSON.stringify(demo));
       }

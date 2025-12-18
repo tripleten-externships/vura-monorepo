@@ -10,15 +10,15 @@ import {
 } from '../../../services/auth';
 import { getEventBus } from '../../subscriptions/eventBus';
 
-interface FrontendSignupArgs {
+export interface FrontendSignupArgs {
   input: FrontendPasswordSignupInput;
 }
 
-interface FrontendLoginArgs {
+export interface FrontendLoginArgs {
   input: FrontendPasswordLoginInput;
 }
 
-interface CompleteOAuthArgs {
+export interface CompleteOAuthArgs {
   input: FrontendOAuthInput & {
     provider: 'GOOGLE' | 'APPLE';
   };

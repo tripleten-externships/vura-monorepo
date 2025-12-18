@@ -12,7 +12,7 @@ import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
 import OnboardingChat from '../screens/Onboarding/OnboardingChat';
 import NotificationsScreen from '../screens/Notifications/Notifications';
 import DeleteAccount from '../screens/DeleteAccout/DeleteAccount';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { BottomNavBar } from '../components/BottomNavBar';
 
 const NavLayout = ({ children }: { children: React.ReactNode }) => (
@@ -116,7 +116,7 @@ export function AppRoutes() {
 const styles = StyleSheet.create({
   shell: {
     flex: 1,
-    minHeight: '100vh',
+    minHeight: Platform.OS === 'web' ? '100%' : undefined,
     backgroundColor: '#fff',
   },
 });

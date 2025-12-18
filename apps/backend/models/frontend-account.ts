@@ -31,7 +31,6 @@ export const FrontendAccount = list({
     providerType: select({
       options: providerOptions,
       defaultValue: 'PASSWORD',
-      db: { enumName: 'FrontendAuthProviderType' },
       ui: {
         displayMode: 'segmented-control',
       },
