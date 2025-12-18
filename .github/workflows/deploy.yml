@@ -201,6 +201,10 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci --ignore-scripts
 
+      - name: Compile generated files
+        working-directory: ./apps/frontend
+        run: npm run compile
+
       - name: Build frontend application
         run: npm run frontend:build
         env:

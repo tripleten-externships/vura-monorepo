@@ -248,6 +248,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Compile generated files
+        run: cd apps/frontend && npm run compile
+
       - name: Run all tests
         run: npm test
 
