@@ -37,7 +37,7 @@ export class NotificationStore extends BaseStore {
         GET_NOTIFICATIONS,
         { input },
         (data) => {
-          this.notifications = data.customGetNotifications.notifications;
+          this.notifications = data?.customGetNotifications?.notifications ?? [];
           this.error = undefined;
         },
         (err) => {
@@ -54,7 +54,7 @@ export class NotificationStore extends BaseStore {
       GET_UNREAD_COUNT,
       { notificationType },
       (data) => {
-        this.unreadCount = data.customGetUnreadCount.count;
+        this.unreadCount = data?.customGetUnreadCount?.count ?? 0;
       }
     );
   }

@@ -19,10 +19,16 @@ export default function LoginScreen() {
   const location = useLocation();
   const navigateRaw = useNavigate();
   const navigation = useNavigation();
+  const [skipAutoRedirect, setSkipAutoRedirect] = useState(false);
   const { login, signup, beginGoogleAuth, beginAppleAuth, loading, currentUser, error } = useAuth({
     onLoginSuccess: () => {
-      Alert.alert('Success', 'Login successful');
       const redirect = (location.state as any)?.from ?? '/';
+      if (mode === 'signup') {
+        setSkipAutoRedirect(true);
+        navigateRaw('/signup/profile', { state: { from: redirect } });
+        return;
+      }
+      Alert.alert('Success', 'Login successful');
       navigateRaw(redirect);
     },
   });
@@ -31,6 +37,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [hasAttempted, setHasAttempted] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const initialMode = useMemo(() => {
     const stateMode = (location.state as any)?.mode;
     const query = new URLSearchParams(location.search);
@@ -44,8 +51,20 @@ export default function LoginScreen() {
     try {
       setHasAttempted(true);
       if (mode === 'login') {
+        if (!email || !password) {
+          Alert.alert('Sign in', 'Please enter your email and password.');
+          return;
+        }
         await login({ email, password });
       } else {
+        if (!email || !password || !fullName) {
+          Alert.alert('Sign up', 'Please fill in all required fields.');
+          return;
+        }
+        if (password !== confirmPassword) {
+          Alert.alert('Sign up', 'Passwords do not match.');
+          return;
+        }
         await signup({ email, password, name: fullName });
       }
       if (typeof localStorage !== 'undefined') {
@@ -84,18 +103,18 @@ export default function LoginScreen() {
   };
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && !skipAutoRedirect) {
       const query = new URLSearchParams(location.search);
       const fromQuery = query.get('from');
       const redirect = (location.state as any)?.from ?? fromQuery ?? '/';
       navigation.push(redirect);
     }
-  }, [currentUser, navigation, location.state, location.search]);
+  }, [currentUser, navigation, location.state, location.search, skipAutoRedirect]);
 
   const isSignup = mode === 'signup';
 
   const containerStyle = [
-    styles.card,
+    !isSignup ? styles.signInCard : styles.signUpCard,
     { maxWidth: '-webkit-fill-available' } as unknown as ViewStyle,
   ];
   return (
@@ -141,8 +160,8 @@ export default function LoginScreen() {
             <InputField
               placeholder="Repeat password"
               placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChange={setPassword}
+              value={confirmPassword}
+              onChange={setConfirmPassword}
               secureTextEntry
               containerStyle={styles.input}
               inputStyle={styles.inputText}
@@ -150,7 +169,7 @@ export default function LoginScreen() {
           )}
         </View>
 
-        <View style={styles.actions}>
+        <View style={[styles.actions]}>
           <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
             <Image
               source={{ uri: '../../../assets/google.png' }}
@@ -177,6 +196,7 @@ export default function LoginScreen() {
               onPress={() => {
                 setMode(isSignup ? 'login' : 'signup');
                 setHasAttempted(false);
+                setConfirmPassword('');
               }}
             >
               <Text style={styles.switchText}>
@@ -194,19 +214,30 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.base,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xl,
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
-  card: {
+  signUpCard: {
     width: '100%',
     backgroundColor: colors.base,
     borderRadius: radii.cardLg,
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
     justifyContent: 'space-between',
-    gap: spacing.xl,
+    gap: spacing.xxl,
+    alignSelf: 'center',
+    maxWidth: 480,
+  },
+  signInCard: {
+    gap: spacing.xxl * 6,
+    width: '100%',
+    backgroundColor: colors.base,
+    borderRadius: radii.cardLg,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    justifyContent: 'space-between',
     alignSelf: 'center',
     maxWidth: 480,
   },

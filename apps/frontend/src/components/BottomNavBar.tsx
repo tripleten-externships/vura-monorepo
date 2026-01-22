@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { Platform, View, StyleSheet } from 'react-native';
 import NavigationIcons, { NavigationItem } from './NavigationIcons/NavigationIcons';
 import { ViewStyle } from 'react-native';
 
@@ -10,7 +10,10 @@ export function BottomNavBar() {
     { id: 'profile', label: 'Profile', route: '/profile', icon: 'circle-user.svg' },
   ];
 
-  const containerStyle = [styles.container, { position: 'fixed' } as unknown as ViewStyle];
+  const containerStyle = [
+    styles.container,
+    Platform.OS === 'web' ? styles.containerWeb : null,
+  ] as unknown as ViewStyle[];
   return (
     <View style={containerStyle}>
       <NavigationIcons items={navigationItems} />
@@ -24,9 +27,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#eee',
     backgroundColor: '#fff',
-    bottom: 0,
-    left: 0,
     zIndex: 100,
     paddingVertical: 8,
+  },
+  containerWeb: {
+    position: 'fixed' as any,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 });

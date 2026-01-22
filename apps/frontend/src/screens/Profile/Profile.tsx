@@ -38,9 +38,14 @@ const ProfileScreen = observer(() => {
   const { hasUnread } = useUnreadNotifications();
 
   const [hideAvatar, setHideAvatar] = useState(currentUser?.privacyToggle ?? false);
-  const [updatingField, setUpdatingField] = useState<string | null>(null);
+  const [updatingField, setUpdatingField] = useState<'name' | 'age' | 'gender' | 'email' | null>(
+    null
+  );
   const [updatedValue, setUpdatedValue] = useState<string>('');
   const [privacySaving, setPrivacySaving] = useState(false);
+  const pendingPrivacyToggleRef = useRef<boolean | null>(null);
+  const lastKnownNameRef = useRef<string | null>(currentUser?.name ?? null);
+  const lastKnownAvatarRef = useRef<string | null>(currentUser?.avatarUrl ?? null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -62,20 +67,55 @@ const ProfileScreen = observer(() => {
   });
 
   useEffect(() => {
-    setHideAvatar(currentUser?.privacyToggle ?? false);
+    if (typeof currentUser?.privacyToggle !== 'boolean') {
+      return;
+    }
+    const nextValue = currentUser.privacyToggle;
+    if (pendingPrivacyToggleRef.current !== null && pendingPrivacyToggleRef.current !== nextValue) {
+      return;
+    }
+    pendingPrivacyToggleRef.current = null;
+    setHideAvatar(nextValue);
   }, [currentUser?.privacyToggle]);
 
   useEffect(() => {
-    if (hideAvatar === currentUser?.privacyToggle) return;
+    if (currentUser?.name) {
+      lastKnownNameRef.current = currentUser.name;
+    }
+    if (currentUser?.avatarUrl) {
+      lastKnownAvatarRef.current = currentUser.avatarUrl;
+    }
+  }, [currentUser?.name, currentUser?.avatarUrl]);
+
+  useEffect(() => {
+    if (
+      typeof currentUser?.privacyToggle === 'boolean' &&
+      hideAvatar === currentUser.privacyToggle
+    ) {
+      return;
+    }
     const timeout = setTimeout(async () => {
       try {
+        pendingPrivacyToggleRef.current = hideAvatar;
         setPrivacySaving(true);
         await updateProfileMutation({
           variables: { input: { privacyToggle: hideAvatar } as any },
         });
-        await client.refetchQueries({ include: [GET_USER_PROFILE] });
+        const cachedProfile = client.readQuery({ query: GET_USER_PROFILE });
+        if (cachedProfile?.userProfile) {
+          client.writeQuery({
+            query: GET_USER_PROFILE,
+            data: {
+              userProfile: {
+                ...cachedProfile.userProfile,
+                privacyToggle: hideAvatar,
+              },
+            },
+          });
+        }
       } catch (error: any) {
         Alert.alert('Privacy update failed', error?.message ?? 'Please try again.');
+        pendingPrivacyToggleRef.current = null;
         setHideAvatar(currentUser?.privacyToggle ?? false);
       } finally {
         setPrivacySaving(false);
@@ -86,23 +126,40 @@ const ProfileScreen = observer(() => {
   }, [hideAvatar]);
 
   const userInitials = useMemo(() => {
-    if (!currentUser?.name) return '??';
-    return currentUser.name
+    const name = currentUser?.name ?? lastKnownNameRef.current;
+    if (!name) return '??';
+    return name
       .split(' ')
       .map((part) => part[0])
       .join('')
       .toUpperCase();
   }, [currentUser?.name]);
 
+  const avatarUrl = currentUser?.avatarUrl ?? lastKnownAvatarRef.current;
+
   const fallbackEmail =
     (typeof localStorage !== 'undefined' && localStorage.getItem('lastEmail')) || '—';
 
+  const genderOptions = useMemo(
+    () => [
+      { label: 'Female', value: 'female' },
+      { label: 'Male', value: 'male' },
+      { label: 'Non-Binary', value: 'non-binary' },
+    ],
+    []
+  );
+
+  const formatGender = useCallback(
+    (value?: string | null) => genderOptions.find((option) => option.value === value)?.label ?? '—',
+    [genderOptions]
+  );
+
   const profileRows = [
-    { label: 'Name', value: currentUser?.name || 'Unnamed User' },
-    { label: 'Age', value: currentUser?.age ? String(currentUser.age) : '—' },
-    { label: 'Gender', value: currentUser?.gender || '—' },
-    { label: 'Email', value: currentUser?.email || fallbackEmail },
-  ];
+    { label: 'Name', field: 'name', value: currentUser?.name || 'Unnamed User' },
+    { label: 'Age', field: 'age', value: currentUser?.age ? String(currentUser.age) : '—' },
+    { label: 'Gender', field: 'gender', value: formatGender(currentUser?.gender) },
+    { label: 'Email', field: 'email', value: currentUser?.email || fallbackEmail },
+  ] as const;
 
   const applyAvatarUpdate = useCallback(
     async (dataUrl: string) => {
@@ -194,12 +251,39 @@ const ProfileScreen = observer(() => {
   //update user profile
   const handleSave = async () => {
     if (!updatingField) return;
+    const trimmedValue = updatedValue.trim();
+    let nextValue: string | number;
+
+    if (updatingField === 'age') {
+      const parsedAge = Number(trimmedValue);
+      if (!Number.isFinite(parsedAge)) {
+        Alert.alert('Invalid age', 'Please enter a valid number.');
+        return;
+      }
+      nextValue = parsedAge;
+    } else if (updatingField === 'gender') {
+      const normalized = trimmedValue.toLowerCase().replace(/\s+/g, '-');
+      const matched = genderOptions.find(
+        (option) => option.value === normalized || option.label.toLowerCase() === normalized
+      );
+      if (!matched) {
+        Alert.alert('Invalid gender', 'Please use Female, Male, or Non-Binary.');
+        return;
+      }
+      nextValue = matched.value;
+    } else {
+      if (!trimmedValue) {
+        Alert.alert('Invalid value', 'This field cannot be empty.');
+        return;
+      }
+      nextValue = trimmedValue;
+    }
 
     try {
       await updateProfileMutation({
         variables: {
           input: {
-            [updatingField.toLowerCase()]: updatedValue,
+            [updatingField]: nextValue,
           },
         },
       });
@@ -209,7 +293,11 @@ const ProfileScreen = observer(() => {
       setUpdatingField(null);
       setUpdatedValue('');
     } catch (e: any) {
-      console.error('Update failed:', e.message);
+      const message = e?.message ?? 'Update failed';
+      if (/authentication required|user must be authenticated/i.test(message)) {
+        Alert.alert('Session expired', 'Please sign in again.');
+      }
+      console.error('Update failed:', message);
     }
   };
   //log out the user and navigate to the start page
@@ -234,8 +322,8 @@ const ProfileScreen = observer(() => {
         <View style={styles.avatarSection}>
           <View style={styles.avatarWrapper}>
             <View style={styles.avatarCircle}>
-              {currentUser?.avatarUrl && !hideAvatar ? (
-                <Image source={{ uri: currentUser.avatarUrl }} style={styles.avatarImage} />
+              {avatarUrl && !hideAvatar ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
               ) : (
                 <Text style={styles.avatarInitials}>{userInitials}</Text>
               )}
@@ -252,7 +340,9 @@ const ProfileScreen = observer(() => {
               />
             </Pressable>
           </View>
-          <Text style={styles.name}>{currentUser?.name || 'Unnamed User'}</Text>
+          <Text style={styles.name}>
+            {hideAvatar ? userInitials : currentUser?.name || 'Unnamed User'}
+          </Text>
           <Text style={styles.meta}>{currentUser?.email || ''}</Text>
         </View>
 
@@ -272,10 +362,11 @@ const ProfileScreen = observer(() => {
             >
               <View>
                 <Text style={styles.infoLabel}>{row.label}</Text>
-                {updatingField === row.label ? (
+                {updatingField === row.field ? (
                   <input
                     value={updatedValue}
                     onChange={(e) => setUpdatedValue(e.target.value)}
+                    type={row.field === 'age' ? 'number' : 'text'}
                     style={styles.updateInput}
                   />
                 ) : (
@@ -283,7 +374,7 @@ const ProfileScreen = observer(() => {
                 )}
               </View>
 
-              {updatingField === row.label ? (
+              {updatingField === row.field ? (
                 <View style={styles.updatingFieldView}>
                   {/* save updated value */}
                   <Pressable onPress={handleSave}>
@@ -302,7 +393,7 @@ const ProfileScreen = observer(() => {
               ) : (
                 <Pressable
                   onPress={() => {
-                    setUpdatingField(row.label);
+                    setUpdatingField(row.field);
                     setUpdatedValue(row.value === '—' ? '' : row.value);
                   }}
                 >
@@ -315,9 +406,6 @@ const ProfileScreen = observer(() => {
             </View>
           ))}
         </View>
-        <Link to="/privacy-policy" style={styles.link}>
-          Privacy Policy
-        </Link>
         {/*logout button: navigate to start page*/}
         <Pressable onPress={handleLogout}>
           <Text style={styles.logout}>Logout</Text>
@@ -325,6 +413,9 @@ const ProfileScreen = observer(() => {
         {/*delete button: delete user account*/}
         <Link to="/delete-account" style={styles.dangerLink}>
           Delete Account
+        </Link>
+        <Link to="/privacy-policy" style={styles.link}>
+          Privacy Policy
         </Link>
         {Platform.OS === 'web'
           ? React.createElement('input', {
@@ -347,15 +438,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   content: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xxl * 2 + spacing.sm,
     width: '100%',
-    maxWidth: 480,
   },
   avatarSection: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
   },
   avatarWrapper: {
     position: 'relative',
@@ -420,7 +511,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
     borderWidth: 1,
     borderColor: colors.stroke,
   },
@@ -435,7 +526,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radii.card,
     paddingHorizontal: spacing.md,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
     borderWidth: 1,
     borderColor: colors.stroke,
   },
@@ -482,12 +573,13 @@ const styles = StyleSheet.create({
   dangerLink: {
     textAlign: 'center',
     color: colors.danger,
-    marginBottom: spacing.lg,
-    ...typography.body18Medium,
+    // marginBottom: spacing.lg,
+    ...typography.body16Medium,
   },
   logout: {
     color: colors.textPrimary,
     textAlign: 'center',
+    marginBottom: spacing.sm,
     ...typography.body18Medium,
   },
 });

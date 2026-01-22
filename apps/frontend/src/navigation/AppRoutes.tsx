@@ -6,24 +6,27 @@ import HomeScreen from '../screens/Home/Home';
 import LoginScreen from '../screens/Login/Login';
 import ChecklistScreen from '../screens/Checklist/Checklist';
 import ResourcesScreen from '../screens/Resources/Resources';
+import ResourcesChat from '../screens/Resources/ResourcesChat';
 import CommunityForumsScreen from '../screens/CommunityForums/CommunityForums';
 import ProfileScreen from '../screens/Profile/Profile';
 import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
 import OnboardingChat from '../screens/Onboarding/OnboardingChat';
+import ProfileInfoScreen from '../screens/Onboarding/ProfileInfo';
 import NotificationsScreen from '../screens/Notifications/Notifications';
 import DeleteAccount from '../screens/DeleteAccout/DeleteAccount';
 import { View, StyleSheet, Platform } from 'react-native';
 import { BottomNavBar } from '../components/BottomNavBar';
 
-const NavLayout = ({ children }: { children: React.ReactNode }) => (
+const NavLayout = ({ children, showNav }: { children: React.ReactNode; showNav: boolean }) => (
   <View style={styles.shell}>
     {children}
-    <BottomNavBar />
+    {showNav ? <BottomNavBar /> : null}
   </View>
 );
 
 export function AppRoutes() {
   const { currentUser } = useAuth({});
+  const isAuthed = Boolean(currentUser);
   return (
     <Routes>
       <Route path="/login" element={<LoginScreen />} />
@@ -32,9 +35,17 @@ export function AppRoutes() {
       <Route path="/onboarding" element={<WelcomeScreen />} />
       <Route path="/onboarding/chat" element={<OnboardingChat />} />
       <Route
+        path="/signup/profile"
+        element={
+          <ProtectedRoute>
+            <ProfileInfoScreen />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/care-plan"
         element={
-          <NavLayout>
+          <NavLayout showNav={isAuthed}>
             <ChecklistScreen />
           </NavLayout>
         }
@@ -45,7 +56,7 @@ export function AppRoutes() {
         path="/app"
         element={
           <ProtectedRoute>
-            <NavLayout>
+            <NavLayout showNav={isAuthed}>
               <HomeScreen />
             </NavLayout>
           </ProtectedRoute>
@@ -55,7 +66,7 @@ export function AppRoutes() {
         path="/checklist"
         element={
           <ProtectedRoute>
-            <NavLayout>
+            <NavLayout showNav={isAuthed}>
               <ChecklistScreen />
             </NavLayout>
           </ProtectedRoute>
@@ -65,8 +76,18 @@ export function AppRoutes() {
         path="/resources"
         element={
           <ProtectedRoute>
-            <NavLayout>
+            <NavLayout showNav={isAuthed}>
               <ResourcesScreen />
+            </NavLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resources/chat"
+        element={
+          <ProtectedRoute>
+            <NavLayout showNav={isAuthed}>
+              <ResourcesChat />
             </NavLayout>
           </ProtectedRoute>
         }
@@ -76,7 +97,7 @@ export function AppRoutes() {
         path="/community"
         element={
           <ProtectedRoute>
-            <NavLayout>
+            <NavLayout showNav={isAuthed}>
               <CommunityForumsScreen />
             </NavLayout>
           </ProtectedRoute>
@@ -86,7 +107,7 @@ export function AppRoutes() {
         path="/profile"
         element={
           <ProtectedRoute>
-            <NavLayout>
+            <NavLayout showNav={isAuthed}>
               <ProfileScreen />
             </NavLayout>
           </ProtectedRoute>

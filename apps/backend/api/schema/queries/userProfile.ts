@@ -5,9 +5,7 @@ import { getEventBus } from '../../subscriptions/eventBus';
 
 export const userProfile = async (root: any, args: any, context: Context) => {
   if (!context.session?.data?.id) {
-    throw new GraphQLError('You must be logged in to view your profile', {
-      extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
-    });
+    return null;
   }
 
   try {

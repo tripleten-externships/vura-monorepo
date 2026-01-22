@@ -4,7 +4,7 @@ import { AIProvider, ChatMessage, ChatResponse, ChatOptions } from '../types';
 export class GeminiProvider implements AIProvider {
   public name = 'gemini';
   private client: GoogleGenerativeAI;
-  private defaultModel = 'gemini-2.0-flash';
+  private defaultModel = 'gemini-2.5-flash';
 
   constructor(apiKey: string) {
     this.client = new GoogleGenerativeAI(apiKey);
@@ -12,8 +12,9 @@ export class GeminiProvider implements AIProvider {
 
   async chat(messages: ChatMessage[], options: ChatOptions = {}): Promise<ChatResponse> {
     try {
+      const modelName = options.model || this.defaultModel;
       const model = this.client.getGenerativeModel({
-        model: options.model || this.defaultModel,
+        model: modelName,
         generationConfig: {
           temperature: options.temperature || 0.7,
           maxOutputTokens: options.maxTokens || 1000,
@@ -40,7 +41,7 @@ export class GeminiProvider implements AIProvider {
           totalTokens: result.response.usageMetadata?.totalTokenCount || 0,
         },
         metadata: {
-          model: this.defaultModel,
+          model: modelName,
           provider: 'gemini',
         },
       };

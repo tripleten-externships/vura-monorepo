@@ -1,10 +1,19 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+} from 'react-native';
 // import ForumCard from '../../components/ForumCard/ForumCard';
 // import { NotificationBell } from '../../components/NotificationBell/NotificationBell';
 // import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
 import { useNavigate } from 'react-router-dom';
 import { colors, radii, spacing, typography } from '../../theme/designTokens';
+import commentIcon from '../../../assets/comment.svg';
 
 type ForumPost = {
   id: string;
@@ -49,9 +58,9 @@ const templates = {
 };
 
 const peerGroup = [
-  { id: 'p1', initials: 'A.B.', subtitle: 'Takes care of two elderly parents', age: '40y' },
-  { id: 'p2', initials: 'A.B.', subtitle: 'Takes care of two elderly parents', age: '40y' },
-  { id: 'p3', initials: 'A.B.', subtitle: 'Takes care of two elderly parents', age: '40y' },
+  { id: 'p1', initials: 'A.B.', subtitle: 'Takes care of two elderly parents', age: '41' },
+  { id: 'p2', initials: 'J.C.', subtitle: 'Takes care of one disabled parent', age: '30' },
+  { id: 'p3', initials: 'K.L.', subtitle: 'Takes care of one sick grandparent', age: '26' },
 ];
 
 const CommunityForumsScreen = () => {
@@ -98,9 +107,7 @@ const CommunityForumsScreen = () => {
     if (tab === 'forums') {
       setPageHeaderTitle('Find support and answers here');
     } else {
-      setPageHeaderTitle(
-        'Welcome to a close group of people, who go through similar situations as you do'
-      );
+      setPageHeaderTitle('Welcome to a supportive community of people facing similar journeys');
     }
   }, [tab]);
 
@@ -157,7 +164,11 @@ const CommunityForumsScreen = () => {
             <View style={styles.sortPillRow}>
               <Text style={styles.sortPillLabel}>Topic:</Text>
               <TouchableOpacity onPress={() => setSortBy('Topic')}>
-                <Text style={styles.sortLink}>Any</Text>
+                <Text
+                  style={[styles.sortLink, sortBy === 'Topic' ? styles.sortLinkActive : undefined]}
+                >
+                  Any
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -169,9 +180,14 @@ const CommunityForumsScreen = () => {
                 {post.content}
               </Text>
               <View style={styles.metaRow}>
-                <Text style={styles.metaText}>5</Text>
-                <Text style={styles.metaText}>A.B.</Text>
-                <Text style={styles.metaText}>2d ago</Text>
+                <View style={styles.metaGroup}>
+                  <Image source={{ uri: commentIcon }} style={styles.metaIcon} />
+                  <Text style={styles.metaText}>5</Text>
+                </View>
+                <View style={styles.metaGroupRight}>
+                  <Text style={styles.metaText}>A.B.</Text>
+                  <Text style={styles.metaText}>2d ago</Text>
+                </View>
               </View>
             </View>
           ))}
@@ -183,8 +199,7 @@ const CommunityForumsScreen = () => {
       ) : (
         <>
           <Text style={styles.peerBody}>
-            This chat is meant as a support group and place where you can always discuss anything
-            that comes up your way.
+            A dedicated space for open, supportive conversations about whatever you’re experiencing.
           </Text>
           <TouchableOpacity style={styles.primaryButton}>
             <Text style={styles.primaryButtonText}>Join the chat</Text>
@@ -197,7 +212,7 @@ const CommunityForumsScreen = () => {
               </View>
               <View style={styles.peerInfo}>
                 <Text style={styles.peerName}>
-                  {member.initials}, {member.age}
+                  {member.initials} <Text style={styles.peerAge}>{member.age}yo</Text>
                 </Text>
                 <Text style={styles.peerSubtitle}>{member.subtitle}</Text>
               </View>
@@ -212,27 +227,25 @@ const CommunityForumsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xxl,
     backgroundColor: colors.base,
     width: '100%',
-    maxWidth: 480,
-    alignSelf: 'center',
   },
   tabRow: {
     flexDirection: 'row',
     gap: spacing.xs,
     marginBottom: spacing.lg,
     backgroundColor: colors.surface,
-    borderRadius: radii.card,
-    padding: spacing.xs,
+    borderRadius: radii.tab,
+    padding: spacing.xs / 1.5,
     borderWidth: 1,
     borderColor: colors.stroke,
   },
   tab: {
     flex: 1,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.card,
+    paddingVertical: spacing.xs / 1.5,
+    borderRadius: radii.tab,
     backgroundColor: colors.surface,
     alignItems: 'center',
   },
@@ -276,7 +289,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.stroke,
-    borderRadius: radii.card,
+    borderRadius: radii.input,
     padding: spacing.md,
     color: colors.textPrimary,
     backgroundColor: colors.surface,
@@ -307,7 +320,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.card,
     borderWidth: 1,
     borderColor: colors.stroke,
-    padding: spacing.md,
+    padding: spacing.lg,
     marginBottom: spacing.sm,
   },
   feedTitle: {
@@ -322,7 +335,24 @@ const styles = StyleSheet.create({
   },
   metaRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
+  },
+  metaGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  metaGroupRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.md,
+  },
+  metaIcon: {
+    width: 16,
+    height: 16,
+    tintColor: colors.textSecondary,
   },
   metaText: {
     ...typography.body16Regular,
@@ -385,13 +415,17 @@ const styles = StyleSheet.create({
     ...typography.body16Regular,
     color: colors.textSecondary,
   },
+  peerAge: {
+    ...typography.body16Regular,
+    color: colors.textSecondary,
+  },
   fab: {
     position: 'absolute',
     right: spacing.lg,
     bottom: spacing.lg,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#C7C6F3',
     alignItems: 'center',
     justifyContent: 'center',
@@ -400,8 +434,8 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   fabText: {
-    ...typography.body18Medium,
-    color: colors.textPrimary,
+    ...typography.body22Regular,
+    color: colors.base,
   },
 });
 

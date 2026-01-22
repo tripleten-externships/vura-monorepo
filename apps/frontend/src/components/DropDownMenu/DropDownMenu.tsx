@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, Platform } from 'react-native';
 
 interface DropdownProps {
   label?: string; //label for dropdown
@@ -7,29 +7,38 @@ interface DropdownProps {
   options: string[]; // List of items to choose from
   onSelect: (value: string) => void; // Called when user selects an option
   selectedValue?: string; // Current selected value
+  onVisibilityChange?: (visible: boolean) => void;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ label, options, onSelect, selectedValue }) => {
+const Dropdown: React.FC<DropdownProps> = ({
+  label,
+  placeholder = 'Select an option',
+  options,
+  onSelect,
+  selectedValue,
+  onVisibilityChange,
+}) => {
   const [isVisible, setIsVisible] = useState(false);
 
+  const isWeb = Platform.OS === 'web';
+  const setVisible = (visible: boolean) => {
+    setIsVisible(visible);
+    onVisibilityChange?.(visible);
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isVisible && styles.containerOpen]}>
       {/*Label for dropdown*/}
       {label && <Text style={styles.label}>{label}</Text>}
 
       {/* Dropdown button */}
-      <TouchableOpacity style={styles.dropdownButton} onPress={() => setIsVisible(true)}>
-        <Text style={styles.dropdownText}>{selectedValue || 'Select an option'}</Text>
+      <TouchableOpacity style={styles.dropdownButton} onPress={() => setVisible(!isVisible)}>
+        <Text style={styles.dropdownText}>{selectedValue || placeholder}</Text>
       </TouchableOpacity>
 
-      {/* Modal with options */}
-      <Modal visible={isVisible} transparent animationType="fade">
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPressOut={() => setIsVisible(false)}
-        >
-          <View style={styles.modalContent}>
+      {isWeb ? (
+        isVisible && (
+          <View style={styles.webDropdown}>
             <FlatList
               data={options}
               keyExtractor={(item) => item}
@@ -38,7 +47,7 @@ const Dropdown: React.FC<DropdownProps> = ({ label, options, onSelect, selectedV
                   style={styles.option}
                   onPress={() => {
                     onSelect(item);
-                    setIsVisible(false);
+                    setVisible(false);
                   }}
                 >
                   <Text style={styles.optionText}>{item}</Text>
@@ -46,8 +55,34 @@ const Dropdown: React.FC<DropdownProps> = ({ label, options, onSelect, selectedV
               )}
             />
           </View>
-        </TouchableOpacity>
-      </Modal>
+        )
+      ) : (
+        <Modal visible={isVisible} transparent animationType="fade">
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPressOut={() => setVisible(false)}
+          >
+            <View style={styles.modalContent}>
+              <FlatList
+                data={options}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.option}
+                    onPress={() => {
+                      onSelect(item);
+                      setVisible(false);
+                    }}
+                  >
+                    <Text style={styles.optionText}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </View>
   );
 };
@@ -59,6 +94,11 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     marginVertical: 10,
+    position: 'relative',
+  },
+  containerOpen: {
+    zIndex: 50,
+    elevation: 10,
   },
   label: {
     fontSize: 18,
@@ -75,6 +115,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#3636368e',
   },
+  webDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    maxHeight: 240,
+    padding: 10,
+    zIndex: 60,
+    elevation: 11,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    opacity: 1,
+  },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -82,7 +138,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6F4FA',
   },
   modalContent: {
-    backgroundColor: '#F6F4FA',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     width: '80%',
     maxHeight: '60%',
@@ -92,6 +148,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 0.5,
     borderBottomColor: '#ddd',
+    backgroundColor: '#FFFFFF',
   },
   optionText: {
     fontSize: 18,

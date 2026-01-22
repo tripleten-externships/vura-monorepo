@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { colors, spacing } from '../../theme/designTokens';
 
 dayjs.extend(relativeTime);
 
@@ -51,6 +52,7 @@ export default function NotificationsScreen() {
     <View style={styles.screen}>
       <PageHeader
         title="Notifications"
+        titleStyle={styles.title}
         leftIcon={{
           icon: <FontAwesomeIcon icon={faChevronLeft} />,
           onPress: () => goBack('/'),
@@ -77,9 +79,8 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F7F5F8',
-    paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
   },
   content: {
     paddingBottom: 32,
@@ -106,5 +107,11 @@ const styles = StyleSheet.create({
     color: '#2F2F2F',
     fontSize: 15,
     lineHeight: 20,
+  },
+  title: {
+    fontFamily: 'system-ui',
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.textPrimary,
   },
 });

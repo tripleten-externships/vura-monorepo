@@ -2651,6 +2651,7 @@ input AiChatInput {
   messages: [AiChatMessageInput!]!
   systemPrompt: systemPrompt_String_maxLength_2000
   temperature: Float
+  maxTokens: Int
   provider: provider_String_maxLength_40
 }
 
@@ -2686,6 +2687,7 @@ input UpdateProfileInput {
   age: age_Int_min_13_max_120
   gender: gender_String_maxLength_50
   avatarUrl: avatarUrl_String_format_uri
+  privacyToggle: Boolean
   currentPassword: currentPassword_String_minLength_8_maxLength_128
 }
 

@@ -70,7 +70,8 @@ export default Checkbox;
 const styles = StyleSheet.create({
   //Container card
   container: {
-    width: 345,
+    width: '100%',
+    maxWidth: 345,
     height: 103,
     borderColor: '#E7E7E7',
     borderWidth: 1,

@@ -9,6 +9,8 @@ export const colors = {
 };
 
 export const radii = {
+  chip: 10,
+  tab: 10,
   input: 20,
   card: 20,
   cardLg: 24,
@@ -28,23 +30,28 @@ export const spacing = {
 export const typography = {
   headingSerif: {
     fontFamily: 'Noto Serif',
-    fontSize: 34,
+    fontSize: 32,
     lineHeight: 44,
     fontWeight: '400' as const,
   },
   body16Regular: {
-    fontFamily: 'Inter',
     fontSize: 16,
     fontWeight: '400' as const,
+    fontStyle: 'normal' as const,
   },
   body16Medium: {
-    fontFamily: 'Inter',
     fontSize: 16,
     fontWeight: '500' as const,
+    fontStyle: 'normal' as const,
   },
   body18Medium: {
-    fontFamily: 'Inter',
     fontSize: 18,
     fontWeight: '500' as const,
+    fontStyle: 'normal' as const,
+  },
+  body22Regular: {
+    fontSize: 22,
+    fontWeight: '400' as const,
+    fontStyle: 'normal' as const,
   },
 };

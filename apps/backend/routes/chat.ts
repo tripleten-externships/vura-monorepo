@@ -18,10 +18,14 @@ export function chatRoutes(app: Express, contextProvider: () => Promise<Keystone
     if (!req.body) {
       return res.status(400).json({ error: 'Request body is required' });
     }
+    let userId: string | undefined;
 
     const scopedContext = await createRequestContext(contextProvider, req, res);
     if (!scopedContext.session?.data?.id) {
-      return res.status(401).json({ error: 'Authentication required' });
+      // return res.status(401).json({ error: 'Authentication required' });
+      userId = undefined;
+    } else {
+      userId = scopedContext.session.data.id;
     }
 
     const { messages, systemPrompt, temperature, provider, sessionId } = req.body;
@@ -36,7 +40,6 @@ export function chatRoutes(app: Express, contextProvider: () => Promise<Keystone
     })) as ChatMessage[];
 
     const isStreaming = req.headers['accept'] === 'text/event-stream';
-    const userId = scopedContext.session.data.id;
 
     if (isStreaming) {
       res.writeHead(200, {
