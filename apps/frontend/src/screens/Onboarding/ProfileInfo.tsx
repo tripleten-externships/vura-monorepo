@@ -124,11 +124,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'stretch',
     width: '100%',
+    height: '100%',
   },
   scrollView: {
     flex: 1,
     width: '100%',
     alignSelf: 'stretch',
+    height: '100%',
   },
   content: {
     flexGrow: 1,
@@ -149,6 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.xl,
     alignSelf: 'stretch',
+    minHeight: '100%',
   },
   heading: {
     ...typography.headingSerif,
