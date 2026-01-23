@@ -107,6 +107,25 @@ CREATE TABLE `ForumSubscription` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `FrontendAccount` (
+    `id` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL DEFAULT '',
+    `password` VARCHAR(191) NULL,
+    `providerType` VARCHAR(191) NULL DEFAULT 'PASSWORD',
+    `providerAccountId` VARCHAR(191) NOT NULL DEFAULT '',
+    `isKeystoneUserCreated` BOOLEAN NOT NULL DEFAULT false,
+    `lastLoginAt` DATETIME(3) NULL,
+    `createdAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NULL,
+    `user` VARCHAR(191) NULL,
+
+    UNIQUE INDEX `FrontendAccount_email_key`(`email`),
+    UNIQUE INDEX `FrontendAccount_providerAccountId_key`(`providerAccountId`),
+    UNIQUE INDEX `FrontendAccount_user_key`(`user`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `GroupChat` (
     `id` VARCHAR(191) NOT NULL,
     `groupName` VARCHAR(191) NOT NULL DEFAULT '',
@@ -141,6 +160,18 @@ CREATE TABLE `Notification` (
     INDEX `Notification_relatedCarePlan_idx`(`relatedCarePlan`),
     INDEX `Notification_relatedChat_idx`(`relatedChat`),
     INDEX `Notification_relatedForumPost_idx`(`relatedForumPost`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `NotificationCounter` (
+    `id` VARCHAR(191) NOT NULL,
+    `user` VARCHAR(191) NULL,
+    `notificationType` VARCHAR(191) NOT NULL DEFAULT 'SYSTEM',
+    `count` INTEGER NOT NULL DEFAULT 0,
+    `lastUpdated` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `NotificationCounter_user_idx`(`user`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -313,6 +344,9 @@ ALTER TABLE `ForumSubscription` ADD CONSTRAINT `ForumSubscription_user_fkey` FOR
 ALTER TABLE `ForumSubscription` ADD CONSTRAINT `ForumSubscription_forumPost_fkey` FOREIGN KEY (`forumPost`) REFERENCES `ForumPost`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `FrontendAccount` ADD CONSTRAINT `FrontendAccount_user_fkey` FOREIGN KEY (`user`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `GroupChat` ADD CONSTRAINT `GroupChat_ownerId_fkey` FOREIGN KEY (`ownerId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -326,6 +360,9 @@ ALTER TABLE `Notification` ADD CONSTRAINT `Notification_relatedChat_fkey` FOREIG
 
 -- AddForeignKey
 ALTER TABLE `Notification` ADD CONSTRAINT `Notification_relatedForumPost_fkey` FOREIGN KEY (`relatedForumPost`) REFERENCES `ForumPost`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `NotificationCounter` ADD CONSTRAINT `NotificationCounter_user_fkey` FOREIGN KEY (`user`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Parent` ADD CONSTRAINT `Parent_user_fkey` FOREIGN KEY (`user`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -371,4 +408,3 @@ ALTER TABLE `_GroupChat_members` ADD CONSTRAINT `_GroupChat_members_A_fkey` FORE
 
 -- AddForeignKey
 ALTER TABLE `_GroupChat_members` ADD CONSTRAINT `_GroupChat_members_B_fkey` FOREIGN KEY (`B`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-

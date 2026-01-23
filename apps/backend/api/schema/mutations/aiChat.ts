@@ -41,14 +41,6 @@ export const aiChat = async (_: any, { input }: { input: AiChatInput }, context:
         }
       );
     }
-
-    // Authentication check (optional - remove if public access is allowed)
-    // if (!context.session?.data?.id) {
-    //   throw new GraphQLError('Authentication required to use AI chat', {
-    //     extensions: { code: 'UNAUTHENTICATED' },
-    //   });
-    // }
-
     // Validate provider if specified
     let validatedProvider: ProviderType | undefined;
     if (provider) {
