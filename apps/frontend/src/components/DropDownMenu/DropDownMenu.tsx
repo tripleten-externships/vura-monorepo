@@ -58,12 +58,8 @@ const Dropdown: React.FC<DropdownProps> = ({
         )
       ) : (
         <Modal visible={isVisible} transparent animationType="fade">
-          <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPressOut={() => setVisible(false)}
-          >
-            <View style={styles.modalContent}>
+          <TouchableOpacity activeOpacity={1} onPressOut={() => setVisible(false)}>
+            <View>
               <FlatList
                 data={options}
                 keyExtractor={(item) => item}
