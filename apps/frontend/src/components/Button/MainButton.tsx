@@ -12,8 +12,8 @@ const MainButton: React.FC<ButtonProps> = ({ buttonText, size, variant = 'primar
   // size dimensions
   const sizeStyles = {
     sm: { width: 67, height: 43 },
-    md: { width: 245, height: 56 },
-    lg: { width: 345, height: 62 },
+    md: { width: '100%', maxWidth: 245, height: 56 },
+    lg: { width: '100%', maxWidth: 345, height: 62 },
   };
 
   // background and border styles based on variant

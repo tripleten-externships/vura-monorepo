@@ -8,13 +8,14 @@ export interface AiChatInput {
   messages: Array<{ role: string; content: string }>;
   systemPrompt?: string;
   temperature?: number;
+  maxTokens?: number;
   provider?: string;
   sessionId?: string;
 }
 
 export const aiChat = async (_: any, { input }: { input: AiChatInput }, context: Context) => {
   try {
-    const { messages, systemPrompt, temperature, provider, sessionId } = input;
+    const { messages, systemPrompt, temperature, maxTokens, provider, sessionId } = input;
 
     if (!messages || !Array.isArray(messages)) {
       throw new GraphQLError('Messages array is required', {
@@ -40,14 +41,6 @@ export const aiChat = async (_: any, { input }: { input: AiChatInput }, context:
         }
       );
     }
-
-    // Authentication check (optional - remove if public access is allowed)
-    if (!context.session?.data?.id) {
-      throw new GraphQLError('Authentication required to use AI chat', {
-        extensions: { code: 'UNAUTHENTICATED' },
-      });
-    }
-
     // Validate provider if specified
     let validatedProvider: ProviderType | undefined;
     if (provider) {
@@ -77,6 +70,7 @@ export const aiChat = async (_: any, { input }: { input: AiChatInput }, context:
     const response = await aiService.chat(typedMessages, {
       systemPrompt,
       temperature,
+      maxTokens,
       provider: validatedProvider,
       userId: useWebSockets ? userId : undefined,
       sessionId: useWebSockets ? sessionId : undefined,

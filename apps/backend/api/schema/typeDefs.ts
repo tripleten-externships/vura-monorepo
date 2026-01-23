@@ -311,6 +311,7 @@ export const typeDefs = gql`
     messages: [AiChatMessageInput!]!
     systemPrompt: String @constraint(maxLength: 2000)
     temperature: Float
+    maxTokens: Int
     provider: String @constraint(maxLength: 40)
   }
 
@@ -340,6 +341,7 @@ export const typeDefs = gql`
     age: Int @constraint(min: 13, max: 120)
     gender: String @constraint(maxLength: 50)
     avatarUrl: String @constraint(format: "uri")
+    privacyToggle: Boolean
     currentPassword: String @constraint(minLength: 8, maxLength: 128)
   }
 

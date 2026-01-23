@@ -107,6 +107,10 @@ export default function ChecklistScreen() {
     }
   }, [location.state]);
 
+  const limitedChecklistData = Object.fromEntries(
+    Object.entries(checklistData).map(([sectionName, items]) => [sectionName, items.slice(0, 4)])
+  ) as typeof checklistData;
+
   const toggleChecked = (key: string) => {
     setChecked((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -128,13 +132,15 @@ export default function ChecklistScreen() {
         contentContainerStyle={{ paddingBottom: spacing.xxl * 2 + 80 }}
       >
         <View style={styles.container}>
+          <View style={styles.notificationBellContainer}>
+            <NotificationBell hasUnread={hasUnread} onClick={() => navigate('/notifications')} />
+          </View>
           <View style={styles.headerRow}>
             <Text style={styles.titleStyle}>Your care action plan</Text>
-            <NotificationBell hasUnread={hasUnread} onClick={() => navigate('/notifications')} />
           </View>
 
           {/* Render checklist UI using plan data */}
-          {Object.entries(checklistData).map(([sectionName, items]) => (
+          {Object.entries(limitedChecklistData).map(([sectionName, items]) => (
             <View key={sectionName} style={styles.section}>
               <Text style={styles.sectionTitle}>{sectionName}</Text>
 
@@ -159,7 +165,7 @@ export default function ChecklistScreen() {
           pointerEvents="box-none"
           style={[
             styles.ctaStickyContainer,
-            Platform.OS === 'web' ? ({ position: 'fixed' } as any) : null,
+            Platform.OS === 'web' ? ({ position: 'absolute' } as any) : null,
           ]}
         >
           <View style={styles.ctaBlur as any}>
@@ -180,22 +186,27 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xxl,
     backgroundColor: colors.base,
     width: '100%',
-    maxWidth: 480,
-    alignSelf: 'center',
+  },
+  notificationBellContainer: {
+    alignItems: 'flex-end',
+    position: 'absolute',
+    right: 30,
+    top: 15,
+    zIndex: 100,
   },
   headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: spacing.lg,
   },
   titleStyle: {
     ...typography.headingSerif,
     color: colors.textPrimary,
+    fontSize: 34,
     flex: 1,
     textAlign: 'center',
   },
@@ -218,7 +229,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 90,
+    bottom: 0,
     alignItems: 'center',
     zIndex: 150,
     paddingHorizontal: spacing.lg,
@@ -226,8 +237,7 @@ const styles = StyleSheet.create({
   },
   ctaBlur: {
     width: '100%',
-    maxWidth: 480,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xl,
     paddingHorizontal: 0,
     // @ts-expect-error web-only blur
     backdropFilter: 'blur(12px)',

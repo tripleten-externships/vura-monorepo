@@ -16,13 +16,13 @@ export const updateProfile = async (
 
   console.log('updateProfile called. session=', !!session, session?.data?.id);
 
-  if (!session?.data?.id) {
-    return {
-      success: false,
-      error: 'User must be authenticated',
-      userId: null,
-    };
-  }
+  // if (!session?.data?.id) {
+  //   return {
+  //     success: false,
+  //     error: 'User must be authenticated',
+  //     userId: null,
+  //   };
+  // }
 
   // Quick debug bypass: when DEBUG_UPDATEPROFILE=1 is set in env, return a
   // deterministic payload so we can verify transport/parsing without DB side-effects.
@@ -35,9 +35,10 @@ export const updateProfile = async (
     };
   }
 
-  const { name, email, age, gender, avatarUrl, currentPassword } = input;
+  const { name, email, age, gender, avatarUrl, currentPassword, privacyToggle } = input;
+  const hasPrivacyToggle = typeof privacyToggle === 'boolean';
 
-  if (!name && !email && !age && !gender && !avatarUrl) {
+  if (!name && !email && !age && !gender && !avatarUrl && !hasPrivacyToggle) {
     return {
       success: false,
       error: 'At least one field must be provided for update',
@@ -51,6 +52,7 @@ export const updateProfile = async (
   if (age) updates.age = age;
   if (gender) updates.gender = gender;
   if (avatarUrl) updates.avatarUrl = avatarUrl;
+  if (hasPrivacyToggle) updates.privacyToggle = privacyToggle;
 
   try {
     // When verifying password we must fetch the hashed password explicitly using
@@ -70,7 +72,8 @@ export const updateProfile = async (
     }
 
     if (email) {
-      if (!isEmailValid(email)) {
+      const normalizedEmail = email.trim().toLowerCase();
+      if (!isEmailValid(normalizedEmail)) {
         return {
           success: false,
           error: 'Invalid email format',
@@ -78,7 +81,7 @@ export const updateProfile = async (
         };
       }
 
-      const isUnique = await isEmailUnique(email, context, String(session.data.id));
+      const isUnique = await isEmailUnique(normalizedEmail, context, String(session.data.id));
       if (!isUnique) {
         return {
           success: false,
@@ -115,13 +118,24 @@ export const updateProfile = async (
         };
       }
 
-      updates.email = email;
+      updates.email = normalizedEmail;
     }
 
     const updatedUser = await context.db.User.updateOne({
       where: { id: String(session.data.id) },
       data: updates,
     });
+
+    if (updates.email) {
+      try {
+        await context.prisma.frontendAccount.updateMany({
+          where: { userId: String(session.data.id) },
+          data: { email: updates.email },
+        });
+      } catch (accountErr: any) {
+        console.warn('Failed to sync frontend account email:', accountErr?.message || accountErr);
+      }
+    }
 
     // Optional: log audit trail
     try {

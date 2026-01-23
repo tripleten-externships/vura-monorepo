@@ -51,7 +51,8 @@ export function initEventBus(): EventBus {
 
 export function getEventBus(): EventBus {
   if (!eventBusInstance) {
-    throw new Error('event bus has not been initialized yet');
+    logger.warn('eventBusInstance is null, creating new instance');
+    eventBusInstance = new EventBus();
   }
   return eventBusInstance;
 }

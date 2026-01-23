@@ -39,7 +39,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: 345,
+    width: '100%',
+    maxWidth: 345,
     height: 77,
     backgroundColor: '#F6F4FA',
     borderColor: '#E7E7E7',

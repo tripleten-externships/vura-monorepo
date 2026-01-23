@@ -10,9 +10,9 @@ export class UserProfileService extends BaseService {
     super(deps);
   }
 
-  async getCurrentUser(userId: string) {
+  async getCurrentUser(userId?: string | null) {
     if (!userId) {
-      throw new GraphQLError('user id is required', { extensions: { code: 'UNAUTHENTICATED' } });
+      return null;
     }
 
     const user = await this.context.prisma.user.findUnique({

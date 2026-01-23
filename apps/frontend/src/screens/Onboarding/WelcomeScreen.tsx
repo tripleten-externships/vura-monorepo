@@ -15,6 +15,7 @@ import { useAuth } from '../../hooks/useAuth';
 import BG1 from '../../../assets/WelcomScreen-Frame1.svg';
 import BG2 from '../../../assets/WelcomScreen-Frame2.svg';
 import BG3 from '../../../assets/WelcomScreen-Frame3.svg';
+import { spacing } from '../../theme/designTokens';
 // use react-router's navigation on the web
 
 // const { width } = Dimensions.get('window');
@@ -47,7 +48,7 @@ const WelcomeScreen = () => {
             style={styles.imageBackground}
             imageStyle={{ borderRadius: 8 }}
           >
-            <Text style={styles.highlightText}>Personalised care plan</Text>
+            <Text style={styles.highlightText}>Personalized care plan</Text>
           </ImageBackground>
         </View>
         <View style={styles.highlight}>
@@ -81,14 +82,16 @@ const WelcomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingVertical: 70,
+    paddingTop: 70,
+    paddingBottom: 40,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
   header: {
-    width: 360,
+    width: '100%',
+    maxWidth: 360,
     height: 132,
     fontSize: 34,
     lineHeight: 44,
@@ -102,7 +105,8 @@ const styles = StyleSheet.create({
   },
   highlightContainer: {
     marginBottom: 73,
-    width: 345,
+    width: '100%',
+    maxWidth: 345,
     height: 365,
   },
   highlight: {
@@ -115,7 +119,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#444',
     flexShrink: 1,
-    fontFamily: 'Inter',
+    // fontFamily: 'Inter',
     fontWeight: '500',
     fontStyle: 'normal',
     lineHeight: 18 * 1.2,
@@ -125,7 +129,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
     justifyContent: 'center',
-    width: 345,
+    width: '100%',
+    maxWidth: 345,
     height: 111,
   },
 
@@ -133,16 +138,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#363636',
     paddingVertical: 16,
     paddingHorizontal: 32,
-    borderRadius: 8,
-    width: 345,
+    borderRadius: 15,
+    width: '100%',
+    maxWidth: 345,
     alignItems: 'center',
-    marginTop: 57,
+    marginTop: spacing.lg,
   },
   ctaText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: '500',
-    fontFamily: 'Inter',
+    letterSpacing: 1,
     fontStyle: 'normal',
     lineHeight: 18 * 1.2,
   },
